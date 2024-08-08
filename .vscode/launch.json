@@ -5,6 +5,7 @@
     "version": "0.2.0",
     "configurations": [
 
+
         {
             "name": "Launch main",
             "type": "go",
@@ -29,6 +30,15 @@
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/cmd/button",
+            "env": {},
+            "args": []
+        },
+        {
+            "name": "Launch cmd/base",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/base",
             "env": {},
             "args": []
         },

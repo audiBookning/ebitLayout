@@ -7,7 +7,7 @@
 
     - `go run .\cmd\accordion\`
 
-- Button widget
+- Button widget - with input manager
 
     - `go run .\cmd\button\`
 
@@ -69,9 +69,15 @@
     - `go run .\cmd\tabbedLayout\`
 
 
+### MIXED:
+
+- Base Layout - uses stack navigator and input manager
+
+    - `go run .\cmd\base01\`
+
 ### VARIOUS:
 
-- navigation: android-like stack navigation
+- navigation: android-like stack navigation - navigator
 
     - `go run .\cmd\navigation01\` // uses keys for nav
     
@@ -84,9 +90,6 @@
 - sidebar menu with top bar
 
     - `go run .\cmd\sidebar\`
-
-
-
 
 
 

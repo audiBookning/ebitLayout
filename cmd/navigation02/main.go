@@ -11,7 +11,7 @@ import (
 )
 
 type Screen interface {
-	Update() error
+	Update(*Navigator) error
 	Draw(screen *ebiten.Image)
 }
 
@@ -105,7 +105,7 @@ func (s *GeneralScreen) GenerateButtons() {
 	}
 }
 
-func (s *GeneralScreen) Update() error {
+func (s *GeneralScreen) Update(navigator *Navigator) error {
 	// Handle button clicks
 	for _, button := range s.buttons {
 		if button.IsClicked() {
@@ -132,10 +132,8 @@ func (s *GeneralScreen) Draw(screen *ebiten.Image) {
 	}
 }
 
-var navigator *Navigator
-
 func main() {
-	navigator = NewNavigator()
+	navigator := NewNavigator()
 
 	// Create the screens
 	screenA := &GeneralScreen{
@@ -184,23 +182,25 @@ func main() {
 	ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("Navigation Example")
 
-	game := &Game{}
+	game := &Game{navigator: navigator}
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
 }
 
-type Game struct{}
+type Game struct {
+	navigator *Navigator
+}
 
 func (g *Game) Update() error {
-	if currentScreen := navigator.CurrentScreen(); currentScreen != nil {
-		return currentScreen.Update()
+	if currentScreen := g.navigator.CurrentScreen(); currentScreen != nil {
+		return currentScreen.Update(g.navigator)
 	}
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	if currentScreen := navigator.CurrentScreen(); currentScreen != nil {
+	if currentScreen := g.navigator.CurrentScreen(); currentScreen != nil {
 		currentScreen.Draw(screen)
 	}
 }

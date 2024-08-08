@@ -55,27 +55,21 @@ type Clickable interface {
 	SetHovered(isHovered bool)
 }
 
-type Area struct {
-	X, Y, Width, Height int
-}
-
 // ***** BUTTON *****
 type Button struct {
-	area        Area
-	Label       string
-	Color       color.Color
-	HoverColor  color.Color
-	ClickColor  color.Color
-	isHovered   bool
-	isPressed   bool
-	OnClickFunc func() // Callback function
+	X, Y, Width, Height int
+	Label               string
+	Color               color.Color
+	HoverColor          color.Color
+	ClickColor          color.Color
+	isHovered           bool
+	isPressed           bool
+	OnClickFunc         func() // Callback function
 }
 
 func NewButton(x, y, width, height int, label string, color, hoverColor, clickColor color.Color, onClick func()) *Button {
 	return &Button{
-		area: Area{
-			X: x, Y: y, Width: width, Height: height,
-		},
+		X: x, Y: y, Width: width, Height: height,
 		Label:       label,
 		Color:       color,
 		HoverColor:  hoverColor,
@@ -93,13 +87,13 @@ func (b *Button) Draw(screen *ebiten.Image) {
 	} else {
 		drawColor = b.Color
 	}
-	vector.DrawFilledRect(screen, float32(b.area.X), float32(b.area.Y), float32(b.area.Width), float32(b.area.Height), drawColor, true)
-	ebitenutil.DebugPrintAt(screen, b.Label, b.area.X+10, b.area.Y+10)
+	vector.DrawFilledRect(screen, float32(b.X), float32(b.Y), float32(b.Width), float32(b.Height), drawColor, true)
+	ebitenutil.DebugPrintAt(screen, b.Label, b.X+10, b.Y+10)
 }
 
 func (b *Button) Contains(x, y int) bool {
-	return x >= b.area.X && x <= b.area.X+b.area.Width &&
-		y >= b.area.Y && y <= b.area.Y+b.area.Height
+	return x >= b.X && x <= b.X+b.Width &&
+		y >= b.Y && y <= b.Y+b.Height
 }
 
 func (b *Button) OnClick() {
