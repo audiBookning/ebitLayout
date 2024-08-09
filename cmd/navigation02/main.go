@@ -83,18 +83,18 @@ func (b *Button) IsClicked() bool {
 }
 
 type GeneralScreen struct {
-	color   color.RGBA
-	text    string
-	targets []*GeneralScreen
-	buttons []*Button
+	color         color.RGBA
+	label         string
+	screenButtons []*Button
+	targets       []*GeneralScreen
 }
 
 // GenerateButtons generates buttons based on the targets
-func (s *GeneralScreen) GenerateButtons() {
-	s.buttons = nil
-	for i, target := range s.targets {
+func (gs *GeneralScreen) GenerateButtons() {
+	gs.screenButtons = nil
+	for i, target := range gs.targets {
 		buttonText := fmt.Sprintf("Go to Screen %d", i+1)
-		s.buttons = append(s.buttons, &Button{
+		gs.screenButtons = append(gs.screenButtons, &Button{
 			x:      50,
 			y:      50 + i*60,
 			width:  200,
@@ -107,7 +107,7 @@ func (s *GeneralScreen) GenerateButtons() {
 
 func (s *GeneralScreen) Update(navigator *Navigator) error {
 	// Handle button clicks
-	for _, button := range s.buttons {
+	for _, button := range s.screenButtons {
 		if button.IsClicked() {
 			navigator.Push(button.target)
 			break
@@ -126,8 +126,8 @@ func (s *GeneralScreen) Update(navigator *Navigator) error {
 
 func (s *GeneralScreen) Draw(screen *ebiten.Image) {
 	screen.Fill(s.color)
-	ebitenutil.DebugPrint(screen, s.text)
-	for _, button := range s.buttons {
+	ebitenutil.DebugPrint(screen, s.label)
+	for _, button := range s.screenButtons {
 		button.Draw(screen)
 	}
 }
@@ -138,32 +138,32 @@ func main() {
 	// Create the screens
 	screenA := &GeneralScreen{
 		color:   color.RGBA{255, 0, 0, 255},
-		text:    "Screen A\nClick to navigate",
+		label:   "Screen A\nClick to navigate",
 		targets: nil,
 	}
 	screenB := &GeneralScreen{
 		color:   color.RGBA{0, 255, 0, 255},
-		text:    "Screen B\nClick to navigate",
+		label:   "Screen B\nClick to navigate",
 		targets: nil,
 	}
 	screenC := &GeneralScreen{
 		color:   color.RGBA{0, 0, 255, 255},
-		text:    "Screen C\nClick to navigate",
+		label:   "Screen C\nClick to navigate",
 		targets: nil,
 	}
 	screenD := &GeneralScreen{
 		color:   color.RGBA{255, 255, 0, 255},
-		text:    "Screen D\nClick to navigate",
+		label:   "Screen D\nClick to navigate",
 		targets: nil,
 	}
 	screenE := &GeneralScreen{
 		color:   color.RGBA{0, 255, 255, 255},
-		text:    "Screen E\nClick to navigate",
+		label:   "Screen E\nClick to navigate",
 		targets: nil,
 	}
 	screenF := &GeneralScreen{
 		color:   color.RGBA{255, 0, 255, 255},
-		text:    "Screen F\nClick to navigate",
+		label:   "Screen F\nClick to navigate",
 		targets: nil,
 	}
 

@@ -6,6 +6,8 @@
     "configurations": [
 
 
+
+
         {
             "name": "Launch main",
             "type": "go",
@@ -39,6 +41,15 @@
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/cmd/base",
+            "env": {},
+            "args": []
+        },
+        {
+            "name": "Launch cmd/sidebar04",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/sidebar04",
             "env": {},
             "args": []
         },

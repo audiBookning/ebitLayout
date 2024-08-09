@@ -13,7 +13,8 @@ import (
 
 // ***** INPUT MANAGER *****
 type InputManager struct {
-	Clickables []Clickable
+	Clickables     []Clickable
+	MouseX, MouseY int
 }
 
 func (im *InputManager) Register(c Clickable) {
@@ -21,14 +22,29 @@ func (im *InputManager) Register(c Clickable) {
 }
 
 func (im *InputManager) Update() {
+	im.MouseX, im.MouseY = ebiten.CursorPosition()
+
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		mx, my := ebiten.CursorPosition()
 		for _, c := range im.Clickables {
-			if c.Contains(mx, my) {
+			if c.Contains(im.MouseX, im.MouseY) {
+				c.OnMouseDown()
+				break
+			}
+		}
+	}
+
+	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+		for _, c := range im.Clickables {
+			if c.Contains(im.MouseX, im.MouseY) {
 				c.OnClick()
 				break
 			}
 		}
+	}
+
+	// Update hover state
+	for _, c := range im.Clickables {
+		c.SetHovered(c.Contains(im.MouseX, im.MouseY))
 	}
 }
 
@@ -36,82 +52,100 @@ func (im *InputManager) Update() {
 type Clickable interface {
 	Contains(x, y int) bool
 	OnClick()
+	OnMouseDown()
+	SetHovered(isHovered bool)
 }
 
 // ***** BUTTON *****
 type Button struct {
-	area        Area
-	Color       color.Color
-	Label       string
-	OnClickFunc func() // Callback function
+	X, Y, Width, Height int
+	Label               string
+	Color               color.Color
+	HoverColor          color.Color
+	ClickColor          color.Color
+	isHovered           bool
+	isPressed           bool
+	OnClickFunc         func() // Callback function
 }
 
-func NewButton(x, y, width, height int, label string, color color.Color, onClick func()) *Button {
+func NewButton(x, y, width, height int, label string, color, hoverColor, clickColor color.Color, onClick func()) *Button {
 	return &Button{
-		area: Area{
-			X:      x,
-			Y:      y,
-			Width:  width,
-			Height: height,
-		},
+
+		X:           x,
+		Y:           y,
+		Width:       width,
+		Height:      height,
 		Label:       label,
 		Color:       color,
+		HoverColor:  hoverColor,
+		ClickColor:  clickColor,
 		OnClickFunc: onClick,
 	}
 }
 
 func (b *Button) Draw(screen *ebiten.Image) {
-	vector.DrawFilledRect(screen, float32(b.area.X), float32(b.area.Y), float32(b.area.Width), float32(b.area.Height), b.Color, true)
-	ebitenutil.DebugPrintAt(screen, b.Label, b.area.X+10, b.area.Y+10)
+	var drawColor color.Color
+	if b.isPressed {
+		drawColor = b.ClickColor
+	} else if b.isHovered {
+		drawColor = b.HoverColor
+	} else {
+		drawColor = b.Color
+	}
+	vector.DrawFilledRect(screen, float32(b.X), float32(b.Y), float32(b.Width), float32(b.Height), drawColor, true)
+	ebitenutil.DebugPrintAt(screen, b.Label, b.X+10, b.Y+10)
 }
 
 func (b *Button) Contains(x, y int) bool {
-	return x >= b.area.X && x <= b.area.X+b.area.Width &&
-		y >= b.area.Y && y <= b.area.Y+b.area.Height
+	return x >= b.X && x <= b.X+b.Width &&
+		y >= b.Y && y <= b.Y+b.Height
 }
 
 func (b *Button) OnClick() {
 	if b.OnClickFunc != nil {
 		b.OnClickFunc()
 	}
+	b.isPressed = false
+}
+
+func (b *Button) OnMouseDown() {
+	b.isPressed = true
+}
+
+func (b *Button) SetHovered(isHovered bool) {
+	b.isHovered = isHovered
 }
 
 // ***** TOP BAR *****
 type TopBar struct {
-	area    Area
-	Buttons []*Button
+	X, Y, Width, Height int
+	Buttons             []*Button
 }
 
-func NewTopBar(width, height int, numButtons int) *TopBar {
+func NewTopBar(width, height int, numButtons int, inputManager *InputManager) *TopBar {
 	buttons := make([]*Button, numButtons)
 	for i := range buttons {
-		buttons[i] = &Button{
-			area: Area{
-				X:      i*100 + 10,
-				Y:      10,
-				Width:  80,
-				Height: 25,
-			},
-			Label: "Menu " + strconv.Itoa(i),
-			Color: color.RGBA{200, 0, 0, 255},
-			OnClickFunc: func() {
-				// Placeholder for button-specific logic
-			},
-		}
+		buttons[i] = NewButton(
+			i*100+10, 10, 80, 25,
+			"Menu "+strconv.Itoa(i),
+			color.RGBA{200, 0, 0, 255},
+			color.RGBA{150, 0, 0, 255},
+			color.RGBA{100, 0, 0, 255},
+			nil, // Placeholder for button-specific logic
+		)
+		inputManager.Register(buttons[i])
 	}
 	return &TopBar{
-		area: Area{
-			X:      0,
-			Y:      0,
-			Width:  width,
-			Height: height,
-		},
+		X:       0,
+		Y:       0,
+		Width:   width,
+		Height:  height,
 		Buttons: buttons,
 	}
 }
 
 func (tb *TopBar) Draw(screen *ebiten.Image) {
-	vector.DrawFilledRect(screen, float32(tb.area.X), float32(tb.area.Y), float32(tb.area.Width), float32(tb.area.Height), color.RGBA{30, 30, 30, 255}, true)
+	vector.DrawFilledRect(screen, float32(tb.X), float32(tb.Y), float32(tb.Width), float32(tb.Height), color.RGBA{30, 30, 30, 255}, true)
 	for _, button := range tb.Buttons {
 		button.Draw(screen)
 	}
@@ -127,15 +161,13 @@ type SidebarController struct {
 	ClickableArea *ClickableArea
 }
 
-func NewSidebarController(width, height, topOffset int, screenWidth, screenHeight int) *SidebarController {
+func NewSidebarController(width, height, topOffset int, screenWidth, screenHeight int, inputManager *InputManager) *SidebarController {
 	sidebar := NewSidebar(width, height, topOffset)
 	clickableArea := &ClickableArea{
-		area: Area{
-			X:      sidebar.area.Width,
-			Width:  screenWidth,
-			Y:      sidebar.area.Y,
-			Height: sidebar.area.Height,
-		},
+		X:      sidebar.Width,
+		Width:  screenWidth,
+		Y:      sidebar.Y,
+		Height: sidebar.Height,
 		OnClickFunc: func() {
 			// Placeholder for button-specific logic
 		},
@@ -153,12 +185,14 @@ func NewSidebarController(width, height, topOffset int, screenWidth, screenHeigh
 		}
 	}
 
+	inputManager.Register(sidebarControler.ClickableArea)
+
 	return sidebarControler
 }
 
 func (sc *SidebarController) ToggleSidebar() {
 	if sc.Sidebar.TargetX == 0 {
-		sc.Sidebar.TargetX = -sc.Sidebar.area.Width
+		sc.Sidebar.TargetX = -sc.Sidebar.Width
 		sc.ClickableArea.Active = false
 	} else {
 		sc.Sidebar.TargetX = 0
@@ -167,17 +201,17 @@ func (sc *SidebarController) ToggleSidebar() {
 }
 
 func (sc *SidebarController) Update() {
-	if sc.Sidebar.area.X < sc.Sidebar.TargetX {
-		sc.Sidebar.area.X += sc.Sidebar.Speed
-		if sc.Sidebar.area.X >= sc.Sidebar.TargetX {
-			sc.Sidebar.area.X = sc.Sidebar.TargetX
-			sc.Sidebar.Visible = sc.Sidebar.area.X == 0
+	if sc.Sidebar.X < sc.Sidebar.TargetX {
+		sc.Sidebar.X += sc.Sidebar.Speed
+		if sc.Sidebar.X >= sc.Sidebar.TargetX {
+			sc.Sidebar.X = sc.Sidebar.TargetX
+			sc.Sidebar.Visible = sc.Sidebar.X == 0
 		}
-	} else if sc.Sidebar.area.X > sc.Sidebar.TargetX {
-		sc.Sidebar.area.X -= sc.Sidebar.Speed
-		if sc.Sidebar.area.X <= sc.Sidebar.TargetX {
-			sc.Sidebar.area.X = sc.Sidebar.TargetX
-			sc.Sidebar.Visible = sc.Sidebar.area.X == 0
+	} else if sc.Sidebar.X > sc.Sidebar.TargetX {
+		sc.Sidebar.X -= sc.Sidebar.Speed
+		if sc.Sidebar.X <= sc.Sidebar.TargetX {
+			sc.Sidebar.X = sc.Sidebar.TargetX
+			sc.Sidebar.Visible = sc.Sidebar.X == 0
 		}
 	}
 }
@@ -187,15 +221,11 @@ func (sc *SidebarController) Draw(screen *ebiten.Image) {
 	sc.ClickableArea.Draw(screen)
 }
 
-type Area struct {
-	X, Y, Width, Height int
-}
-
 // ***** CLICKABLE AREA (OUTSIDE SIDEBAR) *****
 type ClickableArea struct {
-	area        Area
-	OnClickFunc func()
-	Active      bool
+	X, Y, Width, Height int
+	OnClickFunc         func()
+	Active              bool
 }
 
 func (ca *ClickableArea) Contains(x, y int) bool {
@@ -203,10 +233,10 @@ func (ca *ClickableArea) Contains(x, y int) bool {
 		return false
 	}
 	// Check if the click is within the main area excluding the sidebar and top bar
-	return x > ca.area.X &&
-		y > ca.area.Y &&
-		x <= ca.area.Width &&
-		y <= ca.area.Height
+	return x > ca.X &&
+		y > ca.Y &&
+		x <= ca.Width &&
+		y <= ca.Height
 }
 
 func (ca *ClickableArea) OnClick() {
@@ -215,39 +245,43 @@ func (ca *ClickableArea) OnClick() {
 	}
 }
 
+func (ca *ClickableArea) OnMouseDown() {
+	// Placeholder: No action required for mouse down in clickable area
+}
+
+func (ca *ClickableArea) SetHovered(isHovered bool) {
+	// Placeholder: No action required for hover in clickable area
+}
+
 func (ca *ClickableArea) Draw(screen *ebiten.Image) {
 	if !ca.Active {
 		return
 	}
-	// todo: add a subtle easing animation to the alpha color of the rect?
-	// can be added to the SidebarController update method
-	vector.DrawFilledRect(screen, float32(ca.area.X), float32(ca.area.Y), float32(ca.area.Width), float32(ca.area.Height), color.RGBA{30, 30, 30, 150}, true)
+	vector.DrawFilledRect(screen, float32(ca.X), float32(ca.Y), float32(ca.Width), float32(ca.Height), color.RGBA{30, 30, 30, 150}, true)
 }
 
 // ***** SIDEBAR *****
 type Sidebar struct {
-	area    Area
-	Visible bool
-	TargetX int
-	Speed   int
+	X, Y, Width, Height int
+	Visible             bool
+	TargetX             int
+	Speed               int
 }
 
 func NewSidebar(width, height, topOffset int) *Sidebar {
 	return &Sidebar{
-		area: Area{
-			X:      -width,
-			Y:      topOffset,
-			Width:  width,
-			Height: height,
-		},
+		X:       -width,
+		Y:       topOffset,
+		Width:   width,
+		Height:  height,
 		Visible: false,
-		Speed:   10.0,
+		Speed:   10,
 		TargetX: -width,
 	}
 }
 
 func (s *Sidebar) Draw(screen *ebiten.Image) {
-	vector.DrawFilledRect(screen, float32(s.area.X), float32(s.area.Y), float32(s.area.Width), float32(s.area.Height), color.RGBA{50, 50, 50, 255}, true)
+	vector.DrawFilledRect(screen, float32(s.X), float32(s.Y), float32(s.Width), float32(s.Height), color.RGBA{50, 50, 50, 255}, true)
 }
 
 // ***** GAME *****
@@ -263,15 +297,18 @@ func NewGame() *Game {
 	var topBarHeight int = 50
 	screenWidth, screenHeight := 640, 480
 
+	// Initialize InputManager
+	inputManager := &InputManager{}
+
 	// Define the number of buttons in the topbar
 	numButtons := 2
-	topbar := NewTopBar(screenWidth, topBarHeight, numButtons)
+	topbar := NewTopBar(screenWidth, topBarHeight, numButtons, inputManager)
 
-	sidebarController := NewSidebarController(200, screenHeight-topBarHeight, topBarHeight, screenWidth, screenHeight)
+	sidebarController := NewSidebarController(200, screenHeight-topBarHeight, topBarHeight, screenWidth, screenHeight, inputManager)
 
 	game := &Game{
 		TopBar:            topbar,
-		InputManager:      &InputManager{},
+		InputManager:      inputManager,
 		SidebarController: sidebarController,
 		screenWidth:       screenWidth,
 		screenHeight:      screenHeight,
@@ -288,28 +325,17 @@ func NewGame() *Game {
 		game.SidebarController.ToggleSidebar()
 	}
 
-	// Register all buttons with the input manager
-	for _, button := range topbar.Buttons {
-		game.InputManager.Register(button)
-	}
-
-	// Register the clickable area from the SidebarController with the input manager
-	game.InputManager.Register(sidebarController.ClickableArea)
-
 	// Add another centerButton in the center of the screen for testing purposes
-	centerButton := &Button{
-		area: Area{
-			X:      200,
-			Y:      200,
-			Width:  80,
-			Height: 25,
-		},
-		Label: "CENTER",
-		Color: color.RGBA{200, 0, 0, 255},
-		OnClickFunc: func() {
+	centerButton := NewButton(
+		200, 200, 80, 25,
+		"CENTER",
+		color.RGBA{200, 0, 0, 255},
+		color.RGBA{150, 0, 0, 255},
+		color.RGBA{100, 0, 0, 255},
+		func() {
 			log.Println("Center button clicked")
 		},
-	}
+	)
 	game.InputManager.Register(centerButton)
 	game.centerButton = centerButton
 

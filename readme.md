@@ -89,8 +89,13 @@
 
 - sidebar menu with top bar
 
-    - `go run .\cmd\sidebar\`
+    - `go run .\cmd\sidebar01\` // basic form
 
+    - `go run .\cmd\sidebar02\` // uses input manager
+
+    - `go run .\cmd\sidebar03\` // uses input manager and navigator, no internal pages
+
+    - `go run .\cmd\sidebar04\` // uses input manager and navigator, several example pages for navigation
 
 
 ## Notes
