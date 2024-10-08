@@ -70,27 +70,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	// Determine breakpoint based on window size
-	switch {
-	case outsideWidth < 576:
-		g.currentBP = layout.Bp_ExtraSmall
-	case outsideWidth < 768:
-		g.currentBP = layout.Bp_Small
-	case outsideWidth < 992:
-		g.currentBP = layout.Bp_Medium
-	case outsideWidth < 1200:
-		g.currentBP = layout.Bp_Large
-	case outsideWidth < 1400:
-		g.currentBP = layout.Bp_ExtraLarge
-	default:
-		g.currentBP = layout.Bp_ExtraExtraLarge
-	}
-	layout := g.layoutSystem.GetLayout(g.currentBP)
-	return layout.Width, layout.Height
+	// Use the layout package to determine the current breakpoint
+	g.currentBP = g.layoutSystem.DetermineBreakpoint(outsideWidth, outsideHeight)
+	currentLayout := g.layoutSystem.GetLayout(g.currentBP)
+	return currentLayout.Width, currentLayout.Height
 }
 
 func main() {
-	layoutSystem := layout.NewLayoutSystem()
+	layoutSystem := layout.NewLayoutSystem(nil)
 	game := &Game{
 		layoutSystem: layoutSystem,
 		elements: []UIElement{

@@ -57,7 +57,9 @@ None of this is much organized. It is just random code.
     
     - `go run .\cmd\breakpoints02\` // first draft + separate ui elements
 
-    - `go run .\cmd\breakpoints03\` // ui elements have their own breakpoints (more like bootstrap)
+    - `go run .\cmd\breakpoints03a\` // ui elements have their own breakpoints (more like bootstrap)
+    
+    - `go run .\cmd\breakpoints03b\` // layout columns have their own breakpoints (more like bootstrap)
 
 - container: bootstrap like 
 
