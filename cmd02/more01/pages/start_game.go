@@ -29,11 +29,7 @@ func NewStartGamePage(switchPage func(pageName string)) *StartGamePage {
 	}
 
 	mainButtons := []*responsive.Button{
-		responsive.NewButton("Play", func() { log.Println("Play clicked") /* Add Play logic here */ }),
-		responsive.NewButton("Back", func() {
-			log.Println("Back clicked")
-			switchPage("main")
-		}),
+		responsive.NewButton("Play", func() { log.Println("Play clicked") }),
 	}
 
 	mainUI := responsive.NewUI("Start Game", mainBreakpoints, mainButtons)
@@ -44,9 +40,13 @@ func NewStartGamePage(switchPage func(pageName string)) *StartGamePage {
 	}
 
 	sidebarButtons := []*responsive.Button{
-		responsive.NewButton("Options", func() { log.Println("Options clicked") /* Add Options logic here */ }),
-		responsive.NewButton("Help", func() { log.Println("Help clicked") /* Add Help logic here */ }),
-		responsive.NewButton("Credits", func() { log.Println("Credits clicked") /* Add Credits logic here */ }),
+		responsive.NewButton("Level01", func() { log.Println("Level01 clicked") /* Add Level01 logic here */ }),
+		responsive.NewButton("Level02", func() { log.Println("Level02 clicked") /* Add Level02 logic here */ }),
+		responsive.NewButton("Level03", func() { log.Println("Level03 clicked") /* Add Level03 logic here */ }),
+		responsive.NewButton("Back", func() {
+			log.Println("Back clicked")
+			switchPage("main")
+		}),
 	}
 
 	sidebarUI := responsive.NewUI("Menu", sidebarBreakpoints, sidebarButtons)
