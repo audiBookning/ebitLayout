@@ -17,7 +17,6 @@ type Title struct {
 	FontScale float64
 }
 
-// NewTitle creates a new Title with the given text.
 func NewTitle(text string) *Title {
 	return &Title{
 		Text:      text,
@@ -25,7 +24,6 @@ func NewTitle(text string) *Title {
 	}
 }
 
-// Draw renders the title on the screen.
 func (t *Title) Draw(screen *ebiten.Image) {
 	// Example: Adjust FontScale based on screen width
 	// This requires a font library that supports scaling, such as truetype
@@ -33,7 +31,6 @@ func (t *Title) Draw(screen *ebiten.Image) {
 	text.Draw(screen, t.Text, basicfont.Face7x13, t.X, t.Y, color.White)
 }
 
-// Button represents a clickable button.
 type Button struct {
 	Text            string
 	OnClickFunc     func()
@@ -44,7 +41,6 @@ type Button struct {
 	mutex           sync.Mutex
 }
 
-// NewButton creates a new Button with the given text and click handler.
 func NewButton(text string, onClick func()) *Button {
 	return &Button{
 		Text:        text,
@@ -52,7 +48,6 @@ func NewButton(text string, onClick func()) *Button {
 	}
 }
 
-// IsClicked checks if the button was clicked based on x, y coordinates.
 func (b *Button) IsClicked(x, y int) bool {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -60,7 +55,6 @@ func (b *Button) IsClicked(x, y int) bool {
 		y >= b.Position.Y && y <= b.Position.Y+b.Position.Height
 }
 
-// HandleClick triggers the button's click event.
 func (b *Button) HandleClick() {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -83,7 +77,6 @@ func (b *Button) Update() {
 	}
 }
 
-// Draw renders the button on the screen.
 func (b *Button) Draw(screen *ebiten.Image) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -128,7 +121,6 @@ type UI struct {
 	mutex    sync.RWMutex
 }
 
-// NewUI creates a new UI with the given title, breakpoints, and buttons.
 func NewUI(titleText string, breakpoints []Breakpoint, buttons []*Button) *UI {
 	elements := make([]string, len(buttons))
 	for i := range buttons {
@@ -143,7 +135,6 @@ func NewUI(titleText string, breakpoints []Breakpoint, buttons []*Button) *UI {
 	}
 }
 
-// Update recalculates UI element positions based on screen dimensions.
 func (u *UI) Update(screenWidth, screenHeight int) {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
@@ -171,7 +162,6 @@ func (u *UI) Update(screenWidth, screenHeight int) {
 	u.Title.Y = 50
 }
 
-// HandleClick triggers button actions based on click coordinates.
 func (u *UI) HandleClick(x, y int) {
 	u.mutex.RLock()
 	defer u.mutex.RUnlock()
@@ -183,7 +173,6 @@ func (u *UI) HandleClick(x, y int) {
 	}
 }
 
-// Draw renders the UI elements on the screen.
 func (u *UI) Draw(screen *ebiten.Image) {
 	u.mutex.RLock()
 	defer u.mutex.RUnlock()

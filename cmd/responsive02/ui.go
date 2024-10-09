@@ -16,7 +16,6 @@ type Breakpoint struct {
 	LayoutMode string // e.g., "horizontal", "vertical", "grid"
 }
 
-// Button represents a clickable button.
 type Button struct {
 	Text          string
 	X, Y          int
@@ -42,7 +41,6 @@ func (b *Button) OnClick() {
 	}
 }
 
-// Draw renders the button on the screen.
 func (b *Button) Draw(screen *ebiten.Image) {
 	// Choose button color based on click state
 	var btnColor color.Color
@@ -221,7 +219,6 @@ func (u *UI) HandleClick(x, y int) {
 	}
 }
 
-// Draw renders the UI elements on the screen.
 func (u *UI) Draw(screen *ebiten.Image) {
 	// Draw Title
 	text.Draw(screen, u.Title, basicfont.Face7x13, u.TitleX, u.TitleY, color.White)

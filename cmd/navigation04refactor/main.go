@@ -283,7 +283,6 @@ func (p *Page) AddElement(element UIElement) {
 	p.elements = append(p.elements, element)
 }
 
-// Update updates the page state.
 func (p *Page) Update(navigatorOffsetX, navigatorOffsetY float32, isAnimating bool) error {
 	for _, element := range p.elements {
 		element.Update(navigatorOffsetX+p.X, navigatorOffsetY+p.Y, isAnimating)

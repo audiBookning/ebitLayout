@@ -70,7 +70,6 @@ func (lm *LayoutManager) DetermineLayout(screenWidth int) LayoutMode {
 	return lm.currentMode
 }
 
-// GetCurrentLayoutMode returns the current layout mode.
 func (lm *LayoutManager) GetCurrentLayoutMode() LayoutMode {
 	lm.mutex.RLock()
 	defer lm.mutex.RUnlock()

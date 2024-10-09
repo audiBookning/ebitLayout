@@ -14,7 +14,6 @@ type Level02Page struct {
 	title string
 }
 
-// NewLevel02Page initializes the Level02Page.
 func NewLevel02Page() *Level02Page {
 	return &Level02Page{
 		title: "Level 02 - The Challenge",

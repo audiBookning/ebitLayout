@@ -16,7 +16,6 @@ type GraphicsPage struct {
 	prevHeight int
 }
 
-// NewGraphicsPage initializes the graphics settings page with specific breakpoints and buttons.
 func NewGraphicsPage(switchPage func(pageName string)) *GraphicsPage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1000, LayoutMode: responsive.LayoutVertical},
@@ -44,7 +43,6 @@ func NewGraphicsPage(switchPage func(pageName string)) *GraphicsPage {
 	}
 }
 
-// Update updates the page state.
 func (p *GraphicsPage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -64,7 +62,6 @@ func (p *GraphicsPage) Update() error {
 	return nil
 }
 
-// Draw renders the page.
 func (p *GraphicsPage) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0x5E, 0x5E, 0x5E, 0xFF}) // Light gray background
 	p.ui.Draw(screen)

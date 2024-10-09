@@ -17,7 +17,6 @@ type MainMenuPage struct {
 	prevHeight int
 }
 
-// NewMainMenuPage initializes the main menu page with specific breakpoints and buttons.
 func NewMainMenuPage(switchPage func(pageName string)) *MainMenuPage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1200, LayoutMode: responsive.LayoutGrid},
@@ -52,7 +51,6 @@ func NewMainMenuPage(switchPage func(pageName string)) *MainMenuPage {
 	}
 }
 
-// Update updates the page state.
 func (p *MainMenuPage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -72,7 +70,6 @@ func (p *MainMenuPage) Update() error {
 	return nil
 }
 
-// Draw renders the page.
 func (p *MainMenuPage) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0x2E, 0x2E, 0x2E, 0xFF}) // Slightly lighter gray background
 	p.ui.Draw(screen)

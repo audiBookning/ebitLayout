@@ -13,7 +13,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Game struct to handle the ebiten game loop
 type Game struct {
 	barGraph      *charts.Chart03
 	plotlineGraph *charts.Chart03
@@ -23,7 +22,6 @@ func (g *Game) Update() error {
 	return nil
 }
 
-// Draw calls the Graph's Draw method to render it.
 func (g *Game) Draw(screen *ebiten.Image) {
 	// Create sub-images for each graph
 	barImage := ebiten.NewImage(screen.Bounds().Dx()/2, screen.Bounds().Dy())

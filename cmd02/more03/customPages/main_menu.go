@@ -18,8 +18,7 @@ type MainMenuPage struct {
 	navigator  *navigator.Navigator
 }
 
-// NewMainMenuPage initializes the main menu page with specific breakpoints and buttons.
-func NewMainMenuPage(nv *navigator.Navigator) *MainMenuPage {
+func NewMainMenuPage(nv *navigator.Navigator, screenWidth, screenHeight int) *MainMenuPage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1200, LayoutMode: responsive.LayoutGrid},
 		{Width: 800, LayoutMode: responsive.LayoutVertical},
@@ -43,7 +42,6 @@ func NewMainMenuPage(nv *navigator.Navigator) *MainMenuPage {
 
 	ui := responsive.NewUI("Main Menu", breakpoints, buttons)
 
-	screenWidth, screenHeight := 800, 600
 	ui.Update(screenWidth, screenHeight)
 
 	return &MainMenuPage{
@@ -54,7 +52,12 @@ func NewMainMenuPage(nv *navigator.Navigator) *MainMenuPage {
 	}
 }
 
-// Update updates the page state.
+func (p *MainMenuPage) Layout(outsideWidth, outsideHeight int) (int, int) {
+	p.prevWidth = outsideWidth
+	p.prevHeight = outsideHeight
+	return outsideWidth, outsideHeight
+}
+
 func (p *MainMenuPage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -74,18 +77,15 @@ func (p *MainMenuPage) Update() error {
 	return nil
 }
 
-// Draw renders the page.
 func (p *MainMenuPage) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0x2E, 0x2E, 0x2E, 0xFF}) // Slightly lighter gray background
 	p.ui.Draw(screen)
 }
 
-// HandleInput processes input specific to the page.
 func (p *MainMenuPage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }
 
-// ResetButtonStates resets all button states.
 func (p *MainMenuPage) ResetButtonStates() {
 	p.ui.ResetButtonStates()
 }

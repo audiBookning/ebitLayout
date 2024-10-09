@@ -92,7 +92,6 @@ func (p *LevelGamePage) setupSidebarButtons() {
 	}
 }
 
-// Update updates the page state.
 func (p *LevelGamePage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -144,7 +143,6 @@ func (p *LevelGamePage) SwitchSubPage(pageName string) {
 	}
 }
 
-// Draw renders the page.
 func (p *LevelGamePage) Draw(screen *ebiten.Image) {
 	// Fill the background
 	screen.Fill(color.RGBA{0x3E, 0x3E, 0x3E, 0xFF}) // Slightly lighter gray background

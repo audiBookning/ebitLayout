@@ -8,4 +8,5 @@ type Page interface {
 	Draw(screen *ebiten.Image)
 	HandleInput(x, y int)
 	ResetButtonStates()
+	Layout(outsideWidth, outsideHeight int) (int, int)
 }

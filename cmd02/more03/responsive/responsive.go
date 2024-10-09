@@ -72,7 +72,6 @@ func (lm *LayoutManager) DetermineLayout(screenWidth int) LayoutMode {
 	return lm.currentMode
 }
 
-// GetCurrentLayoutMode returns the current layout mode.
 func (lm *LayoutManager) GetCurrentLayoutMode() LayoutMode {
 	lm.mutex.RLock()
 	defer lm.mutex.RUnlock()
@@ -104,8 +103,6 @@ func (lm *LayoutManager) CalculatePositions(screenWidth, screenHeight int, eleme
 
 	return positions
 }
-
-// The rest of the helper functions remain unchanged.
 
 func calculateHorizontal(screenWidth, screenHeight int, elements []string) map[string]types.Position {
 	numElements := len(elements)

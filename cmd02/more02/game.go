@@ -16,7 +16,6 @@ type Game struct {
 	exit        bool
 }
 
-// NewGame initializes the game with multiple pages and handles page switching.
 func NewGame() *Game {
 	g := &Game{
 		pages: make(map[string]types.Page),
@@ -59,7 +58,6 @@ func NewGame() *Game {
 	return g
 }
 
-// Update updates the current page.
 func (g *Game) Update() error {
 	if g.exit {
 		return errors.New("game exited by user")
@@ -71,7 +69,6 @@ func (g *Game) Update() error {
 	return nil
 }
 
-// Draw renders the current page.
 func (g *Game) Draw(screen *ebiten.Image) {
 	// Clear the screen with a background color
 	screen.Fill(color.RGBA{0x1F, 0x1F, 0x1F, 0xFF}) // Dark gray background
@@ -80,7 +77,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.currentPage.Draw(screen)
 }
 
-// Layout handles the layout of the game window.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }

@@ -18,8 +18,7 @@ type GraphicsPage struct {
 	navigator  *navigator.Navigator
 }
 
-// NewGraphicsPage initializes the graphics settings page with specific breakpoints and buttons.
-func NewGraphicsPage(nv *navigator.Navigator) *GraphicsPage {
+func NewGraphicsPage(nv *navigator.Navigator, screenWidth, screenHeight int) *GraphicsPage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1000, LayoutMode: responsive.LayoutVertical},
 		{Width: 600, LayoutMode: responsive.LayoutHorizontal},
@@ -42,7 +41,6 @@ func NewGraphicsPage(nv *navigator.Navigator) *GraphicsPage {
 
 	ui := responsive.NewUI("Graphics Settings", breakpoints, buttons)
 
-	screenWidth, screenHeight := 800, 600
 	ui.Update(screenWidth, screenHeight)
 
 	return &GraphicsPage{
@@ -53,7 +51,12 @@ func NewGraphicsPage(nv *navigator.Navigator) *GraphicsPage {
 	}
 }
 
-// Update updates the page state.
+func (p *GraphicsPage) Layout(outsideWidth, outsideHeight int) (int, int) {
+	p.prevWidth = outsideWidth
+	p.prevHeight = outsideHeight
+	return outsideWidth, outsideHeight
+}
+
 func (p *GraphicsPage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -73,18 +76,15 @@ func (p *GraphicsPage) Update() error {
 	return nil
 }
 
-// Draw renders the page.
 func (p *GraphicsPage) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0x5E, 0x5E, 0x5E, 0xFF}) // Light gray background
 	p.ui.Draw(screen)
 }
 
-// HandleInput processes input specific to the page.
 func (p *GraphicsPage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }
 
-// ResetButtonStates resets all button states.
 func (p *GraphicsPage) ResetButtonStates() {
 	p.ui.ResetButtonStates()
 }

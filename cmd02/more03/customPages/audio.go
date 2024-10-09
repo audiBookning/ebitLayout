@@ -18,8 +18,7 @@ type AudioPage struct {
 	navigator  *navigator.Navigator
 }
 
-// NewAudioPage initializes the audio settings page with specific breakpoints and buttons.
-func NewAudioPage(nv *navigator.Navigator) *AudioPage {
+func NewAudioPage(nv *navigator.Navigator, screenWidth, screenHeight int) *AudioPage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1000, LayoutMode: responsive.LayoutVertical},
 		{Width: 600, LayoutMode: responsive.LayoutHorizontal},
@@ -28,11 +27,10 @@ func NewAudioPage(nv *navigator.Navigator) *AudioPage {
 	buttons := []*responsive.Button{
 		responsive.NewButton("Volume Up", func() {
 			log.Println("Volume Up clicked")
-			// Add Volume Up logic here
 		}),
 		responsive.NewButton("Volume Down", func() {
 			log.Println("Volume Down clicked")
-			// Add Volume Down logic here
+
 		}),
 		responsive.NewButton("Back", func() {
 			log.Println("Back clicked")
@@ -42,7 +40,6 @@ func NewAudioPage(nv *navigator.Navigator) *AudioPage {
 
 	ui := responsive.NewUI("Audio Settings", breakpoints, buttons)
 
-	screenWidth, screenHeight := 800, 600
 	ui.Update(screenWidth, screenHeight)
 
 	return &AudioPage{
@@ -53,7 +50,12 @@ func NewAudioPage(nv *navigator.Navigator) *AudioPage {
 	}
 }
 
-// Update updates the page state.
+func (p *AudioPage) Layout(outsideWidth, outsideHeight int) (int, int) {
+	p.prevWidth = outsideWidth
+	p.prevHeight = outsideHeight
+	return outsideWidth, outsideHeight
+}
+
 func (p *AudioPage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -73,18 +75,15 @@ func (p *AudioPage) Update() error {
 	return nil
 }
 
-// Draw renders the page.
 func (p *AudioPage) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0x4E, 0x4E, 0x4E, 0xFF}) // Even lighter gray background
 	p.ui.Draw(screen)
 }
 
-// HandleInput processes input specific to the page.
 func (p *AudioPage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }
 
-// ResetButtonStates resets all button states.
 func (p *AudioPage) ResetButtonStates() {
 	p.ui.ResetButtonStates()
 }

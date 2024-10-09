@@ -24,14 +24,13 @@ type LevelGamePage struct {
 // Define a constant for sidebar width (for layout purposes)
 const sidebarFixedWidth = 200 // Adjust this value as needed
 
-// NewLevelGamePage initializes the level game page with specific breakpoints and buttons.
-func NewLevelGamePage(mainNav *navigator.Navigator) *LevelGamePage {
+func NewLevelGamePage(mainNav *navigator.Navigator, screenWidth, screenHeight int) *LevelGamePage {
 	// Initialize the sub-navigator for LevelGamePage
 	subNav := navigator.NewNavigator(nil) // No onExit needed for sub-navigator
 
 	// Initialize Level01 and Level02 pages with sub-navigator
-	level01 := NewLevel01Page(subNav)
-	level02 := NewLevel02Page(subNav)
+	level01 := NewLevel01Page(subNav, screenWidth, screenHeight)
+	level02 := NewLevel02Page(subNav, screenWidth, screenHeight)
 
 	// Add subpages to sub-navigator
 	subNav.AddPage("level01", level01)
@@ -64,7 +63,7 @@ func NewLevelGamePage(mainNav *navigator.Navigator) *LevelGamePage {
 	sidebarUI := responsive.NewUI("Menu", sidebarBreakpoints, sidebarButtons)
 
 	// Initialize screen dimensions
-	screenWidth, screenHeight := 800, 600
+
 	mainUI.Update(screenWidth-sidebarFixedWidth, screenHeight)
 	sidebarUI.Update(sidebarFixedWidth, screenHeight)
 
@@ -85,7 +84,12 @@ func NewLevelGamePage(mainNav *navigator.Navigator) *LevelGamePage {
 	return page
 }
 
-// Update updates the page state.
+func (p *LevelGamePage) Layout(outsideWidth, outsideHeight int) (int, int) {
+	p.prevWidth = outsideWidth
+	p.prevHeight = outsideHeight
+	return outsideWidth, outsideHeight
+}
+
 func (p *LevelGamePage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -107,24 +111,22 @@ func (p *LevelGamePage) Update() error {
 	}
 
 	// Update the current subpage
-	p.subNavigator.CurrentPage().Update()
+	p.subNavigator.CurrentActivePage().Update()
 
 	return nil
 }
 
-// HandleInput processes input specific to the page.
 func (p *LevelGamePage) HandleInput(x, y int) {
 	if x < p.sidebarWidth {
 		p.sidebarUI.HandleClick(x, y)
 	} else {
 		// Pass the click to the current subpage
-		if p.subNavigator.CurrentPage() != nil {
-			p.subNavigator.CurrentPage().HandleInput(x-p.sidebarWidth, y)
+		if p.subNavigator.CurrentActivePage() != nil {
+			p.subNavigator.CurrentActivePage().HandleInput(x-p.sidebarWidth, y)
 		}
 	}
 }
 
-// Draw renders the page.
 func (p *LevelGamePage) Draw(screen *ebiten.Image) {
 	// Fill the background
 	screen.Fill(color.RGBA{0x3E, 0x3E, 0x3E, 0xFF}) // Slightly lighter gray background
@@ -134,11 +136,11 @@ func (p *LevelGamePage) Draw(screen *ebiten.Image) {
 	p.mainUI.Draw(screen)
 
 	// Draw the current subpage in the play-render-space
-	if p.subNavigator.CurrentPage() != nil {
+	if p.subNavigator.CurrentActivePage() != nil {
 		screenWidth, screenHeight := screen.Size()
 		// Create a subimage for the play-render-space
 		playRenderSpace := ebiten.NewImage(screenWidth-p.sidebarWidth, screenHeight)
-		p.subNavigator.CurrentPage().Draw(playRenderSpace)
+		p.subNavigator.CurrentActivePage().Draw(playRenderSpace)
 
 		// Draw the subimage onto the main screen with translation
 		op := &ebiten.DrawImageOptions{}
@@ -155,19 +157,18 @@ func (p *LevelGamePage) Draw(screen *ebiten.Image) {
 	screen.DrawImage(separatorImg, op)
 }
 
-// ResetAllButtonStates resets all button states.
 func (p *LevelGamePage) ResetAllButtonStates() {
 	p.mainUI.ResetButtonStates()
 	p.sidebarUI.ResetButtonStates()
-	if p.subNavigator.CurrentPage() != nil {
-		p.subNavigator.CurrentPage().ResetButtonStates()
+	if p.subNavigator.CurrentActivePage() != nil {
+		p.subNavigator.CurrentActivePage().ResetButtonStates()
 	}
 }
 
 func (p *LevelGamePage) ResetButtonStates() {
 	p.mainUI.ResetButtonStates()
 	p.sidebarUI.ResetButtonStates()
-	if p.subNavigator.CurrentPage() != nil {
-		p.subNavigator.CurrentPage().ResetButtonStates()
+	if p.subNavigator.CurrentActivePage() != nil {
+		p.subNavigator.CurrentActivePage().ResetButtonStates()
 	}
 }

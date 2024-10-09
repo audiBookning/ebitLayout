@@ -40,7 +40,6 @@ func (u *UI) Update(screenWidth, screenHeight int) {
 	u.ButtonY = screenHeight - u.ButtonHeight - 50
 }
 
-// Draw renders the UI elements on the screen.
 func (u *UI) Draw(screen *ebiten.Image) {
 	// Draw title
 	text.Draw(screen, u.Title, basicfont.Face7x13, u.TitleX, u.TitleY, color.White)

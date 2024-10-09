@@ -19,8 +19,7 @@ type Level02Page struct {
 	prevHeight int
 }
 
-// NewLevel02Page initializes the Level02Page.
-func NewLevel02Page(subNav *navigator.Navigator) types.Page {
+func NewLevel02Page(subNav *navigator.Navigator, screenWidth, screenHeight int) types.Page {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 800, LayoutMode: responsive.LayoutVertical},
 		{Width: 0, LayoutMode: responsive.LayoutHorizontal},
@@ -40,7 +39,7 @@ func NewLevel02Page(subNav *navigator.Navigator) types.Page {
 	ui := responsive.NewUI("Level 02 - The Challenge", breakpoints, buttons)
 
 	// Initialize screen dimensions
-	screenWidth, screenHeight := 800, 600
+
 	ui.Update(screenWidth, screenHeight)
 
 	return &Level02Page{
@@ -50,7 +49,12 @@ func NewLevel02Page(subNav *navigator.Navigator) types.Page {
 	}
 }
 
-// Update updates the page state.
+func (p *Level02Page) Layout(outsideWidth, outsideHeight int) (int, int) {
+	p.prevWidth = outsideWidth
+	p.prevHeight = outsideHeight
+	return outsideWidth, outsideHeight
+}
+
 func (p *Level02Page) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -65,7 +69,6 @@ func (p *Level02Page) Update() error {
 	return nil
 }
 
-// Draw renders the page.
 func (p *Level02Page) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0x3C, 0x2B, 0x1A, 0xFF}) // Example color
 
@@ -75,12 +78,10 @@ func (p *Level02Page) Draw(screen *ebiten.Image) {
 	p.ui.Draw(screen)
 }
 
-// HandleInput processes input specific to the page.
 func (p *Level02Page) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }
 
-// ResetButtonStates resets all button states.
 func (p *Level02Page) ResetButtonStates() {
 	p.ui.ResetButtonStates()
 }

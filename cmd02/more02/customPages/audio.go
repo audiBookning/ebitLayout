@@ -17,7 +17,6 @@ type AudioPage struct {
 	prevHeight int
 }
 
-// NewAudioPage initializes the audio settings page with specific breakpoints and buttons.
 func NewAudioPage(switchPage func(pageName string)) *AudioPage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1000, LayoutMode: responsive.LayoutVertical},
@@ -45,7 +44,6 @@ func NewAudioPage(switchPage func(pageName string)) *AudioPage {
 	}
 }
 
-// Update updates the page state.
 func (p *AudioPage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -65,7 +63,6 @@ func (p *AudioPage) Update() error {
 	return nil
 }
 
-// Draw renders the page.
 func (p *AudioPage) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0x4E, 0x4E, 0x4E, 0xFF}) // Even lighter gray background
 	p.ui.Draw(screen)

@@ -64,7 +64,6 @@ func NewStartGamePage(switchPage func(pageName string)) *StartGamePage {
 	}
 }
 
-// Update updates the page state.
 func (p *StartGamePage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -94,7 +93,6 @@ func (p *StartGamePage) Update() error {
 	return nil
 }
 
-// Draw renders the page.
 func (p *StartGamePage) Draw(screen *ebiten.Image) {
 	// Get the current screen dimensions
 	screenWidth, screenHeight := screen.Size()

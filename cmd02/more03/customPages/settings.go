@@ -18,8 +18,7 @@ type SettingsPage struct {
 	navigator  *navigator.Navigator
 }
 
-// NewSettingsPage initializes the settings page with specific breakpoints and buttons.
-func NewSettingsPage(nv *navigator.Navigator) *SettingsPage {
+func NewSettingsPage(nv *navigator.Navigator, screenWidth, screenHeight int) *SettingsPage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1000, LayoutMode: responsive.LayoutVertical},
 		{Width: 600, LayoutMode: responsive.LayoutHorizontal},
@@ -43,7 +42,7 @@ func NewSettingsPage(nv *navigator.Navigator) *SettingsPage {
 	ui := responsive.NewUI("Settings", breakpoints, buttons)
 
 	// Initialize screen dimensions
-	screenWidth, screenHeight := 800, 600
+
 	ui.Update(screenWidth, screenHeight)
 
 	return &SettingsPage{
@@ -54,7 +53,12 @@ func NewSettingsPage(nv *navigator.Navigator) *SettingsPage {
 	}
 }
 
-// Update updates the page state.
+func (p *SettingsPage) Layout(outsideWidth, outsideHeight int) (int, int) {
+	p.prevWidth = outsideWidth
+	p.prevHeight = outsideHeight
+	return outsideWidth, outsideHeight
+}
+
 func (p *SettingsPage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -74,18 +78,15 @@ func (p *SettingsPage) Update() error {
 	return nil
 }
 
-// Draw renders the page.
 func (p *SettingsPage) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0x1F, 0x1F, 0x1F, 0xFF}) // Dark gray background
 	p.ui.Draw(screen)
 }
 
-// HandleInput processes input specific to the page.
 func (p *SettingsPage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }
 
-// ResetButtonStates resets all button states.
 func (p *SettingsPage) ResetButtonStates() {
 	p.ui.ResetButtonStates()
 }

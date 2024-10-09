@@ -17,7 +17,6 @@ type SettingsPage struct {
 	prevHeight int
 }
 
-// NewSettingsPage initializes the settings page with specific breakpoints and buttons.
 func NewSettingsPage(switchPage func(pageName string)) *SettingsPage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1000, LayoutMode: responsive.LayoutVertical},
@@ -51,7 +50,6 @@ func NewSettingsPage(switchPage func(pageName string)) *SettingsPage {
 	}
 }
 
-// Update updates the page state.
 func (p *SettingsPage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -71,7 +69,6 @@ func (p *SettingsPage) Update() error {
 	return nil
 }
 
-// Draw renders the page.
 func (p *SettingsPage) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0x1F, 0x1F, 0x1F, 0xFF}) // Dark gray background
 	p.ui.Draw(screen)

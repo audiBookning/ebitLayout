@@ -16,7 +16,6 @@ type Level01Page struct {
 	prevHeight int
 }
 
-// NewLevel01Page initializes the Level 01 page.
 func NewLevel01Page() types.Page {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 800, LayoutMode: responsive.LayoutVertical},
@@ -40,7 +39,6 @@ func NewLevel01Page() types.Page {
 	}
 }
 
-// Update updates the page state.
 func (p *Level01Page) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
@@ -57,7 +55,6 @@ func (p *Level01Page) Update() error {
 	return nil
 }
 
-// Draw renders the page.
 func (p *Level01Page) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0x6E, 0x6E, 0x6E, 0xFF}) // Example background color
 	p.ui.Draw(screen)

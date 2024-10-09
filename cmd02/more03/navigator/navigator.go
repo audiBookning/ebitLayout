@@ -31,6 +31,16 @@ func (n *Navigator) AddPage(name string, page types.Page) {
 	n.pages[name] = page
 }
 
+// Layout all pages
+func (n *Navigator) Layout(outsideWidth, outsideHeight int) (int, int) {
+	n.mu.RLock()
+	defer n.mu.RUnlock()
+	for _, page := range n.pages {
+		page.Layout(outsideWidth, outsideHeight)
+	}
+	return outsideWidth, outsideHeight
+}
+
 // SwitchTo switches the current page to the specified page.
 func (n *Navigator) SwitchTo(pageName string) {
 	n.mu.Lock()
@@ -56,15 +66,13 @@ func (n *Navigator) SwitchTo(pageName string) {
 	}
 }
 
-// CurrentPage returns the current active page.
-func (n *Navigator) CurrentPage() types.Page {
+func (n *Navigator) CurrentActivePage() types.Page {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
 	return n.current
 }
 
-// ResetAllButtonStates resets button states for all pages.
-func (n *Navigator) ResetAllButtonStates() {
+func (n *Navigator) ResetAllPagesButtonStates() {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
 	for _, page := range n.pages {

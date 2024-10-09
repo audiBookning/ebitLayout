@@ -15,7 +15,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// Game represents the Ebiten game structure.
 type Game struct {
 	grid                *layout.Grid
 	textWrapper         *textwrapper.TextWrapper
@@ -36,7 +35,6 @@ func GetFilePath(fileName string) string {
 	return filepath.Join(dir, Assets_Relative_Path, fileName)
 }
 
-// Update handles game updates, such as input events.
 func (g *Game) Update() error {
 	// Toggle aspect ratio maintenance with 'A' key
 	if inpututil.IsKeyJustPressed(ebiten.KeyA) {
@@ -67,7 +65,6 @@ func (g *Game) Update() error {
 	return nil
 }
 
-// Draw renders the grid and its cells.
 func (g *Game) Draw(screen *ebiten.Image) {
 	// Clear the screen
 	screen.Fill(color.RGBA{30, 30, 30, 255})
@@ -162,7 +159,6 @@ func InitializeAssets() {
 	_, filePathTxt, _, _ = runtime.Caller(0)
 }
 
-// main initializes and runs the game.
 func main() {
 	InitializeAssets()
 	fontPath := GetFilePath("assets/fonts/roboto_regularTTF.ttf")

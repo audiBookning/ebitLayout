@@ -22,13 +22,11 @@ type RedRectangle struct {
 	x, y   float64
 }
 
-// SetPosition sets the x and y coordinates of the RedRectangle.
 func (r *RedRectangle) SetPosition(x, y float64) {
 	r.x = x
 	r.y = y
 }
 
-// Draw renders the RedRectangle at its current position.
 func (r *RedRectangle) Draw(screen *ebiten.Image) {
 	uiElement := ebiten.NewImage(r.Width, r.Height)
 	uiElement.Fill(color.RGBA{255, 0, 0, 255}) // Red color
@@ -38,7 +36,6 @@ func (r *RedRectangle) Draw(screen *ebiten.Image) {
 	screen.DrawImage(uiElement, op)
 }
 
-// GetHeight returns the height of the RedRectangle.
 func (r *RedRectangle) GetHeight() float64 {
 	return float64(r.Height)
 }
@@ -49,13 +46,11 @@ type BlueCircle struct {
 	x, y   float64
 }
 
-// SetPosition sets the x and y coordinates of the BlueCircle.
 func (b *BlueCircle) SetPosition(x, y float64) {
 	b.x = x
 	b.y = y
 }
 
-// Draw renders the BlueCircle at its current position.
 func (b *BlueCircle) Draw(screen *ebiten.Image) {
 	diameter := b.Radius * 2
 	circle := ebiten.NewImage(diameter, diameter)
@@ -76,12 +71,10 @@ func (b *BlueCircle) Draw(screen *ebiten.Image) {
 	screen.DrawImage(circle, op)
 }
 
-// GetHeight returns the height (diameter) of the BlueCircle.
 func (b *BlueCircle) GetHeight() float64 {
 	return float64(b.Radius * 2)
 }
 
-// Game encapsulates the game state.
 type Game struct {
 	layoutSystem *layout.BreakpointLayoutSystem
 	currentBP    layout.Breakpoint
@@ -89,7 +82,6 @@ type Game struct {
 	elements     []UIElement
 }
 
-// NewGame initializes and returns a new Game instance.
 func NewGame() *Game {
 	layoutSystem := layout.NewLayoutSystem(nil)
 
@@ -107,7 +99,6 @@ func NewGame() *Game {
 	return game
 }
 
-// Update updates the game state and recalculates element positions based on the current breakpoint.
 func (g *Game) Update() error {
 	if g.currentBP != g.previousBP {
 		g.layoutElements()
@@ -147,7 +138,6 @@ func (g *Game) layoutElements() {
 	}
 }
 
-// Draw renders the game screen.
 func (g *Game) Draw(screen *ebiten.Image) {
 	layout := g.layoutSystem.GetLayout(g.currentBP)
 
@@ -160,7 +150,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 }
 
-// Layout sets the game's logical screen dimensions.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	// Determine the current breakpoint based on window width
 	g.currentBP = g.layoutSystem.DetermineBreakpoint(outsideWidth, outsideHeight)

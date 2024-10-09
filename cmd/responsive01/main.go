@@ -33,7 +33,6 @@ func (g *Game) Update() error {
 	return nil
 }
 
-// Draw renders the game screen.
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0x80, 0xa0, 0xc0, 0xff}) // Background color
 
