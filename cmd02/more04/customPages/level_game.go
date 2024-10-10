@@ -4,8 +4,8 @@ import (
 	"image/color"
 	"log"
 
-	"example.com/menu/cmd02/more03/navigator"
-	"example.com/menu/cmd02/more03/responsive"
+	"example.com/menu/cmd02/more04/navigator"
+	"example.com/menu/cmd02/more04/responsive"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )

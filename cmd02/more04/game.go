@@ -4,8 +4,8 @@ import (
 	"errors"
 	"log"
 
-	"example.com/menu/cmd02/more03/customPages"
-	"example.com/menu/cmd02/more03/navigator"
+	"example.com/menu/cmd02/more04/customPages"
+	"example.com/menu/cmd02/more04/navigator"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 

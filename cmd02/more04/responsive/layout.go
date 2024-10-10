@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"example.com/menu/cmd02/more03/types"
+	"example.com/menu/cmd02/more04/types"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font/basicfont"

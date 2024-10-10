@@ -5,7 +5,7 @@ import (
 	"sort"
 	"sync"
 
-	"example.com/menu/cmd02/more03/types"
+	"example.com/menu/cmd02/more04/types"
 )
 
 // LayoutMode defines different layout strategies.
