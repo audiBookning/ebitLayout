@@ -9,7 +9,7 @@ import (
 	"example.com/menu/cmd02/more04/responsive"
 )
 
-func NewLevelGamePage(mainNav *navigator.Navigator, screenWidth, screenHeight int, id string, label string) *pagemodel.SidebarPage {
+func NewLevelGamePage(mainNav *navigator.Navigator, screenWidth, screenHeight int, id string, label string) *pagemodel.SidebarPageBase {
 	// Initialize the sub-navigator for LevelGamePage
 	subNav := navigator.NewNavigator(nil) // No onExit needed for sub-navigator
 
@@ -53,7 +53,7 @@ func NewLevelGamePage(mainNav *navigator.Navigator, screenWidth, screenHeight in
 	sidebarUI.Update(sidebarFixedWidth, screenHeight)
 
 	// Initialize LevelGamePage
-	page := &pagemodel.SidebarPage{
+	page := &pagemodel.SidebarPageBase{
 		ID:            id,
 		Label:         label,
 		MainUI:        mainUI,

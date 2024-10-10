@@ -4,14 +4,17 @@ import (
 	"image/color"
 	"log"
 
-	"example.com/menu/cmd02/more04/navigator"
-	"example.com/menu/cmd02/more04/responsive"
+	"example.com/menu/cmd02/more05/navigator"
+	"example.com/menu/cmd02/more05/responsive"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// SinglePage represents the audio settings UI.
-type SinglePage struct {
+// SinglePageBase represents the base functionality for a single page.
+// Custom pages can embed this struct and override its methods as needed.
+type SinglePageBase struct {
+	ID            string
+	Label         string
 	Ui            *responsive.UI
 	PrevWidth     int
 	PrevHeight    int
@@ -19,7 +22,8 @@ type SinglePage struct {
 	BackgroundClr color.Color
 }
 
-func NewAudioPage(nv *navigator.Navigator, screenWidth, screenHeight int) *SinglePage {
+// NewSinglePageBase initializes a new SinglePageBase.
+func NewSinglePageBase(nv *navigator.Navigator, id string, label string, screenWidth, screenHeight int) *SinglePageBase {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1000, LayoutMode: responsive.LayoutVertical},
 		{Width: 600, LayoutMode: responsive.LayoutHorizontal},
@@ -39,11 +43,12 @@ func NewAudioPage(nv *navigator.Navigator, screenWidth, screenHeight int) *Singl
 		}),
 	}
 
-	ui := responsive.NewUI("Single Page", breakpoints, buttons)
-
+	ui := responsive.NewUI(label, breakpoints, buttons)
 	ui.Update(screenWidth, screenHeight)
 
-	return &SinglePage{
+	return &SinglePageBase{
+		ID:            id,
+		Label:         label,
 		Ui:            ui,
 		PrevWidth:     screenWidth,
 		PrevHeight:    screenHeight,
@@ -52,9 +57,10 @@ func NewAudioPage(nv *navigator.Navigator, screenWidth, screenHeight int) *Singl
 	}
 }
 
-func (p *SinglePage) Layout(outsideWidth, outsideHeight int) (int, int) {
+// Layout handles the layout of the page.
+func (p *SinglePageBase) Layout(outsideWidth, outsideHeight int) (int, int) {
 	if outsideWidth != p.PrevWidth || outsideHeight != p.PrevHeight {
-		log.Printf("SinglePage: Window resized to %dx%d\n", outsideWidth, outsideHeight)
+		log.Printf("SinglePageBase: Window resized to %dx%d\n", outsideWidth, outsideHeight)
 		p.PrevWidth = outsideWidth
 		p.PrevHeight = outsideHeight
 		p.Ui.Update(p.PrevWidth, p.PrevHeight)
@@ -63,29 +69,32 @@ func (p *SinglePage) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
 
-func (p *SinglePage) Update() error {
-
+// Update handles the update logic for the page.
+func (p *SinglePageBase) Update() error {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		p.Ui.HandleClick(x, y)
 	}
-
 	return nil
 }
 
-func (p *SinglePage) Draw(screen *ebiten.Image) {
+// Draw renders the page.
+func (p *SinglePageBase) Draw(screen *ebiten.Image) {
 	p.DrawBackGround(screen)
 	p.Ui.Draw(screen)
 }
 
-func (p *SinglePage) DrawBackGround(screen *ebiten.Image) {
+// DrawBackGround draws the background color.
+func (p *SinglePageBase) DrawBackGround(screen *ebiten.Image) {
 	screen.Fill(p.BackgroundClr)
 }
 
-func (p *SinglePage) HandleInput(x, y int) {
+// HandleInput processes input events.
+func (p *SinglePageBase) HandleInput(x, y int) {
 	p.Ui.HandleClick(x, y)
 }
 
-func (p *SinglePage) ResetButtonStates() {
+// ResetButtonStates resets the state of all buttons.
+func (p *SinglePageBase) ResetButtonStates() {
 	p.Ui.ResetButtonStates()
 }

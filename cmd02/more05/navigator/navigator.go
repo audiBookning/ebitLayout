@@ -4,7 +4,7 @@ import (
 	"log"
 	"sync"
 
-	"example.com/menu/cmd02/more04/types"
+	"example.com/menu/cmd02/more05/types"
 )
 
 // Navigator manages page navigation.

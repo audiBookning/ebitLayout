@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"example.com/menu/cmd02/more04/types"
+	"example.com/menu/cmd02/more05/types"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font/basicfont"
@@ -114,6 +114,7 @@ func (b *Button) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(float64(b.Position.X), float64(b.Position.Y))
 	screen.DrawImage(buttonImg, op)
 
+	// TODO: Deprecated. Use textwrapper
 	// Draw button text
 	textBounds := text.BoundString(basicfont.Face7x13, b.Text)
 	textX := b.Position.X + (b.Position.Width-textBounds.Dx())/2

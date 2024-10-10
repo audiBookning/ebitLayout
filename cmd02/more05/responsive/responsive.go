@@ -5,7 +5,7 @@ import (
 	"sort"
 	"sync"
 
-	"example.com/menu/cmd02/more04/types"
+	"example.com/menu/cmd02/more05/types"
 )
 
 // LayoutMode defines different layout strategies.
@@ -86,7 +86,7 @@ func (lm *LayoutManager) CalculatePositions(screenWidth, screenHeight int, eleme
 	layoutMode := lm.currentMode
 	lm.mutex.RUnlock()
 
-	positions := make(map[string]types.Position)
+	var positions map[string]types.Position
 
 	// Calculate positions based on layoutMode
 	switch layoutMode {

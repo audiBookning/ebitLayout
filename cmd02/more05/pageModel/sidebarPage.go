@@ -4,14 +4,15 @@ import (
 	"image/color"
 	"log"
 
-	"example.com/menu/cmd02/more04/navigator"
-	"example.com/menu/cmd02/more04/responsive"
+	"example.com/menu/cmd02/more05/navigator"
+	"example.com/menu/cmd02/more05/responsive"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// SidebarPage manages the game levels with a sidebar for navigation.
-type SidebarPage struct {
+// SidebarPageBase manages the game levels with a sidebar for navigation.
+// It serves as a base template for custom sidebar pages.
+type SidebarPageBase struct {
 	ID            string
 	Label         string
 	MainUI        *responsive.UI
@@ -20,29 +21,27 @@ type SidebarPage struct {
 	PrevWidth     int
 	PrevHeight    int
 	SidebarWidth  int
-	Navigator     *navigator.Navigator // Main navigator, used to navigate to LevelGamePage itself
+	Navigator     *navigator.Navigator // Main navigator, used to navigate to SidebarPage itself
 	BackgroundClr color.Color
 }
 
-// Define a constant for sidebar width (for layout purposes)
-// Adjust this value as needed
-
-func NewSidebarPage(mainNav *navigator.Navigator, screenWidth, screenHeight int, id string, label string) *SidebarPage {
-	// Initialize the sub-navigator for LevelGamePage
+// NewSidebarPageBase initializes a new SidebarPageBase.
+func NewSidebarPageBase(mainNav *navigator.Navigator, id, label string, screenWidth, screenHeight int) *SidebarPageBase {
+	// Initialize the sub-navigator for SidebarPage
 	subNav := navigator.NewNavigator(nil) // No onExit needed for sub-navigator
 
-	// Initialize Level01 and Level02 pages with sub-navigator
-	level01 := NewSubPage(subNav, screenWidth, screenHeight)
-	level02 := NewSubPage(subNav, screenWidth, screenHeight)
+	// Initialize Sub1 and Sub2 pages with sub-navigator
+	sub1 := NewSubPage("sub01", "Sub 1", screenWidth, screenHeight)
+	sub2 := NewSubPage("sub02", "Sub 2", screenWidth, screenHeight)
 
 	// Add subpages to sub-navigator
-	subNav.AddPage("sub01", level01)
-	subNav.AddPage("sub02", level02)
+	subNav.AddPage(sub1.ID, sub1)
+	subNav.AddPage(sub2.ID, sub2)
 
 	// Optionally, set an initial subpage if needed
 	subNav.SwitchTo("sub01")
 
-	// Main UI setup (could include additional buttons relevant to LevelGamePage)
+	// Main UI setup (could include additional buttons relevant to SidebarPage)
 	mainBreakpoints := []responsive.Breakpoint{
 		{Width: 1200, LayoutMode: responsive.LayoutGrid},
 		{Width: 800, LayoutMode: responsive.LayoutVertical},
@@ -50,39 +49,29 @@ func NewSidebarPage(mainNav *navigator.Navigator, screenWidth, screenHeight int,
 	}
 	mainButtons := []*responsive.Button{}
 
-	const sub01PageID = "sub01"
-	const sub02PageID = "sub02"
-	const backPageID = "main"
-
-	const sub01ButtonText = "Sub 1"
-	const sub02ButtonText = "Sub 2"
-	const backButtonText = "Back"
-
 	sidebarButtons := []*responsive.Button{
-		responsive.NewButton(sub01ButtonText, func() { subNav.SwitchTo(sub01PageID) }),
-		responsive.NewButton(sub02ButtonText, func() { subNav.SwitchTo(sub02PageID) }),
-		responsive.NewButton(backButtonText, func() { mainNav.SwitchTo(backPageID) }),
+		responsive.NewButton("Sub 1", func() { subNav.SwitchTo("sub01") }),
+		responsive.NewButton("Sub 2", func() { subNav.SwitchTo("sub02") }),
+		responsive.NewButton("Back", func() { mainNav.SwitchTo("main") }),
 	}
 
-	mainUI := responsive.NewUI("Start Game", mainBreakpoints, mainButtons)
+	mainUI := responsive.NewUI(label, mainBreakpoints, mainButtons)
 
 	// Sidebar UI setup
 	sidebarBreakpoints := []responsive.Breakpoint{
 		{Width: 0, LayoutMode: responsive.LayoutVertical}, // Always vertical for sidebar
 	}
 
-	sidebarUI := responsive.NewUI(label, sidebarBreakpoints, sidebarButtons)
+	sidebarUI := responsive.NewUI("Sidebar Menu", sidebarBreakpoints, sidebarButtons)
 
-	// Initialize screen dimensions
 	const sidebarFixedWidth = 200
-
 	mainUI.Update(screenWidth-sidebarFixedWidth, screenHeight)
 	sidebarUI.Update(sidebarFixedWidth, screenHeight)
 
-	// Initialize LevelGamePage
-	page := &SidebarPage{
-		ID:            "sidebar",
-		Label:         "Sidebar",
+	// Initialize SidebarPageBase
+	page := &SidebarPageBase{
+		ID:            id,
+		Label:         label,
 		MainUI:        mainUI,
 		SidebarUI:     sidebarUI,
 		SubNavigator:  subNav,
@@ -99,26 +88,20 @@ func NewSidebarPage(mainNav *navigator.Navigator, screenWidth, screenHeight int,
 	return page
 }
 
-func (p *SidebarPage) AddSubPages(subPages ...*SubPage) {
-	for _, subPage := range subPages {
-		p.SubNavigator.AddPage(subPage.ID, subPage)
-	}
-}
-
-func (p *SidebarPage) Layout(outsideWidth, outsideHeight int) (int, int) {
+// Layout handles the layout of the sidebar page.
+func (p *SidebarPageBase) Layout(outsideWidth, outsideHeight int) (int, int) {
 	if outsideWidth != p.PrevWidth || outsideHeight != p.PrevHeight {
-		log.Printf("SidebarPage: Window resized to %dx%d\n", outsideWidth, outsideHeight)
+		log.Printf("SidebarPageBase: Window resized to %dx%d\n", outsideWidth, outsideHeight)
 		p.PrevWidth = outsideWidth
 		p.PrevHeight = outsideHeight
-		//p.ui.Update(p.prevWidth, p.prevHeight)
 		p.MainUI.Update(p.PrevWidth-p.SidebarWidth, p.PrevHeight)
 		p.SidebarUI.Update(p.SidebarWidth, p.PrevHeight)
 	}
 	return outsideWidth, outsideHeight
 }
 
-func (p *SidebarPage) Update() error {
-
+// Update handles the update logic for the sidebar page.
+func (p *SidebarPageBase) Update() error {
 	// Handle clicks for both UIs
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
@@ -131,7 +114,8 @@ func (p *SidebarPage) Update() error {
 	return nil
 }
 
-func (p *SidebarPage) HandleInput(x, y int) {
+// HandleInput processes input events.
+func (p *SidebarPageBase) HandleInput(x, y int) {
 	if x < p.SidebarWidth {
 		p.SidebarUI.HandleClick(x, y)
 	} else {
@@ -142,11 +126,8 @@ func (p *SidebarPage) HandleInput(x, y int) {
 	}
 }
 
-func (p *SidebarPage) DrawBackGround(screen *ebiten.Image) {
-	screen.Fill(p.BackgroundClr)
-}
-
-func (p *SidebarPage) Draw(screen *ebiten.Image) {
+// Draw renders the sidebar page.
+func (p *SidebarPageBase) Draw(screen *ebiten.Image) {
 	p.DrawBackGround(screen)
 	// Draw the sidebar and main UI
 	p.SidebarUI.Draw(screen)
@@ -154,7 +135,7 @@ func (p *SidebarPage) Draw(screen *ebiten.Image) {
 
 	// Draw the current subpage in the play-render-space
 	if p.SubNavigator.CurrentActivePage() != nil {
-		screenWidth, screenHeight := screen.Size()
+		screenWidth, screenHeight := screen.Bounds().Dx(), screen.Bounds().Dy()
 		// Create a subimage for the play-render-space
 		playRenderSpace := ebiten.NewImage(screenWidth-p.SidebarWidth, screenHeight)
 		p.SubNavigator.CurrentActivePage().Draw(playRenderSpace)
@@ -174,18 +155,21 @@ func (p *SidebarPage) Draw(screen *ebiten.Image) {
 	screen.DrawImage(separatorImg, op)
 }
 
-func (p *SidebarPage) ResetAllButtonStates() {
-	p.MainUI.ResetButtonStates()
-	p.SidebarUI.ResetButtonStates()
+// DrawBackGround draws the background color.
+func (p *SidebarPageBase) DrawBackGround(screen *ebiten.Image) {
+	screen.Fill(p.BackgroundClr)
+}
+
+// ResetAllButtonStates resets the state of all buttons in both UIs and the current subpage.
+func (p *SidebarPageBase) ResetAllButtonStates() {
+	p.ResetButtonStates()
 	if p.SubNavigator.CurrentActivePage() != nil {
 		p.SubNavigator.CurrentActivePage().ResetButtonStates()
 	}
 }
 
-func (p *SidebarPage) ResetButtonStates() {
+// ResetButtonStates resets the state of all buttons.
+func (p *SidebarPageBase) ResetButtonStates() {
 	p.MainUI.ResetButtonStates()
 	p.SidebarUI.ResetButtonStates()
-	if p.SubNavigator.CurrentActivePage() != nil {
-		p.SubNavigator.CurrentActivePage().ResetButtonStates()
-	}
 }

@@ -10,8 +10,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// SidebarPage manages the game levels with a sidebar for navigation.
-type SidebarPage struct {
+// SidebarPageBase manages the game levels with a sidebar for navigation.
+type SidebarPageBase struct {
 	ID            string
 	Label         string
 	MainUI        *responsive.UI
@@ -27,7 +27,7 @@ type SidebarPage struct {
 // Define a constant for sidebar width (for layout purposes)
 // Adjust this value as needed
 
-func NewSidebarPage(mainNav *navigator.Navigator, screenWidth, screenHeight int, id string, label string) *SidebarPage {
+func NewSidebarPage(mainNav *navigator.Navigator, screenWidth, screenHeight int, id string, label string) *SidebarPageBase {
 	// Initialize the sub-navigator for LevelGamePage
 	subNav := navigator.NewNavigator(nil) // No onExit needed for sub-navigator
 
@@ -80,7 +80,7 @@ func NewSidebarPage(mainNav *navigator.Navigator, screenWidth, screenHeight int,
 	sidebarUI.Update(sidebarFixedWidth, screenHeight)
 
 	// Initialize LevelGamePage
-	page := &SidebarPage{
+	page := &SidebarPageBase{
 		ID:            "sidebar",
 		Label:         "Sidebar",
 		MainUI:        mainUI,
@@ -99,13 +99,13 @@ func NewSidebarPage(mainNav *navigator.Navigator, screenWidth, screenHeight int,
 	return page
 }
 
-func (p *SidebarPage) AddSubPages(subPages ...*SubPage) {
+func (p *SidebarPageBase) AddSubPages(subPages ...*SubPage) {
 	for _, subPage := range subPages {
 		p.SubNavigator.AddPage(subPage.ID, subPage)
 	}
 }
 
-func (p *SidebarPage) Layout(outsideWidth, outsideHeight int) (int, int) {
+func (p *SidebarPageBase) Layout(outsideWidth, outsideHeight int) (int, int) {
 	if outsideWidth != p.PrevWidth || outsideHeight != p.PrevHeight {
 		log.Printf("SidebarPage: Window resized to %dx%d\n", outsideWidth, outsideHeight)
 		p.PrevWidth = outsideWidth
@@ -117,7 +117,7 @@ func (p *SidebarPage) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
 
-func (p *SidebarPage) Update() error {
+func (p *SidebarPageBase) Update() error {
 
 	// Handle clicks for both UIs
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
@@ -131,7 +131,7 @@ func (p *SidebarPage) Update() error {
 	return nil
 }
 
-func (p *SidebarPage) HandleInput(x, y int) {
+func (p *SidebarPageBase) HandleInput(x, y int) {
 	if x < p.SidebarWidth {
 		p.SidebarUI.HandleClick(x, y)
 	} else {
@@ -142,11 +142,11 @@ func (p *SidebarPage) HandleInput(x, y int) {
 	}
 }
 
-func (p *SidebarPage) DrawBackGround(screen *ebiten.Image) {
+func (p *SidebarPageBase) DrawBackGround(screen *ebiten.Image) {
 	screen.Fill(p.BackgroundClr)
 }
 
-func (p *SidebarPage) Draw(screen *ebiten.Image) {
+func (p *SidebarPageBase) Draw(screen *ebiten.Image) {
 	p.DrawBackGround(screen)
 	// Draw the sidebar and main UI
 	p.SidebarUI.Draw(screen)
@@ -174,7 +174,7 @@ func (p *SidebarPage) Draw(screen *ebiten.Image) {
 	screen.DrawImage(separatorImg, op)
 }
 
-func (p *SidebarPage) ResetAllButtonStates() {
+func (p *SidebarPageBase) ResetAllButtonStates() {
 	p.MainUI.ResetButtonStates()
 	p.SidebarUI.ResetButtonStates()
 	if p.SubNavigator.CurrentActivePage() != nil {
@@ -182,7 +182,7 @@ func (p *SidebarPage) ResetAllButtonStates() {
 	}
 }
 
-func (p *SidebarPage) ResetButtonStates() {
+func (p *SidebarPageBase) ResetButtonStates() {
 	p.MainUI.ResetButtonStates()
 	p.SidebarUI.ResetButtonStates()
 	if p.SubNavigator.CurrentActivePage() != nil {
