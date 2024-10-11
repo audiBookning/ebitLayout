@@ -5,6 +5,8 @@ import (
 	"log"
 
 	"example.com/menu/cmd02/more05/responsive"
+	"example.com/menu/cmd02/more05/textwrapper"
+	"example.com/menu/cmd02/more05/types"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
@@ -21,22 +23,22 @@ type SubPageBase struct {
 }
 
 // NewSubPageBase initializes a new SubPageBase.
-func NewSubPageBase(id, label string, screenWidth, screenHeight int) *SubPageBase {
+func NewSubPageBase(textWrapper *textwrapper.TextWrapper, id, label string, screenWidth, screenHeight int) *SubPageBase {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 800, LayoutMode: responsive.LayoutVertical},
 		{Width: 0, LayoutMode: responsive.LayoutHorizontal},
 	}
 
-	buttons := []*responsive.Button{
+	fields := []types.Element{
 		responsive.NewButton("Button 01", func() {
 			log.Println("Button 01 clicked")
-		}),
+		}, textWrapper),
 		responsive.NewButton("Button 02", func() {
 			log.Println("Button 02 clicked")
-		}),
+		}, textWrapper),
 	}
 
-	ui := responsive.NewUI(label, breakpoints, buttons)
+	ui := responsive.NewUI(label, breakpoints, fields, textWrapper, responsive.AlignCenter)
 	ui.Update(screenWidth, screenHeight)
 
 	return &SubPageBase{
@@ -86,28 +88,6 @@ func (p *SubPageBase) HandleInput(x, y int) {
 }
 
 // ResetButtonStates resets the state of all buttons.
-func (p *SubPageBase) ResetButtonStates() {
-	p.Ui.ResetButtonStates()
-}
-
-// SubPage is a custom subpage that embeds SubPageBase.
-// Override methods as needed.
-type SubPage struct {
-	*SubPageBase
-}
-
-// NewSubPage initializes a new SubPage.
-// Override methods by assigning custom functions after initialization.
-func NewSubPage(id, label string, screenWidth, screenHeight int) *SubPage {
-	base := NewSubPageBase(id, label, screenWidth, screenHeight)
-	return &SubPage{
-		SubPageBase: base,
-	}
-}
-
-// Example of overriding the Draw method.
-func (p *SubPage) Draw(screen *ebiten.Image) {
-	// Custom draw logic
-	log.Println("Custom SubPage Draw")
-	p.SubPageBase.Draw(screen)
+func (p *SubPageBase) ResetFieldStates() {
+	p.Ui.ResetFieldStates()
 }

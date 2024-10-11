@@ -2,25 +2,37 @@ package main
 
 import (
 	"errors"
+	"image/color"
 	"log"
 
 	"example.com/menu/cmd02/more05/builder"
 	"example.com/menu/cmd02/more05/navigator"
+	"example.com/menu/cmd02/more05/textwrapper"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Game struct {
-	navigator  *navigator.Navigator
-	exit       bool
-	prevWidth  int
-	prevHeight int
+	navigator   *navigator.Navigator
+	prevWidth   int
+	prevHeight  int
+	exit        bool
+	textWrapper *textwrapper.TextWrapper
 }
 
 func NewGame() *Game {
+	fontPath := GetFilePath("assets/fonts/roboto_regularTTF.ttf")
+	fontSize := 44.0
+	textWrapper, err := textwrapper.NewTextWrapper(fontPath, fontSize, false)
+	if err != nil {
+		log.Fatalf("Failed to create TextWrapper: %v", err)
+	}
+	textWrapper.Color = color.RGBA{255, 255, 255, 255} // White color
+
 	screenWidth, screenHeight := 800, 600
 	g := &Game{
-		prevWidth:  screenWidth,
-		prevHeight: screenHeight,
+		prevWidth:   screenWidth,
+		prevHeight:  screenHeight,
+		textWrapper: textWrapper,
 	}
 
 	// Define the onExit callback
@@ -33,11 +45,11 @@ func NewGame() *Game {
 	g.navigator = navigator.NewNavigator(onExit)
 
 	// Initialize pages with the navigator's SwitchTo method
-	mainMenu := builder.NewMainMenuPage(g.navigator, screenWidth, screenHeight)
-	settings := builder.NewSettingsPage(g.navigator, screenWidth, screenHeight)
-	audio := builder.NewAudioPage(g.navigator, screenWidth, screenHeight)
-	graphics := builder.NewGraphicsPage(g.navigator, screenWidth, screenHeight)
-	startGame := builder.NewLevelGamePage(g.navigator, screenWidth, screenHeight, "start", "Start Game")
+	mainMenu := builder.NewMainMenuPage(g.navigator, textWrapper, screenWidth, screenHeight)
+	settings := builder.NewSettingsPage(g.navigator, textWrapper, screenWidth, screenHeight)
+	audio := builder.NewAudioPage(g.navigator, textWrapper, screenWidth, screenHeight)
+	graphics := builder.NewGraphicsPage(g.navigator, textWrapper, screenWidth, screenHeight)
+	startGame := builder.NewLevelGamePage(g.navigator, textWrapper, screenWidth, screenHeight, "start", "Start Game")
 
 	// Add pages to navigator
 	g.navigator.AddPage("main", mainMenu)

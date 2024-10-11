@@ -8,6 +8,18 @@ type Page interface {
 	Draw(screen *ebiten.Image)
 	DrawBackGround(screen *ebiten.Image)
 	HandleInput(x, y int)
-	ResetButtonStates()
+	ResetFieldStates()
 	Layout(outsideWidth, outsideHeight int) (int, int)
+}
+
+// Element defines the common interface for all UI elements.
+type Element interface {
+	GetPosition() Position
+	SetPosition(Position)
+	Draw(screen *ebiten.Image)
+	Update()
+	IsClicked(x, y int) bool
+	HandleClick()
+	ResetState()
+	GetSize() (int, int) // Added method to get element size
 }

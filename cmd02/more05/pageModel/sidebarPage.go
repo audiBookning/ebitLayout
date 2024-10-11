@@ -6,6 +6,8 @@ import (
 
 	"example.com/menu/cmd02/more05/navigator"
 	"example.com/menu/cmd02/more05/responsive"
+	"example.com/menu/cmd02/more05/textwrapper"
+	"example.com/menu/cmd02/more05/types"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
@@ -26,13 +28,13 @@ type SidebarPageBase struct {
 }
 
 // NewSidebarPageBase initializes a new SidebarPageBase.
-func NewSidebarPageBase(mainNav *navigator.Navigator, id, label string, screenWidth, screenHeight int) *SidebarPageBase {
+func NewSidebarPageBase(mainNav *navigator.Navigator, textWrapper *textwrapper.TextWrapper, id, label string, screenWidth, screenHeight int) *SidebarPageBase {
 	// Initialize the sub-navigator for SidebarPage
 	subNav := navigator.NewNavigator(nil) // No onExit needed for sub-navigator
 
 	// Initialize Sub1 and Sub2 pages with sub-navigator
-	sub1 := NewSubPage("sub01", "Sub 1", screenWidth, screenHeight)
-	sub2 := NewSubPage("sub02", "Sub 2", screenWidth, screenHeight)
+	sub1 := NewSubPageBase(textWrapper, "sub01", "Sub 1", screenWidth, screenHeight)
+	sub2 := NewSubPageBase(textWrapper, "sub02", "Sub 2", screenWidth, screenHeight)
 
 	// Add subpages to sub-navigator
 	subNav.AddPage(sub1.ID, sub1)
@@ -47,22 +49,20 @@ func NewSidebarPageBase(mainNav *navigator.Navigator, id, label string, screenWi
 		{Width: 800, LayoutMode: responsive.LayoutVertical},
 		{Width: 0, LayoutMode: responsive.LayoutHorizontal},
 	}
-	mainButtons := []*responsive.Button{}
-
-	sidebarButtons := []*responsive.Button{
-		responsive.NewButton("Sub 1", func() { subNav.SwitchTo("sub01") }),
-		responsive.NewButton("Sub 2", func() { subNav.SwitchTo("sub02") }),
-		responsive.NewButton("Back", func() { mainNav.SwitchTo("main") }),
-	}
-
-	mainUI := responsive.NewUI(label, mainBreakpoints, mainButtons)
+	mainFields := []types.Element{}
+	mainUI := responsive.NewUI(label, mainBreakpoints, mainFields, textWrapper, responsive.AlignCenter)
 
 	// Sidebar UI setup
 	sidebarBreakpoints := []responsive.Breakpoint{
 		{Width: 0, LayoutMode: responsive.LayoutVertical}, // Always vertical for sidebar
 	}
+	sidebarFields := []types.Element{
+		responsive.NewButton("Sub 1", func() { subNav.SwitchTo("sub01") }, textWrapper),
+		responsive.NewButton("Sub 2", func() { subNav.SwitchTo("sub02") }, textWrapper),
+		responsive.NewButton("Back", func() { mainNav.SwitchTo("main") }, textWrapper),
+	}
 
-	sidebarUI := responsive.NewUI("Sidebar Menu", sidebarBreakpoints, sidebarButtons)
+	sidebarUI := responsive.NewUI("Sidebar Menu", sidebarBreakpoints, sidebarFields, textWrapper, responsive.AlignCenter)
 
 	const sidebarFixedWidth = 200
 	mainUI.Update(screenWidth-sidebarFixedWidth, screenHeight)
@@ -162,14 +162,14 @@ func (p *SidebarPageBase) DrawBackGround(screen *ebiten.Image) {
 
 // ResetAllButtonStates resets the state of all buttons in both UIs and the current subpage.
 func (p *SidebarPageBase) ResetAllButtonStates() {
-	p.ResetButtonStates()
+	p.ResetFieldStates()
 	if p.SubNavigator.CurrentActivePage() != nil {
-		p.SubNavigator.CurrentActivePage().ResetButtonStates()
+		p.SubNavigator.CurrentActivePage().ResetFieldStates()
 	}
 }
 
 // ResetButtonStates resets the state of all buttons.
-func (p *SidebarPageBase) ResetButtonStates() {
-	p.MainUI.ResetButtonStates()
-	p.SidebarUI.ResetButtonStates()
+func (p *SidebarPageBase) ResetFieldStates() {
+	p.MainUI.ResetFieldStates()
+	p.SidebarUI.ResetFieldStates()
 }

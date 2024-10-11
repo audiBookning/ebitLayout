@@ -7,34 +7,36 @@ import (
 	"example.com/menu/cmd02/more05/navigator"
 	"example.com/menu/cmd02/more05/pagemodel"
 	"example.com/menu/cmd02/more05/responsive"
+	"example.com/menu/cmd02/more05/textwrapper"
+	"example.com/menu/cmd02/more05/types"
 )
 
 type SettingsPage struct {
 	*pagemodel.SinglePageBase
 }
 
-func NewSettingsPage(nv *navigator.Navigator, screenWidth, screenHeight int) *SettingsPage {
+func NewSettingsPage(nv *navigator.Navigator, textWrapper *textwrapper.TextWrapper, screenWidth, screenHeight int) *SettingsPage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1000, LayoutMode: responsive.LayoutVertical},
 		{Width: 600, LayoutMode: responsive.LayoutHorizontal},
 	}
 
-	buttons := []*responsive.Button{
+	fields := []types.Element{
 		responsive.NewButton("Audio", func() {
 			log.Println("Audio clicked")
 			nv.SwitchTo("audio")
-		}),
+		}, textWrapper),
 		responsive.NewButton("Graphics", func() {
 			log.Println("Graphics clicked")
 			nv.SwitchTo("graphics")
-		}),
+		}, textWrapper),
 		responsive.NewButton("Back", func() {
 			log.Println("Back clicked")
 			nv.SwitchTo("main")
-		}),
+		}, textWrapper),
 	}
 
-	ui := responsive.NewUI("Settings", breakpoints, buttons)
+	ui := responsive.NewUI("Settings", breakpoints, fields, textWrapper, responsive.AlignCenter)
 
 	ui.Update(screenWidth, screenHeight)
 

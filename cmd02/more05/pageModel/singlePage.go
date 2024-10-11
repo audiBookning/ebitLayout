@@ -6,6 +6,8 @@ import (
 
 	"example.com/menu/cmd02/more05/navigator"
 	"example.com/menu/cmd02/more05/responsive"
+	"example.com/menu/cmd02/more05/textwrapper"
+	"example.com/menu/cmd02/more05/types"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
@@ -23,27 +25,26 @@ type SinglePageBase struct {
 }
 
 // NewSinglePageBase initializes a new SinglePageBase.
-func NewSinglePageBase(nv *navigator.Navigator, id string, label string, screenWidth, screenHeight int) *SinglePageBase {
+func NewSinglePageBase(nv *navigator.Navigator, textWrapper *textwrapper.TextWrapper, id string, label string, screenWidth, screenHeight int) *SinglePageBase {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1000, LayoutMode: responsive.LayoutVertical},
 		{Width: 600, LayoutMode: responsive.LayoutHorizontal},
 	}
 
-	buttons := []*responsive.Button{
+	fields := []types.Element{
 		responsive.NewButton("Button 01", func() {
 			log.Println("Button 01 clicked")
-		}),
+		}, textWrapper),
 		responsive.NewButton("Button 02", func() {
 			log.Println("Button 02 clicked")
-
-		}),
+		}, textWrapper),
 		responsive.NewButton("Back", func() {
 			log.Println("Back clicked")
 			nv.SwitchTo("settings")
-		}),
+		}, textWrapper),
 	}
 
-	ui := responsive.NewUI(label, breakpoints, buttons)
+	ui := responsive.NewUI(label, breakpoints, fields, textWrapper, responsive.AlignCenter)
 	ui.Update(screenWidth, screenHeight)
 
 	return &SinglePageBase{
@@ -65,7 +66,6 @@ func (p *SinglePageBase) Layout(outsideWidth, outsideHeight int) (int, int) {
 		p.PrevHeight = outsideHeight
 		p.Ui.Update(p.PrevWidth, p.PrevHeight)
 	}
-
 	return outsideWidth, outsideHeight
 }
 
@@ -95,6 +95,6 @@ func (p *SinglePageBase) HandleInput(x, y int) {
 }
 
 // ResetButtonStates resets the state of all buttons.
-func (p *SinglePageBase) ResetButtonStates() {
-	p.Ui.ResetButtonStates()
+func (p *SinglePageBase) ResetFieldStates() {
+	p.Ui.ResetFieldStates()
 }

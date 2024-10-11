@@ -23,6 +23,15 @@ type Breakpoint struct {
 	LayoutMode LayoutMode
 }
 
+// Alignment defines the horizontal alignment of UI elements.
+type Alignment int
+
+const (
+	AlignLeft Alignment = iota
+	AlignCenter
+	AlignRight
+)
+
 // LayoutManager manages responsive layouts based on breakpoints.
 type LayoutManager struct {
 	breakpoints []Breakpoint
@@ -72,16 +81,15 @@ func (lm *LayoutManager) DetermineLayout(screenWidth int) LayoutMode {
 	return lm.currentMode
 }
 
+// GetCurrentLayoutMode returns the current layout mode.
 func (lm *LayoutManager) GetCurrentLayoutMode() LayoutMode {
 	lm.mutex.RLock()
 	defer lm.mutex.RUnlock()
 	return lm.currentMode
 }
 
-// CalculatePositions calculates the positions of UI elements based on the current layout.
-// The 'elements' parameter should be a slice of elements you want to position.
-// It returns a map from element identifier to its Position.
-func (lm *LayoutManager) CalculatePositions(screenWidth, screenHeight int, elements []string) map[string]types.Position {
+// CalculatePositions calculates the positions of UI elements based on the current layout and alignment.
+func (lm *LayoutManager) CalculatePositions(screenWidth, screenHeight int, elementIDs []string, alignment Alignment, elements []types.Element) map[string]types.Position {
 	lm.mutex.RLock()
 	layoutMode := lm.currentMode
 	lm.mutex.RUnlock()
@@ -91,108 +99,224 @@ func (lm *LayoutManager) CalculatePositions(screenWidth, screenHeight int, eleme
 	// Calculate positions based on layoutMode
 	switch layoutMode {
 	case LayoutHorizontal:
-		positions = calculateHorizontal(screenWidth, screenHeight, elements)
+		positions = calculateHorizontal(screenWidth, screenHeight, elementIDs, alignment, elements)
 	case LayoutVertical:
-		positions = calculateVertical(screenWidth, screenHeight, elements)
+		positions = calculateVertical(screenWidth, screenHeight, elementIDs, alignment, elements)
 	case LayoutGrid:
-		positions = calculateGrid(screenWidth, screenHeight, elements)
+		positions = calculateGrid(screenWidth, screenHeight, elementIDs, alignment, elements)
 	default:
 		// Fallback to horizontal layout if unknown layoutMode
-		positions = calculateHorizontal(screenWidth, screenHeight, elements)
+		positions = calculateHorizontal(screenWidth, screenHeight, elementIDs, alignment, elements)
 	}
 
 	return positions
 }
 
-func calculateHorizontal(screenWidth, screenHeight int, elements []string) map[string]types.Position {
+// Helper function to get element sizes
+func getElementSizes(elements []types.Element) []types.Position {
+	sizes := make([]types.Position, len(elements))
+	for i, elem := range elements {
+		width, height := elem.GetSize()
+		sizes[i] = types.Position{
+			Width:  width,
+			Height: height,
+		}
+	}
+	return sizes
+}
+
+// Calculate positions for horizontal layout
+func calculateHorizontal(screenWidth, screenHeight int, elementIDs []string, alignment Alignment, elements []types.Element) map[string]types.Position {
 	numElements := len(elements)
 	if numElements == 0 {
 		return nil
 	}
 
-	buttonWidth := 200
-	buttonHeight := 50
-	spacing := 50
+	spacing := 50 // You can also make spacing dynamic if needed
 
-	totalWidth := numElements*buttonWidth + (numElements-1)*spacing
-	startX := (screenWidth - totalWidth) / 2
-	yPos := screenHeight - buttonHeight - 50
+	// Calculate total width dynamically
+	totalWidth := 0
+	for _, elem := range elements {
+		width, _ := elem.GetSize()
+		totalWidth += width
+	}
+	totalWidth += (numElements - 1) * spacing
+
+	// Determine startX based on alignment
+	var startX int
+	switch alignment {
+	case AlignLeft:
+		startX = 0
+	case AlignCenter:
+		startX = (screenWidth - totalWidth) / 2
+	case AlignRight:
+		startX = screenWidth - totalWidth
+	}
+
+	yPos := screenHeight - 50 // Adjust as needed
 
 	positions := make(map[string]types.Position)
+	x := startX
 	for i, elem := range elements {
-		x := startX + i*(buttonWidth+spacing)
-		positions[elem] = types.Position{
+		width, height := elem.GetSize()
+		positions[elementIDs[i]] = types.Position{
 			X:      x,
 			Y:      yPos,
-			Width:  buttonWidth,
-			Height: buttonHeight,
+			Width:  width,
+			Height: height,
 		}
+		x += width + spacing
 	}
 
 	return positions
 }
 
-func calculateVertical(screenWidth, screenHeight int, elements []string) map[string]types.Position {
+// Calculate positions for vertical layout
+func calculateVertical(screenWidth, screenHeight int, elementIDs []string, alignment Alignment, elements []types.Element) map[string]types.Position {
 	numElements := len(elements)
 	if numElements == 0 {
 		return nil
 	}
 
-	buttonWidth := 150
-	buttonHeight := 40
-	spacing := 20
+	spacing := 20 // You can also make spacing dynamic if needed
 
-	totalHeight := numElements*buttonHeight + (numElements-1)*spacing
+	// Calculate total height dynamically
+	totalHeight := 0
+	for _, elem := range elements {
+		_, height := elem.GetSize()
+		totalHeight += height
+	}
+	totalHeight += (numElements - 1) * spacing
+
 	startY := (screenHeight - totalHeight) / 2
 
+	// Determine startX based on alignment
+	var startX int
+	switch alignment {
+	case AlignLeft:
+		startX = 0
+	case AlignCenter:
+		startX = (screenWidth) / 2 // Will adjust each element to be centered
+	case AlignRight:
+		startX = screenWidth // Will adjust each element to align to the right
+	}
+
 	positions := make(map[string]types.Position)
+	y := startY
 	for i, elem := range elements {
-		x := (screenWidth - buttonWidth) / 2
-		y := startY + i*(buttonHeight+spacing)
-		positions[elem] = types.Position{
-			X:      x,
-			Y:      y,
-			Width:  buttonWidth,
-			Height: buttonHeight,
+		width, height := elem.GetSize()
+		switch alignment {
+		case AlignLeft:
+			// startX is already set to 0
+		case AlignCenter:
+			startX = (screenWidth - width) / 2
+		case AlignRight:
+			startX = screenWidth - width
 		}
+		positions[elementIDs[i]] = types.Position{
+			X:      startX,
+			Y:      y,
+			Width:  width,
+			Height: height,
+		}
+		y += height + spacing
 	}
 
 	return positions
 }
 
-func calculateGrid(screenWidth, screenHeight int, elements []string) map[string]types.Position {
+// Calculate positions for grid layout
+func calculateGrid(screenWidth, screenHeight int, elementIDs []string, alignment Alignment, elements []types.Element) map[string]types.Position {
 	numElements := len(elements)
 	if numElements == 0 {
 		return nil
 	}
 
 	columns := 2
-	rows := (numElements + 1) / 2 // Adjust as needed
+	rows := (numElements + columns - 1) / columns // Ceiling division
 
-	buttonWidth := 180
-	buttonHeight := 45
 	spacingX := 30
 	spacingY := 30
 
-	totalWidth := columns*buttonWidth + (columns-1)*spacingX
-	totalHeight := rows*buttonHeight + (rows-1)*spacingY
+	// Calculate total grid width and height dynamically
+	colWidths := make([]int, columns)
+	rowHeights := make([]int, rows)
 
-	startX := (screenWidth - totalWidth) / 2
-	startY := (screenHeight - totalHeight) / 2
+	for i, elem := range elements {
+		col := i % columns
+		row := i / columns
+		width, height := elem.GetSize()
+		if width > colWidths[col] {
+			colWidths[col] = width
+		}
+		if height > rowHeights[row] {
+			rowHeights[row] = height
+		}
+	}
+
+	totalWidth := 0
+	for _, w := range colWidths {
+		totalWidth += w
+	}
+	totalWidth += (columns - 1) * spacingX
+
+	totalHeight := 0
+	for _, h := range rowHeights {
+		totalHeight += h
+	}
+	totalHeight += (rows - 1) * spacingY
+
+	// Determine startX and startY based on alignment
+	var startX, startY int
+
+	switch alignment {
+	case AlignLeft:
+		startX = 0
+	case AlignCenter:
+		startX = (screenWidth - totalWidth) / 2
+	case AlignRight:
+		startX = screenWidth - totalWidth
+	}
+
+	startY = (screenHeight - totalHeight) / 2
 
 	positions := make(map[string]types.Position)
+
+	colOffsets := make([]int, columns)
+	currentX := startX
+	for c := 0; c < columns; c++ {
+		colOffsets[c] = currentX
+		currentX += colWidths[c] + spacingX
+	}
+
+	rowOffsets := make([]int, rows)
+	currentY := startY
+	for r := 0; r < rows; r++ {
+		rowOffsets[r] = currentY
+		currentY += rowHeights[r] + spacingY
+	}
+
 	for i, elem := range elements {
-		row := i / columns
 		col := i % columns
-		x := startX + col*(buttonWidth+spacingX)
-		y := startY + row*(buttonHeight+spacingY)
-		positions[elem] = types.Position{
+		row := i / columns
+		width, height := elem.GetSize()
+		x := colOffsets[col]
+		y := rowOffsets[row]
+		positions[elementIDs[i]] = types.Position{
 			X:      x,
 			Y:      y,
-			Width:  buttonWidth,
-			Height: buttonHeight,
+			Width:  width,
+			Height: height,
 		}
 	}
 
 	return positions
+}
+
+// Placeholder function to retrieve elements by their IDs.
+// You need to implement this based on your application's context.
+func getElementsByIds(ids []string) []types.Element {
+	// Example implementation. Replace with actual retrieval logic.
+	// This might involve accessing the UI state or passing a reference.
+	return nil
 }
