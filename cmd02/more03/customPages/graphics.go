@@ -10,7 +10,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// GraphicsPage represents the graphics settings UI.
 type GraphicsPage struct {
 	ui         *responsive.UI
 	prevWidth  int
@@ -27,11 +26,11 @@ func NewGraphicsPage(nv *navigator.Navigator, screenWidth, screenHeight int) *Gr
 	buttons := []*responsive.Button{
 		responsive.NewButton("Resolution", func() {
 			log.Println("Resolution clicked")
-			// Add Resolution logic here
+
 		}),
 		responsive.NewButton("Fullscreen", func() {
 			log.Println("Fullscreen clicked")
-			// Add Fullscreen logic here
+
 		}),
 		responsive.NewButton("Back", func() {
 			log.Println("Back clicked")

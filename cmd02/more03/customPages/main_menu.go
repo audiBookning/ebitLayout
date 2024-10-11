@@ -10,7 +10,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// MainMenuPage represents the main menu UI.
 type MainMenuPage struct {
 	ui         *responsive.UI
 	prevWidth  int

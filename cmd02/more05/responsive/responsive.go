@@ -8,7 +8,6 @@ import (
 	"example.com/menu/cmd02/more05/types"
 )
 
-// LayoutMode defines different layout strategies.
 type LayoutMode string
 
 const (
@@ -17,13 +16,11 @@ const (
 	LayoutGrid       LayoutMode = "grid"
 )
 
-// Breakpoint defines a screen width and the corresponding layout mode.
 type Breakpoint struct {
 	Width      int
 	LayoutMode LayoutMode
 }
 
-// Alignment defines the horizontal alignment of UI elements.
 type Alignment int
 
 const (
@@ -32,18 +29,14 @@ const (
 	AlignRight
 )
 
-// LayoutManager manages responsive layouts based on breakpoints.
 type LayoutManager struct {
 	breakpoints []Breakpoint
 	currentMode LayoutMode
 	mutex       sync.RWMutex
 }
 
-// NewLayoutManager initializes a LayoutManager with given breakpoints.
-// Breakpoints should be sorted in descending order of Width.
-// If not sorted, they will be sorted automatically.
 func NewLayoutManager(breakpoints []Breakpoint) *LayoutManager {
-	// Sort breakpoints in descending order of Width
+
 	sort.Slice(breakpoints, func(i, j int) bool {
 		return breakpoints[i].Width > breakpoints[j].Width
 	})
@@ -59,7 +52,6 @@ func NewLayoutManager(breakpoints []Breakpoint) *LayoutManager {
 	}
 }
 
-// DetermineLayout determines the current layout mode based on the screen width.
 func (lm *LayoutManager) DetermineLayout(screenWidth int) LayoutMode {
 	lm.mutex.Lock()
 	defer lm.mutex.Unlock()
@@ -73,7 +65,7 @@ func (lm *LayoutManager) DetermineLayout(screenWidth int) LayoutMode {
 			return lm.currentMode
 		}
 	}
-	// If no breakpoint matched, use the smallest layout mode
+
 	if len(lm.breakpoints) > 0 {
 		lm.currentMode = lm.breakpoints[len(lm.breakpoints)-1].LayoutMode
 		log.Printf("DetermineLayout: screenWidth=%d, using default LayoutMode=%s\n", screenWidth, lm.currentMode)
@@ -81,14 +73,12 @@ func (lm *LayoutManager) DetermineLayout(screenWidth int) LayoutMode {
 	return lm.currentMode
 }
 
-// GetCurrentLayoutMode returns the current layout mode.
 func (lm *LayoutManager) GetCurrentLayoutMode() LayoutMode {
 	lm.mutex.RLock()
 	defer lm.mutex.RUnlock()
 	return lm.currentMode
 }
 
-// CalculatePositions calculates the positions of UI elements based on the current layout and alignment.
 func (lm *LayoutManager) CalculatePositions(screenWidth, screenHeight int, elementIDs []string, alignment Alignment, elements []types.Element) map[string]types.Position {
 	lm.mutex.RLock()
 	layoutMode := lm.currentMode
@@ -96,7 +86,6 @@ func (lm *LayoutManager) CalculatePositions(screenWidth, screenHeight int, eleme
 
 	var positions map[string]types.Position
 
-	// Calculate positions based on layoutMode
 	switch layoutMode {
 	case LayoutHorizontal:
 		positions = calculateHorizontal(screenWidth, screenHeight, elementIDs, alignment, elements)
@@ -105,14 +94,13 @@ func (lm *LayoutManager) CalculatePositions(screenWidth, screenHeight int, eleme
 	case LayoutGrid:
 		positions = calculateGrid(screenWidth, screenHeight, elementIDs, alignment, elements)
 	default:
-		// Fallback to horizontal layout if unknown layoutMode
+
 		positions = calculateHorizontal(screenWidth, screenHeight, elementIDs, alignment, elements)
 	}
 
 	return positions
 }
 
-// Helper function to get element sizes
 func getElementSizes(elements []types.Element) []types.Position {
 	sizes := make([]types.Position, len(elements))
 	for i, elem := range elements {
@@ -125,16 +113,14 @@ func getElementSizes(elements []types.Element) []types.Position {
 	return sizes
 }
 
-// Calculate positions for horizontal layout
 func calculateHorizontal(screenWidth, screenHeight int, elementIDs []string, alignment Alignment, elements []types.Element) map[string]types.Position {
 	numElements := len(elements)
 	if numElements == 0 {
 		return nil
 	}
 
-	spacing := 50 // You can also make spacing dynamic if needed
+	spacing := 50
 
-	// Calculate total width dynamically
 	totalWidth := 0
 	for _, elem := range elements {
 		width, _ := elem.GetSize()
@@ -142,7 +128,6 @@ func calculateHorizontal(screenWidth, screenHeight int, elementIDs []string, ali
 	}
 	totalWidth += (numElements - 1) * spacing
 
-	// Determine startX based on alignment
 	var startX int
 	switch alignment {
 	case AlignLeft:
@@ -153,7 +138,7 @@ func calculateHorizontal(screenWidth, screenHeight int, elementIDs []string, ali
 		startX = screenWidth - totalWidth
 	}
 
-	yPos := screenHeight - 50 // Adjust as needed
+	yPos := screenHeight - 50
 
 	positions := make(map[string]types.Position)
 	x := startX
@@ -171,16 +156,14 @@ func calculateHorizontal(screenWidth, screenHeight int, elementIDs []string, ali
 	return positions
 }
 
-// Calculate positions for vertical layout
 func calculateVertical(screenWidth, screenHeight int, elementIDs []string, alignment Alignment, elements []types.Element) map[string]types.Position {
 	numElements := len(elements)
 	if numElements == 0 {
 		return nil
 	}
 
-	spacing := 20 // You can also make spacing dynamic if needed
+	spacing := 20
 
-	// Calculate total height dynamically
 	totalHeight := 0
 	for _, elem := range elements {
 		_, height := elem.GetSize()
@@ -190,15 +173,14 @@ func calculateVertical(screenWidth, screenHeight int, elementIDs []string, align
 
 	startY := (screenHeight - totalHeight) / 2
 
-	// Determine startX based on alignment
 	var startX int
 	switch alignment {
 	case AlignLeft:
 		startX = 0
 	case AlignCenter:
-		startX = (screenWidth) / 2 // Will adjust each element to be centered
+		startX = (screenWidth) / 2
 	case AlignRight:
-		startX = screenWidth // Will adjust each element to align to the right
+		startX = screenWidth
 	}
 
 	positions := make(map[string]types.Position)
@@ -207,7 +189,7 @@ func calculateVertical(screenWidth, screenHeight int, elementIDs []string, align
 		width, height := elem.GetSize()
 		switch alignment {
 		case AlignLeft:
-			// startX is already set to 0
+
 		case AlignCenter:
 			startX = (screenWidth - width) / 2
 		case AlignRight:
@@ -225,7 +207,6 @@ func calculateVertical(screenWidth, screenHeight int, elementIDs []string, align
 	return positions
 }
 
-// Calculate positions for grid layout
 func calculateGrid(screenWidth, screenHeight int, elementIDs []string, alignment Alignment, elements []types.Element) map[string]types.Position {
 	numElements := len(elements)
 	if numElements == 0 {
@@ -233,12 +214,11 @@ func calculateGrid(screenWidth, screenHeight int, elementIDs []string, alignment
 	}
 
 	columns := 2
-	rows := (numElements + columns - 1) / columns // Ceiling division
+	rows := (numElements + columns - 1) / columns
 
 	spacingX := 30
 	spacingY := 30
 
-	// Calculate total grid width and height dynamically
 	colWidths := make([]int, columns)
 	rowHeights := make([]int, rows)
 
@@ -266,7 +246,6 @@ func calculateGrid(screenWidth, screenHeight int, elementIDs []string, alignment
 	}
 	totalHeight += (rows - 1) * spacingY
 
-	// Determine startX and startY based on alignment
 	var startX, startY int
 
 	switch alignment {
@@ -313,10 +292,7 @@ func calculateGrid(screenWidth, screenHeight int, elementIDs []string, alignment
 	return positions
 }
 
-// Placeholder function to retrieve elements by their IDs.
-// You need to implement this based on your application's context.
 func getElementsByIds(ids []string) []types.Element {
-	// Example implementation. Replace with actual retrieval logic.
-	// This might involve accessing the UI state or passing a reference.
+
 	return nil
 }

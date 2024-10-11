@@ -12,8 +12,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// SinglePageBase represents the base functionality for a single page.
-// Custom pages can embed this struct and override its methods as needed.
 type SinglePageBase struct {
 	ID            string
 	Label         string
@@ -24,7 +22,6 @@ type SinglePageBase struct {
 	BackgroundClr color.Color
 }
 
-// NewSinglePageBase initializes a new SinglePageBase.
 func NewSinglePageBase(nv *navigator.Navigator, textWrapper *textwrapper.TextWrapper, id string, label string, screenWidth, screenHeight int) *SinglePageBase {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1000, LayoutMode: responsive.LayoutVertical},
@@ -58,7 +55,6 @@ func NewSinglePageBase(nv *navigator.Navigator, textWrapper *textwrapper.TextWra
 	}
 }
 
-// Layout handles the layout of the page.
 func (p *SinglePageBase) Layout(outsideWidth, outsideHeight int) (int, int) {
 	if outsideWidth != p.PrevWidth || outsideHeight != p.PrevHeight {
 		log.Printf("SinglePageBase: Window resized to %dx%d\n", outsideWidth, outsideHeight)
@@ -69,7 +65,6 @@ func (p *SinglePageBase) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
 
-// Update handles the update logic for the page.
 func (p *SinglePageBase) Update() error {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
@@ -78,23 +73,19 @@ func (p *SinglePageBase) Update() error {
 	return nil
 }
 
-// Draw renders the page.
 func (p *SinglePageBase) Draw(screen *ebiten.Image) {
 	p.DrawBackGround(screen)
 	p.Ui.Draw(screen)
 }
 
-// DrawBackGround draws the background color.
 func (p *SinglePageBase) DrawBackGround(screen *ebiten.Image) {
 	screen.Fill(p.BackgroundClr)
 }
 
-// HandleInput processes input events.
 func (p *SinglePageBase) HandleInput(x, y int) {
 	p.Ui.HandleClick(x, y)
 }
 
-// ResetButtonStates resets the state of all buttons.
 func (p *SinglePageBase) ResetFieldStates() {
 	p.Ui.ResetFieldStates()
 }

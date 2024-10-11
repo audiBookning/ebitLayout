@@ -8,7 +8,6 @@ import (
 	"example.com/menu/cmd02/more03/types"
 )
 
-// LayoutMode defines different layout strategies.
 type LayoutMode string
 
 const (
@@ -17,24 +16,19 @@ const (
 	LayoutGrid       LayoutMode = "grid"
 )
 
-// Breakpoint defines a screen width and the corresponding layout mode.
 type Breakpoint struct {
 	Width      int
 	LayoutMode LayoutMode
 }
 
-// LayoutManager manages responsive layouts based on breakpoints.
 type LayoutManager struct {
 	breakpoints []Breakpoint
 	currentMode LayoutMode
 	mutex       sync.RWMutex
 }
 
-// NewLayoutManager initializes a LayoutManager with given breakpoints.
-// Breakpoints should be sorted in descending order of Width.
-// If not sorted, they will be sorted automatically.
 func NewLayoutManager(breakpoints []Breakpoint) *LayoutManager {
-	// Sort breakpoints in descending order of Width
+
 	sort.Slice(breakpoints, func(i, j int) bool {
 		return breakpoints[i].Width > breakpoints[j].Width
 	})
@@ -50,7 +44,6 @@ func NewLayoutManager(breakpoints []Breakpoint) *LayoutManager {
 	}
 }
 
-// DetermineLayout determines the current layout mode based on the screen width.
 func (lm *LayoutManager) DetermineLayout(screenWidth int) LayoutMode {
 	lm.mutex.Lock()
 	defer lm.mutex.Unlock()
@@ -64,7 +57,7 @@ func (lm *LayoutManager) DetermineLayout(screenWidth int) LayoutMode {
 			return lm.currentMode
 		}
 	}
-	// If no breakpoint matched, use the smallest layout mode
+
 	if len(lm.breakpoints) > 0 {
 		lm.currentMode = lm.breakpoints[len(lm.breakpoints)-1].LayoutMode
 		log.Printf("DetermineLayout: screenWidth=%d, using default LayoutMode=%s\n", screenWidth, lm.currentMode)
@@ -78,9 +71,6 @@ func (lm *LayoutManager) GetCurrentLayoutMode() LayoutMode {
 	return lm.currentMode
 }
 
-// CalculatePositions calculates the positions of UI elements based on the current layout.
-// The 'elements' parameter should be a slice of elements you want to position.
-// It returns a map from element identifier to its Position.
 func (lm *LayoutManager) CalculatePositions(screenWidth, screenHeight int, elements []string) map[string]types.Position {
 	lm.mutex.RLock()
 	layoutMode := lm.currentMode
@@ -88,7 +78,6 @@ func (lm *LayoutManager) CalculatePositions(screenWidth, screenHeight int, eleme
 
 	positions := make(map[string]types.Position)
 
-	// Calculate positions based on layoutMode
 	switch layoutMode {
 	case LayoutHorizontal:
 		positions = calculateHorizontal(screenWidth, screenHeight, elements)
@@ -97,7 +86,7 @@ func (lm *LayoutManager) CalculatePositions(screenWidth, screenHeight int, eleme
 	case LayoutGrid:
 		positions = calculateGrid(screenWidth, screenHeight, elements)
 	default:
-		// Fallback to horizontal layout if unknown layoutMode
+
 		positions = calculateHorizontal(screenWidth, screenHeight, elements)
 	}
 
@@ -167,7 +156,7 @@ func calculateGrid(screenWidth, screenHeight int, elements []string) map[string]
 	}
 
 	columns := 2
-	rows := (numElements + 1) / 2 // Adjust as needed
+	rows := (numElements + 1) / 2
 
 	buttonWidth := 180
 	buttonHeight := 45

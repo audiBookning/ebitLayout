@@ -46,17 +46,14 @@ func NewButtonStd(
 }
 
 func (b *ButtonStd) Draw(screen *ebiten.Image) {
-	// Draw the button background
+
 	vector.DrawFilledRect(screen, b.X, b.Y, b.Width, b.Height, b.BackgroundColor, false)
 
-	// Draw the button text
 	b.TextWrapper.Color = b.FontColor
 	b.TextWrapper.SetFontSize(b.FontSize)
 
-	// Measure the text dimensions
 	textWidth, textHeight := b.TextWrapper.MeasureText(b.Text)
 
-	// Calculate position to center the text within the button
 	textX := float64(b.X) + float64(b.Width)/2 - textWidth/2
 	textY := float64(b.Y) + float64(b.Height)/2 - textHeight/2
 
@@ -70,7 +67,7 @@ func (b *ButtonStd) Draw(screen *ebiten.Image) {
 
 func (b *ButtonStd) Update(navigatorOffsetX, navigatorOffsetY float32, isAnimating bool) {
 	if isAnimating {
-		return // Ignore clicks during animations
+		return
 	}
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
@@ -78,16 +75,13 @@ func (b *ButtonStd) Update(navigatorOffsetX, navigatorOffsetY float32, isAnimati
 		globalX := float32(x)
 		globalY := float32(y)
 
-		// Adjust global cursor position to local by subtracting navigator offset
 		localX := globalX - navigatorOffsetX
 		localY := globalY - navigatorOffsetY
 
-		// Debug: Log cursor and button positions
 		log.Printf("Cursor Position: (%f, %f)", globalX, globalY)
 		log.Printf("Button Position: (%f, %f) with size (%f, %f)", b.X, b.Y, b.Width, b.Height)
 		log.Printf("Local Cursor Position: (%f, %f)", localX, localY)
 
-		// Check if the cursor is within the button's bounds
 		chek01 := localX >= b.X
 		chek02 := localX < b.X+b.Width
 		chek03 := localY >= b.Y

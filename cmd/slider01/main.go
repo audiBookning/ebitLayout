@@ -19,19 +19,19 @@ type Game struct {
 }
 
 func (g *Game) Update() error {
-	// Get the mouse position
+
 	mx, my := ebiten.CursorPosition()
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		// Check if the mouse is within the slider bounds
+
 		if float64(mx) >= g.SliderX && float64(mx) <= g.SliderX+g.SliderWidth && float64(my) >= g.SliderY && float64(my) <= g.SliderY+g.SliderHeight {
-			// If clicking on the handle
+
 			if float64(mx) >= g.HandleX && float64(mx) <= g.HandleX+g.HandleWidth {
 				g.Dragging = true
 			} else {
-				// Move the handle to where the click occurred
+
 				g.HandleX = float64(mx) - g.HandleWidth/2
-				// Ensure the handle stays within the slider bounds
+
 				if g.HandleX < g.SliderX {
 					g.HandleX = g.SliderX
 				}
@@ -43,10 +43,9 @@ func (g *Game) Update() error {
 	}
 
 	if g.Dragging {
-		// Update the handle position based on mouse movement
+
 		g.HandleX = float64(mx) - g.HandleWidth/2
 
-		// Ensure the handle stays within the slider bounds
 		if g.HandleX < g.SliderX {
 			g.HandleX = g.SliderX
 		}
@@ -55,7 +54,6 @@ func (g *Game) Update() error {
 		}
 	}
 
-	// Stop dragging when the mouse button is released
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
 		g.Dragging = false
 	}
@@ -64,10 +62,9 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	// Draw the slider bar
+
 	vector.DrawFilledRect(screen, float32(g.SliderX), float32(g.SliderY), float32(g.SliderWidth), float32(g.SliderHeight), color.RGBA{0x80, 0x80, 0x80, 0xff}, true)
 
-	// Draw the handle
 	vector.DrawFilledRect(screen, float32(g.HandleX), float32(g.SliderY), float32(g.HandleWidth), float32(g.SliderHeight), color.RGBA{0xff, 0x00, 0x00, 0xff}, true)
 }
 

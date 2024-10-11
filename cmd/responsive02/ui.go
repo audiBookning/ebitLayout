@@ -10,10 +10,9 @@ import (
 	"golang.org/x/image/font/basicfont"
 )
 
-// Breakpoint defines a screen width and the corresponding layout mode.
 type Breakpoint struct {
-	Width      int    // Maximum width for this breakpoint
-	LayoutMode string // e.g., "horizontal", "vertical", "grid"
+	Width      int
+	LayoutMode string
 }
 
 type Button struct {
@@ -24,61 +23,53 @@ type Button struct {
 	OnClickFunc   func()
 }
 
-// IsClicked checks if the given coordinates are within the button's area.
 func (b *Button) IsClicked(x, y int) bool {
 	return x >= b.X && x <= b.X+b.Width &&
 		y >= b.Y && y <= b.Y+b.Height
 }
 
-// OnClick handles the button click event.
 func (b *Button) OnClick() {
 	if b.OnClickFunc != nil {
 		b.Clicked = true
 		b.OnClickFunc()
-		// Reset Clicked state after action
-		// For simplicity, we reset immediately. You can add delay if needed.
+
 		b.Clicked = false
 	}
 }
 
 func (b *Button) Draw(screen *ebiten.Image) {
-	// Choose button color based on click state
+
 	var btnColor color.Color
 	if b.Clicked {
-		btnColor = color.RGBA{0xFF, 0xA5, 0x00, 0xFF} // Orange when clicked
+		btnColor = color.RGBA{0xFF, 0xA5, 0x00, 0xFF}
 	} else {
-		btnColor = color.RGBA{0x00, 0x7A, 0xCC, 0xFF} // Default button color
+		btnColor = color.RGBA{0x00, 0x7A, 0xCC, 0xFF}
 	}
 
-	// Create button rectangle
 	button := ebiten.NewImage(b.Width, b.Height)
 	button.Fill(btnColor)
 
-	// Draw button rectangle
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(b.X), float64(b.Y))
 	screen.DrawImage(button, op)
 
-	// Draw button text
 	textBounds := text.BoundString(basicfont.Face7x13, b.Text)
 	textX := b.X + (b.Width-textBounds.Dx())/2
 	textY := b.Y + (b.Height+textBounds.Dy())/2
 	text.Draw(screen, b.Text, basicfont.Face7x13, textX, textY, color.White)
 }
 
-// UI manages all UI elements.
 type UI struct {
 	Title          string
 	TitleX, TitleY int
 	Button1        Button
 	Button2        Button
 	Breakpoints    []Breakpoint
-	CurrentMode    string // Current layout mode based on window size
+	CurrentMode    string
 }
 
-// NewUI initializes the UI with customizable breakpoints.
 func NewUI(breakpoints []Breakpoint) *UI {
-	// Sort breakpoints in descending order of Width for proper selection
+
 	sort.Slice(breakpoints, func(i, j int) bool {
 		return breakpoints[i].Width > breakpoints[j].Width
 	})
@@ -88,7 +79,6 @@ func NewUI(breakpoints []Breakpoint) *UI {
 		Breakpoints: breakpoints,
 	}
 
-	// Initialize Buttons
 	ui.Button1 = Button{
 		Text: "Button 1",
 		OnClickFunc: func() {
@@ -105,17 +95,14 @@ func NewUI(breakpoints []Breakpoint) *UI {
 	return ui
 }
 
-// Update recalculates UI element positions and sizes based on screen dimensions.
 func (u *UI) Update(screenWidth, screenHeight int) {
-	// Update Title Position (always centered at top)
+
 	titleBounds := text.BoundString(basicfont.Face7x13, u.Title)
 	u.TitleX = (screenWidth - titleBounds.Dx()) / 2
 	u.TitleY = 50
 
-	// Determine Current Layout Mode based on breakpoints
 	u.determineLayoutMode(screenWidth)
 
-	// Adjust layout based on CurrentMode
 	switch u.CurrentMode {
 	case "horizontal":
 		u.layoutHorizontal(screenWidth, screenHeight)
@@ -128,7 +115,6 @@ func (u *UI) Update(screenWidth, screenHeight int) {
 	}
 }
 
-// determineLayoutMode sets the current layout mode based on screen width and breakpoints.
 func (u *UI) determineLayoutMode(screenWidth int) {
 	for _, bp := range u.Breakpoints {
 		if screenWidth <= bp.Width {
@@ -137,20 +123,18 @@ func (u *UI) determineLayoutMode(screenWidth int) {
 			continue
 		}
 	}
-	// If no breakpoint matched, use the first (largest) layout mode
+
 	if u.CurrentMode == "" && len(u.Breakpoints) > 0 {
 		u.CurrentMode = u.Breakpoints[0].LayoutMode
 	}
 }
 
-// layoutHorizontal arranges UI elements horizontally.
 func (u *UI) layoutHorizontal(screenWidth, screenHeight int) {
-	// Define button size
+
 	btnWidth := 200
 	btnHeight := 50
 
-	// Calculate positions for horizontal layout
-	totalWidth := 2*btnWidth + 50 // 50px space between buttons
+	totalWidth := 2*btnWidth + 50
 	startX := (screenWidth - totalWidth) / 2
 	yPos := screenHeight - btnHeight - 50
 
@@ -165,14 +149,12 @@ func (u *UI) layoutHorizontal(screenWidth, screenHeight int) {
 	u.Button2.Height = btnHeight
 }
 
-// layoutVertical arranges UI elements vertically.
 func (u *UI) layoutVertical(screenWidth, screenHeight int) {
-	// Define button size
+
 	btnWidth := 150
 	btnHeight := 40
 
-	// Calculate positions for vertical layout
-	totalHeight := 2*btnHeight + 20 // 20px space between buttons
+	totalHeight := 2*btnHeight + 20
 	startY := screenHeight - totalHeight - 50
 
 	u.Button1.X = (screenWidth - btnWidth) / 2
@@ -186,15 +168,12 @@ func (u *UI) layoutVertical(screenWidth, screenHeight int) {
 	u.Button2.Height = btnHeight
 }
 
-// layoutGrid arranges UI elements in a grid layout.
 func (u *UI) layoutGrid(screenWidth, screenHeight int) {
-	// Example grid layout: 2x2 grid (for future scalability)
-	// For now, arranging two buttons side by side with smaller spacing
+
 	btnWidth := 180
 	btnHeight := 45
 
-	// Calculate positions for grid layout
-	totalWidth := 2*btnWidth + 30 // 30px space between buttons
+	totalWidth := 2*btnWidth + 30
 	startX := (screenWidth - totalWidth) / 2
 	yPos := screenHeight - btnHeight - 60
 
@@ -209,7 +188,6 @@ func (u *UI) layoutGrid(screenWidth, screenHeight int) {
 	u.Button2.Height = btnHeight
 }
 
-// HandleClick determines if any button was clicked and triggers its action.
 func (u *UI) HandleClick(x, y int) {
 	if u.Button1.IsClicked(x, y) {
 		u.Button1.OnClick()
@@ -220,10 +198,9 @@ func (u *UI) HandleClick(x, y int) {
 }
 
 func (u *UI) Draw(screen *ebiten.Image) {
-	// Draw Title
+
 	text.Draw(screen, u.Title, basicfont.Face7x13, u.TitleX, u.TitleY, color.White)
 
-	// Draw Buttons
 	u.Button1.Draw(screen)
 	u.Button2.Draw(screen)
 }

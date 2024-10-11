@@ -9,7 +9,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// GraphicsPage represents the graphics settings UI.
 type GraphicsPage struct {
 	ui         *responsive.UI
 	manager    *responsive.LayoutManager
@@ -24,8 +23,8 @@ func NewGraphicsPage(switchPage func(pageName string)) *GraphicsPage {
 	}
 
 	buttons := []*responsive.Button{
-		responsive.NewButton("Resolution", func() { log.Println("Resolution clicked") /* Add Resolution logic */ }),
-		responsive.NewButton("Fullscreen", func() { log.Println("Fullscreen clicked") /* Add Fullscreen logic */ }),
+		responsive.NewButton("Resolution", func() { log.Println("Resolution clicked") }),
+		responsive.NewButton("Fullscreen", func() { log.Println("Fullscreen clicked") }),
 		responsive.NewButton("Back", func() {
 			log.Println("Back clicked")
 			switchPage("settings")
@@ -64,11 +63,10 @@ func (p *GraphicsPage) Update() error {
 }
 
 func (p *GraphicsPage) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x5E, 0x5E, 0x5E, 0xFF}) // Light gray background
+	screen.Fill(color.RGBA{0x5E, 0x5E, 0x5E, 0xFF})
 	p.ui.Draw(screen)
 }
 
-// HandleInput processes input specific to the page (if any).
 func (p *GraphicsPage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }

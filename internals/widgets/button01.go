@@ -8,7 +8,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// ***** BUTTON *****
 type Button01 struct {
 	X, Y, Width, Height int
 	Label               string
@@ -17,7 +16,7 @@ type Button01 struct {
 	ClickColor          color.Color
 	isHovered           bool
 	isPressed           bool
-	OnClickFunc         func() // Callback function
+	OnClickFunc         func()
 }
 
 func NewButton(x, y, width, height int, label string, color, hoverColor, clickColor color.Color, onClick func()) *Button01 {

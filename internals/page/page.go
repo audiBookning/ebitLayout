@@ -9,7 +9,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-// Page interface for all pages
 type Page interface {
 	Update(navigatorOffsetX, navigatorOffsetY float32, isAnimating bool) error
 	Draw(navigatorArea *ebiten.Image, offsetX, offsetY float64)
@@ -18,7 +17,7 @@ type Page interface {
 	AddUIelement(element UIElement)
 	AddButton(btn PageButton, onNext func())
 	GetType() string
-	SetCustomDraw(func(screen *ebiten.Image)) // New method to set custom draw function
+	SetCustomDraw(func(screen *ebiten.Image))
 }
 
 type PageButton struct {
@@ -31,7 +30,6 @@ type UIElement interface {
 	Draw(screen *ebiten.Image)
 }
 
-// BasePage struct to hold common page properties
 type BasePage struct {
 	X, Y                 float32
 	Width, Height        float32
@@ -40,13 +38,12 @@ type BasePage struct {
 	UiElements           []UIElement
 	TextWrapper          *textwrapper.TextWrapper
 	NextPageID           string
-	PageArea             *ebiten.Image              // Stores the page image
-	DrawCustom           func(screen *ebiten.Image) // Custom drawing function
-	DrawBackgroundCustom func(screen *ebiten.Image) // Custom draw background function
-	DrawUIElementsCustom func(screen *ebiten.Image) // Custom draw elements function
+	PageArea             *ebiten.Image
+	DrawCustom           func(screen *ebiten.Image)
+	DrawBackgroundCustom func(screen *ebiten.Image)
+	DrawUIElementsCustom func(screen *ebiten.Image)
 }
 
-// NewBasePage creates a new BasePage instance
 func NewBasePage(
 	bgColor color.Color,
 	message string,
@@ -67,7 +64,6 @@ func NewBasePage(
 	}
 }
 
-// Update for BasePage
 func (p *BasePage) Update(navigatorOffsetX, navigatorOffsetY float32, isAnimating bool) error {
 	for _, element := range p.UiElements {
 		element.Update(navigatorOffsetX+p.X, navigatorOffsetY+p.Y, isAnimating)
@@ -75,29 +71,24 @@ func (p *BasePage) Update(navigatorOffsetX, navigatorOffsetY float32, isAnimatin
 	return nil
 }
 
-// Draw method enhanced to include custom drawing
 func (p *BasePage) Draw(navigatorArea *ebiten.Image, offsetX, offsetY float64) {
-	// Draw the background and elements onto PageArea
+
 	p.DrawBackground(p.PageArea)
 	p.DrawUIelements(p.PageArea)
 
-	// Invoke custom draw function if set
 	if p.DrawCustom != nil {
 		p.DrawCustom(p.PageArea)
 	}
 
-	// Draw the composed PageArea onto the navigatorArea
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(p.X)+offsetX, float64(p.Y)+offsetY)
 	navigatorArea.DrawImage(p.PageArea, op)
 }
 
-// AddElement for BasePage
 func (p *BasePage) AddUIelement(uiElement UIElement) {
 	p.UiElements = append(p.UiElements, uiElement)
 }
 
-// DrawBackground for BasePage with optional custom draw
 func (p *BasePage) DrawBackground(screen *ebiten.Image) {
 	if p.DrawBackgroundCustom != nil {
 		p.DrawBackgroundCustom(screen)
@@ -107,7 +98,6 @@ func (p *BasePage) DrawBackground(screen *ebiten.Image) {
 	}
 }
 
-// DrawElements for BasePage with optional custom draw
 func (p *BasePage) DrawUIelements(screen *ebiten.Image) {
 	if p.DrawUIElementsCustom != nil {
 		p.DrawUIElementsCustom(screen)
@@ -119,7 +109,6 @@ func (p *BasePage) DrawUIelements(screen *ebiten.Image) {
 	}
 }
 
-// AddButton for BasePage
 func (p *BasePage) AddButton(btn PageButton, onNext func()) {
 	button := widgets.NewButtonStd(
 		btn.X,
@@ -136,22 +125,18 @@ func (p *BasePage) AddButton(btn PageButton, onNext func()) {
 	p.AddUIelement(button)
 }
 
-// SetCustomDraw sets the custom drawing function
 func (p *BasePage) SetCustomDraw(drawFunc func(screen *ebiten.Image)) {
 	p.DrawCustom = drawFunc
 }
 
-// SetCustomDrawBackground sets the custom drawing function for the background
 func (p *BasePage) SetCustomDrawBackground(drawFunc func(screen *ebiten.Image)) {
 	p.DrawBackgroundCustom = drawFunc
 }
 
-// SetCustomDrawElements sets the custom drawing function for the elements
 func (p *BasePage) SetCustomDrawUIElements(drawFunc func(screen *ebiten.Image)) {
 	p.DrawUIElementsCustom = drawFunc
 }
 
-// GetType implementation for BasePage
 func (p *BasePage) GetType() string {
 	return "BasePage"
 }

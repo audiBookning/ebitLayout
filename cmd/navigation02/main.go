@@ -61,16 +61,13 @@ func (b *Button) Draw(screen *ebiten.Image) {
 	btnRect := ebiten.NewImage(b.width, b.height)
 	btnRect.Fill(btnColor)
 
-	// Create a GeoM matrix and set translation
 	var geoM ebiten.GeoM
 	geoM.Translate(float64(b.x), float64(b.y))
 
-	// Draw the button rectangle with the transformation
 	opts := &ebiten.DrawImageOptions{}
 	opts.GeoM = geoM
 	screen.DrawImage(btnRect, opts)
 
-	// Draw the text on the button
 	ebitenutil.DebugPrintAt(screen, b.text, b.x+10, b.y+10)
 }
 
@@ -115,7 +112,7 @@ func (gs *GeneralScreen) GenerateButtons(buttonConfigs []ButtonConfig) {
 }
 
 func (s *GeneralScreen) Update(navigator *Navigator) error {
-	// Handle button clicks and keyboard shortcuts
+
 	for _, button := range s.screenButtons {
 		if button.IsClicked() || button.IsKeyPressed() {
 			navigator.Push(button.target)
@@ -123,7 +120,6 @@ func (s *GeneralScreen) Update(navigator *Navigator) error {
 		}
 	}
 
-	// Handle ESC key to go back
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		if len(navigator.stack) > 1 {
 			navigator.Pop()
@@ -144,7 +140,6 @@ func (s *GeneralScreen) Draw(screen *ebiten.Image) {
 func main() {
 	navigator := NewNavigator()
 
-	// Create the screens
 	screenA := &GeneralScreen{
 		color: color.RGBA{255, 0, 0, 255},
 		label: "Screen A\nClick or press 1 or 2 to navigate",
@@ -170,7 +165,6 @@ func main() {
 		label: "Screen F",
 	}
 
-	// Generate buttons for each screen with shortcut keys
 	screenA.GenerateButtons([]ButtonConfig{
 		{50, 50, 200, 50, "Go to Screen B", screenB, ebiten.Key1},
 		{50, 110, 200, 50, "Go to Screen C", screenC, ebiten.Key2},

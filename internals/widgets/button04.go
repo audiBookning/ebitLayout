@@ -10,7 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-const animationDuration = 15 // Number of frames for the animation
+const animationDuration = 15
 
 type ToggleButton04 struct {
 	X, Y                 int
@@ -30,7 +30,7 @@ type ToggleButton04 struct {
 }
 
 func (b *ToggleButton04) OnMouseDown() {
-	// not implemented
+
 	b.IsToggled = !b.IsToggled
 	if b.IsToggled {
 		b.CurrentColor = b.ToggleColor
@@ -40,7 +40,7 @@ func (b *ToggleButton04) OnMouseDown() {
 }
 
 func (b *ToggleButton04) SetHovered(isHovered bool) {
-	// not implemented
+
 }
 
 func NewToggleButton04(
@@ -70,7 +70,7 @@ func NewToggleButton04(
 
 func (b *ToggleButton04) OnClick() {
 	b.IsToggled = !b.IsToggled
-	b.animationProgress = 0 // Reset animation progress
+	b.animationProgress = 0
 	if b.OnClickFunc != nil {
 		b.OnClickFunc()
 	}
@@ -86,18 +86,16 @@ func (b *ToggleButton04) Update() {
 
 	progress := float64(b.animationProgress) / animationDuration
 
-	// Use a smooth easing function
 	easedProgress := easeInOutCubic(progress)
 
 	if !b.IsToggled {
-		// Swap start and end for the off state
+
 		startX, endX = endX, startX
 	}
 
 	b.knobX = startX + (endX-startX)*easedProgress
 }
 
-// easeInOutCubic provides a smooth acceleration and deceleration
 func easeInOutCubic(t float64) float64 {
 	if t < 0.5 {
 		return 4 * t * t * t
@@ -106,10 +104,9 @@ func easeInOutCubic(t float64) float64 {
 }
 
 func (b *ToggleButton04) Draw(screen *ebiten.Image) {
-	// Draw background
+
 	vector.DrawFilledRect(screen, float32(b.X), float32(b.Y), float32(b.Width), float32(b.Height), color.RGBA{200, 200, 200, 255}, true)
 
-	// Draw knob
 	knobSize := float32(b.Height)
 	vector.DrawFilledRect(
 		screen,
@@ -118,7 +115,6 @@ func (b *ToggleButton04) Draw(screen *ebiten.Image) {
 		b.CurrentColor, true,
 	)
 
-	// Draw label
 	label := b.OffLabel
 	bounds := b.cachedOffLabelBounds
 	if b.IsToggled {
@@ -126,14 +122,12 @@ func (b *ToggleButton04) Draw(screen *ebiten.Image) {
 		bounds = b.cachedOnLabelBounds
 	}
 
-	// Adjust text position
-	x := b.X + b.Width + 10             // 10 pixels padding to the right of the button
-	y := b.Y + (b.Height-bounds.Dy())/2 // Center vertically
+	x := b.X + b.Width + 10
+	y := b.Y + (b.Height-bounds.Dy())/2
 
 	b.tx.Position = image.Point{X: x, Y: y}
 	b.tx.DrawText(screen, label, float64(x), float64(y))
 
-	// Debug: Draw a red dot at the text position
 	vector.DrawFilledCircle(screen, float32(x), float32(y), 2, color.RGBA{255, 0, 0, 255}, true)
 
 }

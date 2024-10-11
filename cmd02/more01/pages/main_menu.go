@@ -8,7 +8,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// MainMenuPage represents the main menu UI.
 type MainMenuPage struct {
 	ui         *responsive.UI
 	manager    *responsive.LayoutManager
@@ -70,11 +69,10 @@ func (p *MainMenuPage) Update() error {
 }
 
 func (p *MainMenuPage) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x2E, 0x2E, 0x2E, 0xFF}) // Slightly lighter gray background
+	screen.Fill(color.RGBA{0x2E, 0x2E, 0x2E, 0xFF})
 	p.ui.Draw(screen)
 }
 
-// HandleInput processes input specific to the page (if any).
 func (p *MainMenuPage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }

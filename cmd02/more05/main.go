@@ -19,7 +19,6 @@ func main() {
 	}
 }
 
-// Asset paths
 var (
 	filePathTxt          string
 	Assets_Relative_Path = "../../"

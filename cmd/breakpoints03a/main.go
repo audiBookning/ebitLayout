@@ -21,10 +21,10 @@ type RedRectangle struct {
 
 func (r *RedRectangle) Draw(screen *ebiten.Image, layout layout.BreakpointLayout) {
 	if layout.Breakpoint != r.Breakpoint {
-		return // Skip drawing if the layout's breakpoint doesn't match the element's breakpoint
+		return
 	}
 	uiElement := ebiten.NewImage(r.Width, r.Height)
-	uiElement.Fill(color.RGBA{255, 0, 0, 255}) // Red rectangle
+	uiElement.Fill(color.RGBA{255, 0, 0, 255})
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(layout.Width/2-r.Width/2), float64(layout.Height/2-r.Height/2))
 	screen.DrawImage(uiElement, op)
@@ -41,18 +41,18 @@ type BlueCircle struct {
 
 func (b *BlueCircle) Draw(screen *ebiten.Image, layout layout.BreakpointLayout) {
 	if layout.Breakpoint != b.Breakpoint {
-		return // Skip drawing if the layout's breakpoint doesn't match the element's breakpoint
+		return
 	}
 	diameter := b.Radius * 2
 	circle := ebiten.NewImage(diameter, diameter)
-	circle.Fill(color.Transparent) // Set transparent background
+	circle.Fill(color.Transparent)
 
 	for x := 0; x < diameter; x++ {
 		for y := 0; y < diameter; y++ {
 			dx := x - b.Radius
 			dy := y - b.Radius
 			if dx*dx+dy*dy <= b.Radius*b.Radius {
-				circle.Set(x, y, color.RGBA{0, 0, 255, 255}) // Blue color
+				circle.Set(x, y, color.RGBA{0, 0, 255, 255})
 			}
 		}
 	}
@@ -78,7 +78,7 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	layout := g.layoutSystem.GetLayout(g.currentBP)
-	// Draw all UI elements that match the current breakpoint
+
 	for _, element := range g.elements {
 		if element.GetBreakpoint() == g.currentBP {
 			element.Draw(screen, layout)
@@ -87,7 +87,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	// Use the layout package to determine the current breakpoint
+
 	g.currentBP = g.layoutSystem.DetermineBreakpoint(outsideWidth, outsideHeight)
 	currentLayout := g.layoutSystem.GetLayout(g.currentBP)
 	return currentLayout.Width, currentLayout.Height

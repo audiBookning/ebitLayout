@@ -30,7 +30,7 @@ func NewGame() *Game {
 	if err != nil {
 		log.Fatal(err)
 	}
-	tx.Color = color.RGBA{255, 255, 255, 255} // white
+	tx.Color = color.RGBA{255, 255, 255, 255}
 	tx.SetFontSize(12)
 
 	toggleButton := widgets.NewToggleButton04(

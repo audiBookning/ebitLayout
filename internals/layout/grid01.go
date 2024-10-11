@@ -22,12 +22,10 @@ func NewGrid01(rows, cols int, totalWidth, totalHeight, bodyPadding, cellMargin,
 	rowHeights := make([]float32, rows+1)
 	colWidths := make([]float32, cols+1)
 
-	// Set row heights to fill the entire screen height
 	for i := 0; i <= rows; i++ {
 		rowHeights[i] = float32(i) / float32(rows)
 	}
 
-	// Set column widths to fill the entire screen width
 	for i := 0; i <= cols; i++ {
 		colWidths[i] = float32(i) / float32(cols)
 	}

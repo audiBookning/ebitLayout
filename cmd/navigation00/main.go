@@ -11,7 +11,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// ***** INPUT MANAGER *****
 type InputManager struct {
 	Clickables     []Clickable
 	MouseX, MouseY int
@@ -46,13 +45,11 @@ func (im *InputManager) Update() {
 		}
 	}
 
-	// Update hover state
 	for _, c := range im.Clickables {
 		c.SetHovered(c.Contains(im.MouseX, im.MouseY))
 	}
 }
 
-// ***** CLICKABLE INTERFACE *****
 type Clickable interface {
 	Contains(x, y int) bool
 	OnClick()
@@ -60,7 +57,6 @@ type Clickable interface {
 	SetHovered(isHovered bool)
 }
 
-// ***** BUTTON *****
 type Button struct {
 	X, Y, Width, Height int
 	Text                string
@@ -69,7 +65,7 @@ type Button struct {
 	ClickColor          color.Color
 	isHovered           bool
 	isPressed           bool
-	OnClickFunc         func() // Callback function
+	OnClickFunc         func()
 }
 
 func NewButton(x, y, width, height int, text string, color, hoverColor, clickColor color.Color, onClick func()) *Button {
@@ -116,7 +112,6 @@ func (b *Button) SetHovered(isHovered bool) {
 	b.isHovered = isHovered
 }
 
-// ***** NAVIGATOR *****
 type Screen interface {
 	Update(*Navigator, *InputManager) error
 	Draw(screen *ebiten.Image)
@@ -157,7 +152,6 @@ func (n *Navigator) CurrentScreen() Screen {
 	return n.stack[len(n.stack)-1]
 }
 
-// ***** GENERAL SCREEN *****
 type GeneralScreen struct {
 	color   color.RGBA
 	text    string
@@ -165,7 +159,6 @@ type GeneralScreen struct {
 	buttons []*Button
 }
 
-// GenerateButtons generates buttons based on the targets
 func (s *GeneralScreen) GenerateButtons(navigator *Navigator, inputManager *InputManager) {
 	s.buttons = nil
 	for i, target := range s.targets {
@@ -189,7 +182,7 @@ func (s *GeneralScreen) GenerateButtons(navigator *Navigator, inputManager *Inpu
 }
 
 func (s *GeneralScreen) Update(navigator *Navigator, inputManager *InputManager) error {
-	// Handle ESC key to go back
+
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		if len(navigator.stack) > 1 {
 			navigator.Pop()
@@ -212,7 +205,6 @@ func (s *GeneralScreen) Draw(screen *ebiten.Image) {
 	}
 }
 
-// ***** GAME *****
 type Game struct {
 	navigator    *Navigator
 	inputManager *InputManager
@@ -236,12 +228,10 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return 640, 480
 }
 
-// ***** MAIN FUNCTION *****
 func main() {
 	navigator := NewNavigator()
 	inputManager := &InputManager{}
 
-	// Create the screens
 	screenA := &GeneralScreen{
 		color:   color.RGBA{255, 0, 0, 255},
 		text:    "Screen A\nClick to navigate",
@@ -273,12 +263,10 @@ func main() {
 		targets: nil,
 	}
 
-	// Establish the links
 	screenA.targets = []*GeneralScreen{screenB, screenC}
 	screenB.targets = []*GeneralScreen{screenD, screenE}
 	screenC.targets = []*GeneralScreen{screenF}
 
-	// Generate buttons for each screen
 	for _, screen := range []*GeneralScreen{screenA, screenB, screenC, screenD, screenE, screenF} {
 		screen.GenerateButtons(navigator, inputManager)
 	}

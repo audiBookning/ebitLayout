@@ -15,21 +15,17 @@ type PlayGamePage struct {
 }
 
 func NewLevelGamePage(mainNav *navigator.Navigator, textWrapper *textwrapper.TextWrapper, screenWidth, screenHeight int, id string, label string) *PlayGamePage {
-	// Initialize the sub-navigator for LevelGamePage
-	subNav := navigator.NewNavigator(nil) // No onExit needed for sub-navigator
 
-	// Initialize Level01 and Level02 pages with sub-navigator
+	subNav := navigator.NewNavigator(nil)
+
 	level01 := NewLevel01Page(subNav, textWrapper, screenWidth, screenHeight, "level01", "Level 01")
 	level02 := NewLevel02Page(subNav, textWrapper, screenWidth, screenHeight, "level02", "Level 02")
 
-	// Add subpages to sub-navigator
 	subNav.AddPage("level01", level01)
 	subNav.AddPage("level02", level02)
 
-	// Optionally, set an initial subpage if needed
 	subNav.SwitchTo("level01")
 
-	// Main UI setup (could include additional buttons relevant to LevelGamePage)
 	mainBreakpoints := []responsive.Breakpoint{
 		{Width: 1200, LayoutMode: responsive.LayoutGrid},
 		{Width: 800, LayoutMode: responsive.LayoutVertical},
@@ -38,9 +34,8 @@ func NewLevelGamePage(mainNav *navigator.Navigator, textWrapper *textwrapper.Tex
 	mainFields := []types.Element{}
 	mainUI := responsive.NewUI(label, mainBreakpoints, mainFields, textWrapper, responsive.AlignCenter)
 
-	// Sidebar UI setup
 	sidebarBreakpoints := []responsive.Breakpoint{
-		{Width: 0, LayoutMode: responsive.LayoutVertical}, // Always vertical for sidebar
+		{Width: 0, LayoutMode: responsive.LayoutVertical},
 	}
 	sidebarFields := []types.Element{
 		responsive.NewButton("Level 1", func() { subNav.SwitchTo("level01") }, textWrapper),
@@ -53,7 +48,6 @@ func NewLevelGamePage(mainNav *navigator.Navigator, textWrapper *textwrapper.Tex
 	mainUI.Update(screenWidth-sidebarFixedWidth, screenHeight)
 	sidebarUI.Update(sidebarFixedWidth, screenHeight)
 
-	// Initialize LevelGamePage
 	page := &pagemodel.SidebarPageBase{
 		ID:            id,
 		Label:         label,
@@ -63,11 +57,10 @@ func NewLevelGamePage(mainNav *navigator.Navigator, textWrapper *textwrapper.Tex
 		PrevWidth:     screenWidth,
 		PrevHeight:    screenHeight,
 		SidebarWidth:  sidebarFixedWidth,
-		Navigator:     mainNav, // Reference to main navigator to allow navigating back to main menu
+		Navigator:     mainNav,
 		BackgroundClr: color.RGBA{0x3E, 0x3E, 0x3E, 0xFF},
 	}
 
-	// Reset button states when creating the page
 	page.ResetAllButtonStates()
 
 	return &PlayGamePage{

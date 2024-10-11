@@ -8,7 +8,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// GraphicsPage represents the graphics settings UI.
 type GraphicsPage struct {
 	ui         *responsive.UI
 	manager    *responsive.LayoutManager
@@ -63,11 +62,10 @@ func (p *GraphicsPage) Update() error {
 }
 
 func (p *GraphicsPage) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x5E, 0x5E, 0x5E, 0xFF}) // Light gray background
+	screen.Fill(color.RGBA{0x5E, 0x5E, 0x5E, 0xFF})
 	p.ui.Draw(screen)
 }
 
-// HandleInput processes input specific to the page (if any).
 func (p *GraphicsPage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }

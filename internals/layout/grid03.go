@@ -26,12 +26,10 @@ func NewGrid03(rows, cols, totalWidth, totalHeight, bodyPadding, cellMargin, cel
 	rowHeights := make([]float32, rows+1)
 	colWidths := make([]float32, cols+1)
 
-	// Set row heights to equal distribution
 	for i := 0; i <= rows; i++ {
 		rowHeights[i] = float32(i) / float32(rows)
 	}
 
-	// Set column widths to equal distribution
 	for i := 0; i <= cols; i++ {
 		colWidths[i] = float32(i) / float32(cols)
 	}
@@ -81,7 +79,6 @@ func (g *Grid03) AddRow() {
 	}
 	g.RowHeights = updatedRowHeights
 
-	// Initialize the new row
 	newRow := make([]Cell03, g.Cols)
 	for x := 0; x < g.Cols; x++ {
 		cellWidth := int(float32(g.TotalWidth-g.BodyPadding*2) * (g.ColWidths[x+1] - g.ColWidths[x]))
@@ -105,7 +102,6 @@ func (g *Grid03) AddColumn() {
 	}
 	g.ColWidths = updatedColWidths
 
-	// Initialize the new column for each row
 	for y := 0; y < g.Rows; y++ {
 		cellWidth := int(float32(g.TotalWidth-g.BodyPadding*2) * (g.ColWidths[g.Cols] - g.ColWidths[g.Cols-1]))
 		cellHeight := int(float32(g.TotalHeight-g.BodyPadding*2) * (g.RowHeights[y+1] - g.RowHeights[y]))

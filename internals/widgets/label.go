@@ -13,7 +13,7 @@ type Label struct {
 	X, Y        float64
 	FontSize    int
 	FontColor   color.Color
-	Align       string // "left", "center", or "right"
+	Align       string
 	textWrapper *textwrapper.TextWrapper
 }
 
@@ -38,7 +38,7 @@ func NewLabel(
 }
 
 func (l *Label) Update() error {
-	// Update logic if needed
+
 	return nil
 }
 
@@ -61,6 +61,6 @@ func (l *Label) Draw(screen *ebiten.Image) {
 }
 
 func (l *Label) Layout(outsideWidth, outsideHeight int) (int, int) {
-	// Layout logic if needed
+
 	return outsideWidth, outsideHeight
 }

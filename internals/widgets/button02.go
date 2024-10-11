@@ -18,7 +18,7 @@ type ToggleButton02 struct {
 }
 
 func (b *ToggleButton02) OnMouseDown() {
-	// not implemented
+
 	b.IsToggled = !b.IsToggled
 	if b.IsToggled {
 		b.CurrentColor = b.ToggleColor
@@ -28,7 +28,7 @@ func (b *ToggleButton02) OnMouseDown() {
 }
 
 func (b *ToggleButton02) SetHovered(isHovered bool) {
-	// not implemented
+
 }
 
 func NewToggleButton02(

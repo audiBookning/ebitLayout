@@ -12,7 +12,6 @@ import (
 	"golang.org/x/image/font/basicfont"
 )
 
-// Level02Page represents the second level's UI.
 type Level02Page struct {
 	ui         *responsive.UI
 	prevWidth  int
@@ -28,17 +27,15 @@ func NewLevel02Page(subNav *navigator.Navigator, screenWidth, screenHeight int) 
 	buttons := []*responsive.Button{
 		responsive.NewButton("Start Challenge", func() {
 			log.Println("Start Challenge in Level 02")
-			// Implement Start Challenge logic here
+
 		}),
 		responsive.NewButton("Back to Start", func() {
 			log.Println("Back to Start from Level 02")
-			//subNav.SwitchTo("start") // Navigate back to start within sub-navigator
+			//subNav.SwitchTo("start")
 		}),
 	}
 
 	ui := responsive.NewUI("Level 02 - The Challenge", breakpoints, buttons)
-
-	// Initialize screen dimensions
 
 	ui.Update(screenWidth, screenHeight)
 
@@ -76,7 +73,6 @@ func (p *Level02Page) DrawBackGround(screen *ebiten.Image) {
 func (p *Level02Page) Draw(screen *ebiten.Image) {
 	p.DrawBackGround(screen)
 
-	// Draw the title text in Yellow
 	text.Draw(screen, "Level 02 - The Challenge", basicfont.Face7x13, 50, 50, color.RGBA{255, 255, 0, 255})
 
 	p.ui.Draw(screen)

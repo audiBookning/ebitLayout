@@ -58,7 +58,7 @@ func NewContentScreen(navigator *Navigator, contents []Content, currentIdx int) 
 		contents:       contents,
 		currentIdx:     currentIdx,
 		prevIdx:        currentIdx,
-		animationSpeed: 0.05, // Adjust animation speed as needed
+		animationSpeed: 0.05,
 	}
 }
 
@@ -70,13 +70,12 @@ func (s *ContentScreen) Update(navigator *Navigator) error {
 			s.prevIdx = s.currentIdx
 			s.animationProgress = 0
 			if s.prevIdx > s.currentIdx {
-				navigator.Pop() // Pop the previous screen after the animation finishes
+				navigator.Pop()
 			}
 		}
 		return nil
 	}
 
-	// Handle right arrow key to move forward
 	if inpututil.IsKeyJustPressed(ebiten.KeyRight) && s.currentIdx < len(s.contents)-1 {
 		nextIdx := s.currentIdx + 1
 		s.startAnimation(nextIdx)
@@ -84,7 +83,6 @@ func (s *ContentScreen) Update(navigator *Navigator) error {
 		navigator.Push(nextScreen)
 	}
 
-	// Handle left arrow key to move backward
 	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
 		if len(navigator.stack) > 1 {
 			prevIdx := s.currentIdx - 1
@@ -107,7 +105,7 @@ func (s *ContentScreen) calculatePosition(idx int) (int, bool) {
 	nextContent := s.contents[s.currentIdx]
 
 	if s.animating {
-		if s.currentIdx > s.prevIdx { // Moving forward
+		if s.currentIdx > s.prevIdx {
 			if idx == s.prevIdx {
 				position := 400 - currentContent.width/2 - int(float64(currentContent.width)*s.animationProgress)
 				return position, position+currentContent.width > 0
@@ -116,7 +114,7 @@ func (s *ContentScreen) calculatePosition(idx int) (int, bool) {
 				position := 800 - int(float64(nextContent.width)*s.animationProgress)
 				return position, position < 800
 			}
-		} else { // Moving backward
+		} else {
 			if idx == s.prevIdx {
 				position := int(float64(currentContent.width)*s.animationProgress) - currentContent.width
 				return position, position+currentContent.width > 0
@@ -199,14 +197,12 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 func main() {
 	navigator := NewNavigator()
 
-	// Define content for screens
 	contents := []Content{
 		NewContent("Content 1", color.RGBA{255, 0, 0, 255}, 400, 300),
 		NewContent("Content 2", color.RGBA{0, 255, 0, 255}, 350, 250),
 		NewContent("Content 3", color.RGBA{0, 0, 255, 255}, 450, 350),
 	}
 
-	// Push the initial content screen
 	initialScreen := NewContentScreen(navigator, contents, 0)
 	navigator.Push(initialScreen)
 

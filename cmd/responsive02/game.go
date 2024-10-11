@@ -14,7 +14,7 @@ type Game struct {
 }
 
 func NewGame() *Game {
-	// Define customizable breakpoints
+
 	breakpoints := []Breakpoint{
 		{
 			Width:      1200,
@@ -35,11 +35,9 @@ func NewGame() *Game {
 	}
 }
 
-// Update updates the game state.
 func (g *Game) Update() error {
 	g.UI.Update(g.ScreenWidth, g.ScreenHeight)
 
-	// Handle mouse input for button clicks
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		mouseX, mouseY := ebiten.CursorPosition()
 		g.UI.HandleClick(mouseX, mouseY)
@@ -49,15 +47,14 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x30, 0x30, 0x30, 0xFF}) // Dark background
+	screen.Fill(color.RGBA{0x30, 0x30, 0x30, 0xFF})
 
 	g.UI.Draw(screen)
 }
 
-// Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	g.ScreenWidth = outsideWidth
 	g.ScreenHeight = outsideHeight
-	g.UI.Update(g.ScreenWidth, g.ScreenHeight) // Ensure UI updates on layout change
+	g.UI.Update(g.ScreenWidth, g.ScreenHeight)
 	return outsideWidth, outsideHeight
 }

@@ -19,7 +19,7 @@ type Button struct {
 	mutex           sync.Mutex
 	lastClickTime   int64
 	TextWrapper     *textwrapper.TextWrapper
-	padding         int // Add padding for the button
+	padding         int
 }
 
 func NewButton(text string, onClick func(), tw *textwrapper.TextWrapper) *Button {
@@ -27,7 +27,7 @@ func NewButton(text string, onClick func(), tw *textwrapper.TextWrapper) *Button
 		Text:        text,
 		OnClickFunc: onClick,
 		TextWrapper: tw,
-		padding:     10, // Add some padding around the text
+		padding:     10,
 	}
 }
 
@@ -46,11 +46,10 @@ func (b *Button) HandleClick() {
 		b.Clicked = true
 		b.OnClickFunc()
 		b.lastClickTime = currentTime
-		b.currentCooldown = 10 // Frames to wait before next click
+		b.currentCooldown = 10
 	}
 }
 
-// Update handles cooldown for button clicks.
 func (b *Button) Update() {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -60,7 +59,7 @@ func (b *Button) Update() {
 			b.Clicked = false
 		}
 	}
-	// Automatically reset Clicked state after a short duration
+
 	if b.Clicked && time.Now().UnixNano()-b.lastClickTime > int64(time.Millisecond*100) {
 		b.Clicked = false
 	}
@@ -70,34 +69,28 @@ func (b *Button) Draw(screen *ebiten.Image) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
-	// Calculate button size
 	width, height := b.calculateSize()
 
-	// Check for hover
 	x, y := ebiten.CursorPosition()
 	isHover := x >= b.Position.X && x <= b.Position.X+width &&
 		y >= b.Position.Y && y <= b.Position.Y+height
 
-	// Choose button color based on state
 	var btnColor color.Color
 	if b.Clicked && time.Now().UnixNano()-b.lastClickTime < int64(time.Millisecond*100) {
-		btnColor = color.RGBA{0xFF, 0xA5, 0x00, 0xFF} // Orange when clicked
+		btnColor = color.RGBA{0xFF, 0xA5, 0x00, 0xFF}
 	} else if isHover {
-		btnColor = color.RGBA{0x00, 0x8B, 0x8B, 0xFF} // DarkCyan on hover
+		btnColor = color.RGBA{0x00, 0x8B, 0x8B, 0xFF}
 	} else {
-		btnColor = color.RGBA{0x00, 0x7A, 0xCC, 0xFF} // Default button color
+		btnColor = color.RGBA{0x00, 0x7A, 0xCC, 0xFF}
 	}
 
-	// Create button rectangle
 	buttonImg := ebiten.NewImage(width, height)
 	buttonImg.Fill(btnColor)
 
-	// Draw button rectangle
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(b.Position.X), float64(b.Position.Y))
 	screen.DrawImage(buttonImg, op)
 
-	// Draw button text
 	textWidth, textHeight := b.TextWrapper.MeasureText(b.Text)
 	textX := float64(b.Position.X) + (float64(width)-textWidth)/2
 	textY := float64(b.Position.Y) + (float64(height)-textHeight)/2
@@ -127,7 +120,6 @@ func (b *Button) calculateSize() (int, int) {
 	return width, height
 }
 
-// GetSize returns the current size of the button.
 func (b *Button) GetSize() (int, int) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()

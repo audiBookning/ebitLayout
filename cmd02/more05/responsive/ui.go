@@ -9,18 +9,16 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// UI represents a page's UI, containing a title and fields.
 type UI struct {
 	Title       *Title
 	Fields      []types.Element
 	manager     *LayoutManager
-	elementsIds []string // Identifiers for layout positioning
+	elementsIds []string
 	mutex       sync.RWMutex
 	TextWrapper *textwrapper.TextWrapper
-	Alignment   Alignment // Alignment of the UI elements
+	Alignment   Alignment
 }
 
-// NewUI creates a new UI instance with the specified alignment.
 func NewUI(titleText string, breakpoints []Breakpoint, fields []types.Element, tw *textwrapper.TextWrapper, alignment Alignment) *UI {
 	elements := make([]string, len(fields))
 	for i := range fields {
@@ -37,14 +35,12 @@ func NewUI(titleText string, breakpoints []Breakpoint, fields []types.Element, t
 	}
 }
 
-// Update recalculates and sets the positions of all UI elements based on the current screen size.
 func (u *UI) Update(screenWidth, screenHeight int) {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
 	u.manager.DetermineLayout(screenWidth)
 
-	// Pass actual elements to LayoutManager
 	positions := u.manager.CalculatePositions(screenWidth, screenHeight, u.elementsIds, u.Alignment, u.Fields)
 
 	for i, field := range u.Fields {
@@ -58,13 +54,11 @@ func (u *UI) Update(screenWidth, screenHeight int) {
 		field.Update()
 	}
 
-	// Update Title Position (centered at the top)
 	titleWidth, _ := u.TextWrapper.MeasureText(u.Title.Text)
 	u.Title.X = (screenWidth - int(titleWidth)) / 2
 	u.Title.Y = 50
 }
 
-// HandleClick processes click events for all fields.
 func (u *UI) HandleClick(x, y int) {
 	u.mutex.RLock()
 	defer u.mutex.RUnlock()
@@ -76,7 +70,6 @@ func (u *UI) HandleClick(x, y int) {
 	}
 }
 
-// Draw renders the UI on the screen.
 func (u *UI) Draw(screen *ebiten.Image) {
 	u.mutex.RLock()
 	defer u.mutex.RUnlock()
@@ -88,7 +81,6 @@ func (u *UI) Draw(screen *ebiten.Image) {
 	}
 }
 
-// ResetFieldStates resets the state of all fields.
 func (u *UI) ResetFieldStates() {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()

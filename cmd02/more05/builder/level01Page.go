@@ -23,11 +23,11 @@ func NewLevel01Page(subNav *navigator.Navigator, textWrapper *textwrapper.TextWr
 	fields := []types.Element{
 		responsive.NewButton("Play", func() {
 			log.Println("Play Level 01")
-			// Implement Play Level 01 logic here
+
 		}, textWrapper),
 		responsive.NewButton("Back to Start", func() {
 			log.Println("Back to Start")
-			subNav.SwitchTo("start") // Navigate back to start within sub-navigator
+			subNav.SwitchTo("start")
 		}, textWrapper),
 	}
 	ui := responsive.NewUI(label, breakpoints, fields, textWrapper, responsive.AlignCenter)

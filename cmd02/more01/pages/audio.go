@@ -8,7 +8,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// AudioPage represents the audio settings UI.
 type AudioPage struct {
 	ui         *responsive.UI
 	manager    *responsive.LayoutManager
@@ -23,8 +22,8 @@ func NewAudioPage(switchPage func(pageName string)) *AudioPage {
 	}
 
 	buttons := []*responsive.Button{
-		responsive.NewButton("Volume Up", func() { log.Println("Volume Up clicked") /* Add Volume Up logic */ }),
-		responsive.NewButton("Volume Down", func() { log.Println("Volume Down clicked") /* Add Volume Down logic */ }),
+		responsive.NewButton("Volume Up", func() { log.Println("Volume Up clicked") }),
+		responsive.NewButton("Volume Down", func() { log.Println("Volume Down clicked") }),
 		responsive.NewButton("Back", func() {
 			log.Println("Back clicked")
 			switchPage("settings")
@@ -63,11 +62,10 @@ func (p *AudioPage) Update() error {
 }
 
 func (p *AudioPage) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x4E, 0x4E, 0x4E, 0xFF}) // Even lighter gray background
+	screen.Fill(color.RGBA{0x4E, 0x4E, 0x4E, 0xFF})
 	p.ui.Draw(screen)
 }
 
-// HandleInput processes input specific to the page (if any).
 func (p *AudioPage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }

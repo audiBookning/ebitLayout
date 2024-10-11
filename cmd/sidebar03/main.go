@@ -10,7 +10,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// ***** INPUT MANAGER *****
 type InputManager struct {
 	Clickables []Clickable
 }
@@ -26,7 +25,6 @@ func (im *InputManager) Clear() {
 func (im *InputManager) Update() {
 	mouseX, mouseY := ebiten.CursorPosition()
 
-	// First, check if the ClickableArea should handle the input
 	for _, c := range im.Clickables {
 		if area, ok := c.(*ClickableArea); ok && area.Active {
 			if area.Contains(mouseX, mouseY) {
@@ -36,14 +34,12 @@ func (im *InputManager) Update() {
 				if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
 					area.OnClick()
 				}
-				// Since ClickableArea is active and contains the cursor,
-				// no further Clickables should be checked.
+
 				return
 			}
 		}
 	}
 
-	// If no ClickableArea handled the input, continue with the regular Clickables
 	for _, c := range im.Clickables {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			if c.Contains(mouseX, mouseY) {
@@ -59,12 +55,10 @@ func (im *InputManager) Update() {
 			}
 		}
 
-		// Update hover state
 		c.SetHovered(c.Contains(mouseX, mouseY))
 	}
 }
 
-// ***** CLICKABLE INTERFACE *****
 type Clickable interface {
 	Contains(x, y int) bool
 	OnClick()
@@ -72,7 +66,6 @@ type Clickable interface {
 	SetHovered(isHovered bool)
 }
 
-// ***** BUTTON *****
 type Button struct {
 	X, Y, Width, Height int
 	Label               string
@@ -81,7 +74,7 @@ type Button struct {
 	ClickColor          color.Color
 	isHovered           bool
 	isPressed           bool
-	OnClickFunc         func() // Callback function
+	OnClickFunc         func()
 }
 
 func NewButton(x, y, width, height int, label string, color, hoverColor, clickColor color.Color, onClick func()) *Button {
@@ -131,14 +124,12 @@ func (b *Button) SetHovered(isHovered bool) {
 	b.isHovered = isHovered
 }
 
-// ***** SCREEN INTERFACE *****
 type Screen interface {
 	Update() error
 	Draw(screen *ebiten.Image)
 	RegisterClickables(inputManager *InputManager)
 }
 
-// ***** NAVIGATOR *****
 type Navigator struct {
 	stack []Screen
 }
@@ -179,7 +170,6 @@ func (n *Navigator) CurrentScreen() Screen {
 	return n.stack[len(n.stack)-1]
 }
 
-// ***** GENERAL SCREEN *****
 type GeneralScreen struct {
 	Color   color.RGBA
 	Label   string
@@ -204,7 +194,6 @@ func (gs *GeneralScreen) Draw(screen *ebiten.Image) {
 	}
 }
 
-// ***** TOP BAR *****
 type TopBar struct {
 	Buttons             []*Button
 	X, Y, Width, Height int
@@ -220,7 +209,7 @@ func NewTopBar(width, height int, numButtons int, inputManager *InputManager) *T
 			color.RGBA{200, 0, 0, 255},
 			color.RGBA{150, 0, 0, 255},
 			color.RGBA{100, 0, 0, 255},
-			nil, // Placeholder for button-specific logic
+			nil,
 		)
 		inputManager.Register(buttons[i])
 	}
@@ -242,10 +231,9 @@ func (tb *TopBar) Draw(screen *ebiten.Image) {
 }
 
 func (tb *TopBar) Update() {
-	// ...
+
 }
 
-// ***** SIDEBAR CONTROLLER *****
 type SidebarController struct {
 	Sidebar       *Sidebar
 	ClickableArea *ClickableArea
@@ -260,7 +248,7 @@ func NewSidebarController(width, height, topOffset int, screenWidth, screenHeigh
 		Y:      sidebar.Y,
 		Height: sidebar.Height,
 		OnClickFunc: func() {
-			// Placeholder for button-specific logic
+
 		},
 		Active: sidebar.Visible,
 	}
@@ -313,7 +301,6 @@ func (sc *SidebarController) Draw(screen *ebiten.Image) {
 	sc.ClickableArea.Draw(screen)
 }
 
-// ***** SIDEBAR *****
 type Sidebar struct {
 	X, Y, Width, Height int
 	Speed               int
@@ -345,7 +332,6 @@ func (s *Sidebar) Draw(screen *ebiten.Image) {
 	)
 }
 
-// ***** CLICKABLE AREA *****
 type ClickableArea struct {
 	X, Y, Width, Height int
 	OnClickFunc         func()
@@ -374,8 +360,7 @@ func (ca *ClickableArea) Draw(screen *ebiten.Image) {
 	if !ca.Active {
 		return
 	}
-	// todo: add a subtle easing animation to the alpha color of the rect?
-	// can be added to the SidebarController update method
+
 	vector.DrawFilledRect(
 		screen,
 		float32(ca.X),
@@ -387,7 +372,6 @@ func (ca *ClickableArea) Draw(screen *ebiten.Image) {
 	)
 }
 
-// ***** GAME *****
 type Game struct {
 	navigator    *Navigator
 	inputManager *InputManager
@@ -400,7 +384,6 @@ func NewGame() *Game {
 	inputManager := &InputManager{}
 	navigator := NewNavigator()
 
-	// Initialize the main screen or any other starting screen
 	mainScreen := NewMainScreen(screenWidth, screenHeight, inputManager)
 	navigator.Push(mainScreen, inputManager)
 
@@ -439,7 +422,6 @@ func main() {
 	}
 }
 
-// ***** MAIN SCREEN *****
 type MainScreen struct {
 	TopBar            *TopBar
 	SidebarController *SidebarController
@@ -450,7 +432,6 @@ func NewMainScreen(screenWidth, screenHeight int, inputManager *InputManager) *M
 	topbar := NewTopBar(screenWidth, 50, 1, inputManager)
 	sidebarController := NewSidebarController(200, screenHeight-50, 50, screenWidth, screenHeight, inputManager)
 
-	// Assign specific functions to button click handlers
 	topbar.Buttons[0].OnClickFunc = func() {
 		sidebarController.ToggleSidebar()
 	}
@@ -475,7 +456,6 @@ func NewMainScreen(screenWidth, screenHeight int, inputManager *InputManager) *M
 		centerButton:      centerButton,
 	}
 
-	// Register clickables with the input manager
 	screen.RegisterClickables(inputManager)
 
 	return screen
@@ -501,7 +481,6 @@ func (s *MainScreen) RegisterClickables(inputManager *InputManager) {
 	inputManager.Register(s.SidebarController.ClickableArea)
 }
 
-// ***** SECONDARY SCREEN *****
 type SecondaryScreen struct {
 	GeneralScreen
 }
@@ -514,7 +493,6 @@ func NewSecondaryScreen(screenWidth, screenHeight int) *SecondaryScreen {
 		},
 	}
 
-	// Example buttons on the secondary screen
 	screen.AddButton(50, 100, 150, 40, "Back", color.RGBA{128, 0, 0, 255}, color.RGBA{255, 0, 0, 255}, color.RGBA{100, 0, 0, 255}, nil)
 
 	return screen

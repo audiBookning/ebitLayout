@@ -7,7 +7,6 @@ import (
 	"example.com/menu/cmd02/more05/types"
 )
 
-// Navigator manages page navigation.
 type Navigator struct {
 	pages   map[string]types.Page
 	current types.Page
@@ -15,8 +14,6 @@ type Navigator struct {
 	onExit  func()
 }
 
-// NewNavigator initializes a new Navigator.
-// onExit is called when the "exit" page is triggered.
 func NewNavigator(onExit func()) *Navigator {
 	return &Navigator{
 		pages:  make(map[string]types.Page),
@@ -24,14 +21,12 @@ func NewNavigator(onExit func()) *Navigator {
 	}
 }
 
-// AddPage adds a new page to the navigator.
 func (n *Navigator) AddPage(name string, page types.Page) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	n.pages[name] = page
 }
 
-// Layout all pages
 func (n *Navigator) Layout(outsideWidth, outsideHeight int) (int, int) {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
@@ -41,7 +36,6 @@ func (n *Navigator) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
 
-// SwitchTo switches the current page to the specified page.
 func (n *Navigator) SwitchTo(pageName string) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
@@ -57,7 +51,7 @@ func (n *Navigator) SwitchTo(pageName string) {
 	if page, exists := n.pages[pageName]; exists {
 		log.Printf("Switching to page: %s\n", pageName)
 		n.current = page
-		// Reset button states if applicable
+
 		if pageWithReset, ok := page.(interface{ ResetButtonStates() }); ok {
 			pageWithReset.ResetButtonStates()
 		}

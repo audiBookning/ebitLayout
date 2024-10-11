@@ -19,14 +19,13 @@ var (
 type Game struct{}
 
 func (g *Game) Update() error {
-	// Handle keyboard input
+
 	if ebiten.IsKeyPressed(ebiten.KeyRight) {
 		selected = (selected + 1) % len(tabs)
 	} else if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		selected = (selected - 1 + len(tabs)) % len(tabs)
 	}
 
-	// Handle mouse input
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, _ := ebiten.CursorPosition()
 		for i := range tabs {
@@ -42,20 +41,18 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{72, 169, 166, 255})
 
-	// Draw tabs
 	for i, tab := range tabs {
 		tabColor := color.RGBA{212, 180, 131, 255}
 		if i == selected {
-			// Highlight selected tab
+
 			tabColor = color.RGBA{228, 223, 218, 255}
 		}
 		vector.DrawFilledRect(screen, float32(i*100), 0, 100, 30, tabColor, true)
 		ebitenutil.DebugPrintAt(screen, tab, i*100+10, 5)
 	}
 
-	// Draw content based on selected tab
 	content := fmt.Sprintf("Content of %s", tabs[selected])
-	ebitenutil.DebugPrintAt(screen, content, 10, 40) // Move content down
+	ebitenutil.DebugPrintAt(screen, content, 10, 40)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

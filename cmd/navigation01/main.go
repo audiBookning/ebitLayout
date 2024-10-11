@@ -49,7 +49,6 @@ func (n *Navigator) CurrentScreen() Screen {
 	return n.stack[len(n.stack)-1]
 }
 
-// Arrow represents a navigation arrow
 type Arrow struct {
 	direction ebiten.Key
 	target    *GeneralScreen
@@ -87,7 +86,6 @@ var navigator *Navigator
 func main() {
 	navigator = NewNavigator()
 
-	// Create the screens
 	screenA := &GeneralScreen{
 		color: color.RGBA{255, 0, 0, 255},
 		text:  "Screen A\nPress B to go to Screen B\nPress C to go to Screen C",
@@ -113,7 +111,6 @@ func main() {
 		text:  "Screen F\nPress Esc to go back",
 	}
 
-	// Establish the links
 	screenA.arrows = []*Arrow{
 		{direction: ebiten.KeyB, target: screenB},
 		{direction: ebiten.KeyC, target: screenC},

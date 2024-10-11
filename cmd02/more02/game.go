@@ -21,7 +21,6 @@ func NewGame() *Game {
 		pages: make(map[string]types.Page),
 	}
 
-	// Define a function to switch pages
 	switchPage := func(pageName string) {
 		if pageName == "exit" {
 			log.Println("Exit requested")
@@ -31,7 +30,7 @@ func NewGame() *Game {
 		if page, exists := g.pages[pageName]; exists {
 			log.Printf("Switching to page: %s\n", pageName)
 			g.currentPage = page
-			// Reset button states when switching pages
+
 			if pageWithResetButtons, ok := page.(interface{ ResetAllButtonStates() }); ok {
 				pageWithResetButtons.ResetAllButtonStates()
 			}
@@ -40,10 +39,9 @@ func NewGame() *Game {
 		}
 	}
 
-	// Initialize pages with the switchPage function
 	mainMenu := customPages.NewMainMenuPage(switchPage)
 	settings := customPages.NewSettingsPage(switchPage)
-	startGame := customPages.NewLevelGamePage(switchPage) // Pass switchPage here
+	startGame := customPages.NewLevelGamePage(switchPage)
 	audio := customPages.NewAudioPage(switchPage)
 	graphics := customPages.NewGraphicsPage(switchPage)
 
@@ -53,7 +51,7 @@ func NewGame() *Game {
 	g.pages["audio"] = audio
 	g.pages["graphics"] = graphics
 
-	g.currentPage = mainMenu // Start with the main menu
+	g.currentPage = mainMenu
 
 	return g
 }
@@ -70,10 +68,9 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	// Clear the screen with a background color
-	screen.Fill(color.RGBA{0x1F, 0x1F, 0x1F, 0xFF}) // Dark gray background
 
-	// Draw the current page
+	screen.Fill(color.RGBA{0x1F, 0x1F, 0x1F, 0xFF})
+
 	g.currentPage.Draw(screen)
 }
 

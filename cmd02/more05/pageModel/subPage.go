@@ -11,8 +11,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// SubPageBase represents the base functionality for a subpage.
-// Custom subpages can embed this struct and override its methods as needed.
 type SubPageBase struct {
 	ID            string
 	Label         string
@@ -22,7 +20,6 @@ type SubPageBase struct {
 	BackgroundClr color.Color
 }
 
-// NewSubPageBase initializes a new SubPageBase.
 func NewSubPageBase(textWrapper *textwrapper.TextWrapper, id, label string, screenWidth, screenHeight int) *SubPageBase {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 800, LayoutMode: responsive.LayoutVertical},
@@ -51,7 +48,6 @@ func NewSubPageBase(textWrapper *textwrapper.TextWrapper, id, label string, scre
 	}
 }
 
-// Layout handles the layout of the subpage.
 func (p *SubPageBase) Layout(outsideWidth, outsideHeight int) (int, int) {
 	if outsideWidth != p.PrevWidth || outsideHeight != p.PrevHeight {
 		log.Printf("SubPageBase (%s): Window resized to %dx%d\n", p.ID, outsideWidth, outsideHeight)
@@ -62,7 +58,6 @@ func (p *SubPageBase) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
 
-// Update handles the update logic for the subpage.
 func (p *SubPageBase) Update() error {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
@@ -71,23 +66,19 @@ func (p *SubPageBase) Update() error {
 	return nil
 }
 
-// Draw renders the subpage.
 func (p *SubPageBase) Draw(screen *ebiten.Image) {
 	p.DrawBackGround(screen)
 	p.Ui.Draw(screen)
 }
 
-// DrawBackGround draws the background color.
 func (p *SubPageBase) DrawBackGround(screen *ebiten.Image) {
 	screen.Fill(p.BackgroundClr)
 }
 
-// HandleInput processes input events.
 func (p *SubPageBase) HandleInput(x, y int) {
 	p.Ui.HandleClick(x, y)
 }
 
-// ResetButtonStates resets the state of all buttons.
 func (p *SubPageBase) ResetFieldStates() {
 	p.Ui.ResetFieldStates()
 }

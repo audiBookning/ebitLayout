@@ -10,7 +10,6 @@ import (
 	"golang.org/x/image/font/basicfont"
 )
 
-// Title represents a text title.
 type Title struct {
 	Text      string
 	X, Y      int
@@ -25,9 +24,7 @@ func NewTitle(text string) *Title {
 }
 
 func (t *Title) Draw(screen *ebiten.Image) {
-	// Example: Adjust FontScale based on screen width
-	// This requires a font library that supports scaling, such as truetype
-	// For simplicity, we'll keep it fixed
+
 	text.Draw(screen, t.Text, basicfont.Face7x13, t.X, t.Y, color.White)
 }
 
@@ -61,11 +58,10 @@ func (b *Button) HandleClick() {
 	if b.OnClickFunc != nil && b.clickCooldown == 0 {
 		b.Clicked = true
 		b.OnClickFunc()
-		b.currentCooldown = 10 // Frames to wait before next click
+		b.currentCooldown = 10
 	}
 }
 
-// Update handles cooldown for button clicks.
 func (b *Button) Update() {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -81,43 +77,37 @@ func (b *Button) Draw(screen *ebiten.Image) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
-	// Check for hover
 	x, y := ebiten.CursorPosition()
 	isHover := x >= b.Position.X && x <= b.Position.X+b.Position.Width &&
 		y >= b.Position.Y && y <= b.Position.Y+b.Position.Height
 
-	// Choose button color based on state
 	var btnColor color.Color
 	if b.Clicked {
-		btnColor = color.RGBA{0xFF, 0xA5, 0x00, 0xFF} // Orange when clicked
+		btnColor = color.RGBA{0xFF, 0xA5, 0x00, 0xFF}
 	} else if isHover {
-		btnColor = color.RGBA{0x00, 0x8B, 0x8B, 0xFF} // DarkCyan on hover
+		btnColor = color.RGBA{0x00, 0x8B, 0x8B, 0xFF}
 	} else {
-		btnColor = color.RGBA{0x00, 0x7A, 0xCC, 0xFF} // Default button color
+		btnColor = color.RGBA{0x00, 0x7A, 0xCC, 0xFF}
 	}
 
-	// Create button rectangle
 	buttonImg := ebiten.NewImage(b.Position.Width, b.Position.Height)
 	buttonImg.Fill(btnColor)
 
-	// Draw button rectangle
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(b.Position.X), float64(b.Position.Y))
 	screen.DrawImage(buttonImg, op)
 
-	// Draw button text
 	textBounds := text.BoundString(basicfont.Face7x13, b.Text)
 	textX := b.Position.X + (b.Position.Width-textBounds.Dx())/2
-	textY := b.Position.Y + (b.Position.Height+textBounds.Dy())/2 + 4 // Adjust for better vertical alignment
+	textY := b.Position.Y + (b.Position.Height+textBounds.Dy())/2 + 4
 	text.Draw(screen, b.Text, basicfont.Face7x13, textX, textY, color.White)
 }
 
-// UI represents a page's UI, containing a title and buttons.
 type UI struct {
 	Title    *Title
 	Buttons  []*Button
 	manager  *LayoutManager
-	elements []string // Identifiers for layout positioning
+	elements []string
 	mutex    sync.RWMutex
 }
 
@@ -139,24 +129,20 @@ func (u *UI) Update(screenWidth, screenHeight int) {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
-	// Determine the current layout based on screen width
 	u.manager.DetermineLayout(screenWidth)
 
-	// Calculate positions based on current layout
 	positions := u.manager.CalculatePositions(screenWidth, screenHeight, u.elements)
 
-	// Assign positions to buttons and update their states
 	for i, btn := range u.Buttons {
 		elem := u.elements[i]
 		pos, exists := positions[elem]
 		if exists {
 			btn.Position = pos
 		}
-		// Call the button's Update method to handle cooldowns
+
 		btn.Update()
 	}
 
-	// Update Title Position (centered at the top)
 	titleBounds := text.BoundString(basicfont.Face7x13, u.Title.Text)
 	u.Title.X = (screenWidth - titleBounds.Dx()) / 2
 	u.Title.Y = 50
@@ -177,10 +163,8 @@ func (u *UI) Draw(screen *ebiten.Image) {
 	u.mutex.RLock()
 	defer u.mutex.RUnlock()
 
-	// Draw Title
 	u.Title.Draw(screen)
 
-	// Draw Buttons
 	for _, btn := range u.Buttons {
 		btn.Draw(screen)
 	}

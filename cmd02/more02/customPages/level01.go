@@ -9,7 +9,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Level01Page represents the first level of the game.
 type Level01Page struct {
 	ui         *responsive.UI
 	prevWidth  int
@@ -50,19 +49,16 @@ func (p *Level01Page) Update() error {
 
 	p.ui.Update(screenWidth, screenHeight)
 
-	// Remove the click handling from here, as it will be handled in HandleInput
-
 	return nil
 }
 
 func (p *Level01Page) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x6E, 0x6E, 0x6E, 0xFF}) // Example background color
+	screen.Fill(color.RGBA{0x6E, 0x6E, 0x6E, 0xFF})
 	p.ui.Draw(screen)
 }
 
-// HandleInput processes input specific to the page (if any).
 func (p *Level01Page) HandleInput(x, y int) {
-	// Apply the offset here
-	sidebarWidth := 200 // This should match the sidebar width in LevelGamePage
+
+	sidebarWidth := 200
 	p.ui.HandleClick(x-sidebarWidth, y)
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// AudioPage represents the audio settings UI.
 type AudioPage struct {
 	ui         *responsive.UI
 	prevWidth  int

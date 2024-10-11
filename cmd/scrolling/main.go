@@ -16,14 +16,14 @@ import (
 const (
 	screenWidth  = 800
 	screenHeight = 600
-	textHeight   = 24 // Set text height to match font size
+	textHeight   = 24
 	linesVisible = 20
 )
 
 var (
-	textArea   = strings.Repeat("This is a line of text.\n", 50) // Sample text
+	textArea   = strings.Repeat("This is a line of text.\n", 50)
 	scrollY    = 0
-	scrollMax  = (50 - linesVisible) * textHeight // Max scrollable height
+	scrollMax  = (50 - linesVisible) * textHeight
 	isDragging = false
 	startDragY = 0
 )
@@ -46,17 +46,15 @@ func (g *Game) Update() error {
 	x, y := ebiten.CursorPosition()
 	_, dy := ebiten.Wheel()
 
-	// Mouse dragging for scrollbar
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		if isDragging {
-			scrollY += (y - startDragY) // Adjust sensitivity
-			startDragY = y              // Update start position
+			scrollY += (y - startDragY)
+			startDragY = y
 		} else if x >= screenWidth-20 && x <= screenWidth-10 {
 			isDragging = true
 			startDragY = y
 		}
 
-		// Clamp scrollY to valid range
 		if scrollY < 0 {
 			scrollY = 0
 		}
@@ -65,15 +63,14 @@ func (g *Game) Update() error {
 		}
 	} else {
 		isDragging = false
-		scrollY -= int(dy) * 80 // Adjust scroll speed
+		scrollY -= int(dy) * 80
 		if ebiten.IsKeyPressed(ebiten.KeyUp) && scrollY > 0 {
-			scrollY -= 10 // Scroll up
+			scrollY -= 10
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyDown) && scrollY < scrollMax {
-			scrollY += 10 // Scroll down
+			scrollY += 10
 		}
 
-		// Clamp scrollY to valid range
 		if scrollY < 0 {
 			scrollY = 0
 		}
@@ -86,16 +83,14 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	// Set a darker background color
-	screen.Fill(color.RGBA{30, 30, 30, 255}) // Dark gray background
 
-	// Draw text
+	screen.Fill(color.RGBA{30, 30, 30, 255})
+
 	lines := strings.Split(textArea, "\n")
 	for i, line := range lines {
-		// Calculate the position of the line based on scrollY
+
 		lineY := i*textHeight - scrollY
 
-		// Only draw lines that are within the visible area
 		if lineY >= 0 && lineY < screenHeight {
 			op := &text.DrawOptions{}
 			op.ColorScale.ScaleWithColor(color.White)
@@ -103,15 +98,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				Source: mplusFaceSource,
 				Size:   textHeight,
 			}
-			// Set the position where the text will be drawn
+
 			op.GeoM.Translate(0, float64(lineY))
 
-			// Draw the text
 			text.Draw(screen, line, ss, op)
 		}
 	}
 
-	// Draw scroll bar
 	barHeight := screenHeight * linesVisible / len(lines)
 	barY := scrollY * (screenHeight - barHeight) / scrollMax
 	vector.DrawFilledRect(screen, screenWidth-20, float32(barY), 10, float32(barHeight), color.RGBA{0, 0, 0, 255}, true)

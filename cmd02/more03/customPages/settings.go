@@ -10,7 +10,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// SettingsPage represents the settings UI.
 type SettingsPage struct {
 	ui         *responsive.UI
 	prevWidth  int
@@ -40,8 +39,6 @@ func NewSettingsPage(nv *navigator.Navigator, screenWidth, screenHeight int) *Se
 	}
 
 	ui := responsive.NewUI("Settings", breakpoints, buttons)
-
-	// Initialize screen dimensions
 
 	ui.Update(screenWidth, screenHeight)
 

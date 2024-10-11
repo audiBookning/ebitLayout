@@ -11,7 +11,6 @@ import (
 	"golang.org/x/image/font/basicfont"
 )
 
-// Chart02 encapsulates all graph-related functionalities.
 type Chart02 struct {
 	Screen       *ebiten.Image
 	OffsetX      float64
@@ -28,7 +27,6 @@ type Chart02 struct {
 	YScale       float64
 }
 
-// NewChart02 initializes and returns a new Graph instance.
 func NewChart02(screen *ebiten.Image) *Chart02 {
 	screenWidth := float64(screen.Bounds().Dx())
 	screenHeight := float64(screen.Bounds().Dy())
@@ -60,18 +58,15 @@ func NewChart02(screen *ebiten.Image) *Chart02 {
 	}
 }
 
-// DrawAxes draws the X and Y axes.
 func (g *Chart02) DrawAxes() {
 	screenWidth := float64(g.Screen.Bounds().Dx())
 	screenHeight := float64(g.Screen.Bounds().Dy())
 
-	// Y Axis
 	vector.StrokeLine(g.Screen, float32(g.OffsetX), float32(g.OffsetY), float32(g.OffsetX), float32(screenHeight-g.OffsetY), 1, g.White, false)
-	// X Axis
+
 	vector.StrokeLine(g.Screen, float32(g.OffsetX), float32(screenHeight-g.OffsetY), float32(screenWidth-g.OffsetX), float32(screenHeight-g.OffsetY), 1, g.White, false)
 }
 
-// PlotSineWave plots a sine wave on the graph.
 func (g *Chart02) PlotSineWave() {
 	for x := 0.0; x < g.UsableWidth; x++ {
 		normalizedX := x / g.UsableWidth * 2 * math.Pi
@@ -81,22 +76,18 @@ func (g *Chart02) PlotSineWave() {
 	}
 }
 
-// DrawAxisLabels draws the labels for X and Y axes.
 func (g *Chart02) DrawAxisLabels() {
 	screenWidth := float64(g.Screen.Bounds().Dx())
 	screenHeight := float64(g.Screen.Bounds().Dy())
 
-	// X-axis label
 	text.Draw(g.Screen, "X", g.Face, int(screenWidth)-20, int(screenHeight-g.OffsetY+15), g.White)
-	// Y-axis label
+
 	text.Draw(g.Screen, "Y", g.Face, int(g.OffsetX-20), int(g.OffsetY-20), g.White)
 }
 
-// DrawTicks draws the ticks and their corresponding labels on both axes.
 func (g *Chart02) DrawTicks() {
 	screenHeight := float64(g.Screen.Bounds().Dy())
 
-	// X-Axis Ticks
 	for i := 0; i <= g.NumXTicks; i++ {
 		tickX := g.OffsetX + (g.UsableWidth/float64(g.NumXTicks))*float64(i)
 		vector.StrokeLine(g.Screen, float32(tickX), float32(screenHeight-g.OffsetY), float32(tickX), float32(screenHeight-g.OffsetY+5), 1, g.White, false)
@@ -104,7 +95,6 @@ func (g *Chart02) DrawTicks() {
 		text.Draw(g.Screen, strconv.Itoa(label), g.Face, int(tickX)-10, int(screenHeight-g.OffsetY+20), g.White)
 	}
 
-	// Y-Axis Ticks
 	for i := 0; i <= g.NumYTicks; i++ {
 		tickY := screenHeight - g.OffsetY - (g.UsableHeight/float64(g.NumYTicks))*float64(i)
 		vector.StrokeLine(g.Screen, float32(g.OffsetX), float32(tickY), float32(g.OffsetX-5), float32(tickY), 1, g.White, false)
@@ -113,7 +103,6 @@ func (g *Chart02) DrawTicks() {
 	}
 }
 
-// Render draws the entire graph.
 func (g *Chart02) Render() {
 	g.DrawAxes()
 	g.PlotSineWave()

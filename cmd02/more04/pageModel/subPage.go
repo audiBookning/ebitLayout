@@ -9,7 +9,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Level01Page represents the first level of the game.
 type SubPage struct {
 	ID            string
 	Label         string
@@ -17,7 +16,6 @@ type SubPage struct {
 	PrevWidth     int
 	PrevHeight    int
 	BackgroundClr color.Color
-	// No need for a navigator here since it's managed by LevelGamePage's subNavigator
 }
 
 func NewSubPage(subNav *navigator.Navigator, screenWidth, screenHeight int) *SubPage {

@@ -23,16 +23,13 @@ type BreakpointLayout struct {
 	Breakpoint Breakpoint
 	Width      int
 	Height     int
-	Columns    int // Number of columns in this layout
+	Columns    int
 }
 
 func (layout BreakpointLayout) DrawLayout(screen *ebiten.Image) {
-	// Fill background with a color
-	screen.Fill(color.RGBA{240, 240, 240, 255}) // Light gray background
 
-	// Optionally, draw grid lines or other layout indicators
-	// Example: Draw column guides
-	// Note: This is optional and for visual debugging purposes
+	screen.Fill(color.RGBA{240, 240, 240, 255})
+
 	for i := 1; i < layout.Columns; i++ {
 		x := i * layout.Width / layout.Columns
 		ebitenutil.DrawLine(screen, float64(x), 0, float64(x), float64(layout.Height), color.RGBA{200, 200, 200, 255})
@@ -68,9 +65,8 @@ func (ls *BreakpointLayoutSystem) GetLayout(breakpoint Breakpoint) BreakpointLay
 	return ls.Layouts[breakpoint]
 }
 
-// DetermineBreakpoint determines the current breakpoint based on the window width.
 func (ls *BreakpointLayoutSystem) DetermineBreakpoint(width, height int) Breakpoint {
-	// Create a slice to hold breakpoints with their corresponding widths
+
 	type bpWidth struct {
 		bp    Breakpoint
 		width int
@@ -81,18 +77,15 @@ func (ls *BreakpointLayoutSystem) DetermineBreakpoint(width, height int) Breakpo
 		bpWidths = append(bpWidths, bpWidth{bp: bp, width: layout.Width})
 	}
 
-	// Sort the breakpoints by width in ascending order
 	sort.Slice(bpWidths, func(i, j int) bool {
 		return bpWidths[i].width < bpWidths[j].width
 	})
 
-	// Iterate through the sorted breakpoints to find the appropriate one
 	for _, bpw := range bpWidths {
 		if width < bpw.width {
 			return bpw.bp
 		}
 	}
 
-	// If none matched, return the largest breakpoint
 	return Bp_ExtraExtraLarge
 }

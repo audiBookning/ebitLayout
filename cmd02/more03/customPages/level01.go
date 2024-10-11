@@ -10,12 +10,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Level01Page represents the first level of the game.
 type Level01Page struct {
 	ui         *responsive.UI
 	prevWidth  int
 	prevHeight int
-	// No need for a navigator here since it's managed by LevelGamePage's subNavigator
 }
 
 func NewLevel01Page(subNav *navigator.Navigator, screenWidth, screenHeight int) types.Page {
@@ -27,17 +25,15 @@ func NewLevel01Page(subNav *navigator.Navigator, screenWidth, screenHeight int) 
 	buttons := []*responsive.Button{
 		responsive.NewButton("Play", func() {
 			log.Println("Play Level 01")
-			// Implement Play Level 01 logic here
+
 		}),
 		responsive.NewButton("Back to Start", func() {
 			log.Println("Back to Start")
-			subNav.SwitchTo("start") // Navigate back to start within sub-navigator
+			subNav.SwitchTo("start")
 		}),
 	}
 
 	ui := responsive.NewUI("Level 01", breakpoints, buttons)
-
-	// Initialize screen dimensions
 
 	ui.Update(screenWidth, screenHeight)
 

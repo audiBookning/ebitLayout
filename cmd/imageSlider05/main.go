@@ -57,7 +57,6 @@ func (g *Game) Update() error {
 		g.animating = true
 	}
 
-	// Update positions of contents based on the current animation state
 	for i := range g.contents {
 		position, isVisible := g.calculatePosition(i)
 

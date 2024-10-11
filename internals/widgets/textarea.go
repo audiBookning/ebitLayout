@@ -36,7 +36,7 @@ func NewTextArea(x, y, w, h, maxLines int) *TextArea {
 }
 
 func (t *TextArea) Update() error {
-	// Update focus state based on mouse input
+
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		if x >= t.x && x <= t.x+t.w && y >= t.y && y <= t.y+t.h {
@@ -46,7 +46,6 @@ func (t *TextArea) Update() error {
 		}
 	}
 
-	// If the text area has focus, handle keyboard input
 	if t.hasFocus {
 		t.handleKeyboardInput()
 	}
@@ -56,13 +55,12 @@ func (t *TextArea) Update() error {
 }
 
 func (t *TextArea) handleKeyboardInput() {
-	// Handle backspace
+
 	if inpututil.IsKeyJustPressed(ebiten.KeyBackspace) && len(t.text) > 0 && t.cursorPos > 0 {
 		t.text = t.text[:t.cursorPos-1] + t.text[t.cursorPos:]
 		t.cursorPos--
 	}
 
-	// Handle character input
 	for _, char := range ebiten.InputChars() {
 		if char != '\n' && char != '\r' {
 			t.text = t.text[:t.cursorPos] + string(char) + t.text[t.cursorPos:]
@@ -70,13 +68,11 @@ func (t *TextArea) handleKeyboardInput() {
 		}
 	}
 
-	// Handle enter key for new line
 	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 		t.text = t.text[:t.cursorPos] + "\n" + t.text[t.cursorPos:]
 		t.cursorPos++
 	}
 
-	// Handle arrow keys for cursor movement
 	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) && t.cursorPos > 0 {
 		t.cursorPos--
 	}
@@ -86,10 +82,9 @@ func (t *TextArea) handleKeyboardInput() {
 }
 
 func (t *TextArea) Draw(screen *ebiten.Image) {
-	// Draw the textarea background
+
 	vector.DrawFilledRect(screen, float32(t.x), float32(t.y), float32(t.w), float32(t.h), color.RGBA{200, 200, 200, 255}, true)
 
-	// Draw the text
 	lines := strings.Split(t.text, "\n")
 	startY := t.y + 20
 	for i, line := range lines {
@@ -99,9 +94,8 @@ func (t *TextArea) Draw(screen *ebiten.Image) {
 		text.Draw(screen, line, t.font, t.x, startY+i*20, color.Black)
 	}
 
-	// Draw the cursor if focused and blink state is on
 	if t.hasFocus && t.counter/t.blinkRate%2 == 0 {
-		// Calculate the cursor position in pixels
+
 		line, col := t.getCursorLineAndCol()
 		cursorX := t.x + t.textWidth(lines[line][:col])
 		cursorY := startY + line*20 - 10

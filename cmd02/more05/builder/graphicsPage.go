@@ -24,11 +24,11 @@ func NewGraphicsPage(nv *navigator.Navigator, textWrapper *textwrapper.TextWrapp
 	fields := []types.Element{
 		responsive.NewButton("Resolution", func() {
 			log.Println("Resolution clicked")
-			// Add Resolution logic here
+
 		}, textWrapper),
 		responsive.NewButton("Fullscreen", func() {
 			log.Println("Fullscreen clicked")
-			// Add Fullscreen logic here
+
 		}, textWrapper),
 		responsive.NewButton("Back", func() {
 			log.Println("Back clicked")

@@ -18,11 +18,9 @@ func main() {
 	}
 }
 
-// Update updates the game state.
 func (g *Game) Update() error {
 	g.UI.Update(g.ScreenWidth, g.ScreenHeight)
 
-	// Handle mouse input for button click
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		mouseX, mouseY := ebiten.CursorPosition()
 		if g.UI.IsButtonClicked(mouseX, mouseY) {
@@ -34,16 +32,15 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x80, 0xa0, 0xc0, 0xff}) // Background color
+	screen.Fill(color.RGBA{0x80, 0xa0, 0xc0, 0xff})
 
 	g.UI.Draw(screen)
 }
 
-// Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	g.ScreenWidth = outsideWidth
 	g.ScreenHeight = outsideHeight
-	g.UI.Update(g.ScreenWidth, g.ScreenHeight) // Ensure UI updates on layout change
+	g.UI.Update(g.ScreenWidth, g.ScreenHeight)
 	return outsideWidth, outsideHeight
 }
 

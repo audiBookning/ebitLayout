@@ -8,14 +8,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// UIElement defines an interface for drawable UI elements.
 type UIElement interface {
 	SetPosition(x, y float64)
 	Draw(screen *ebiten.Image)
 	GetHeight() float64
 }
 
-// RedRectangle represents a red rectangle UI element.
 type RedRectangle struct {
 	Width  int
 	Height int
@@ -29,7 +27,7 @@ func (r *RedRectangle) SetPosition(x, y float64) {
 
 func (r *RedRectangle) Draw(screen *ebiten.Image) {
 	uiElement := ebiten.NewImage(r.Width, r.Height)
-	uiElement.Fill(color.RGBA{255, 0, 0, 255}) // Red color
+	uiElement.Fill(color.RGBA{255, 0, 0, 255})
 
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(r.x, r.y)
@@ -40,7 +38,6 @@ func (r *RedRectangle) GetHeight() float64 {
 	return float64(r.Height)
 }
 
-// BlueCircle represents a blue circle UI element.
 type BlueCircle struct {
 	Radius int
 	x, y   float64
@@ -61,7 +58,7 @@ func (b *BlueCircle) Draw(screen *ebiten.Image) {
 			dx := x - b.Radius
 			dy := y - b.Radius
 			if dx*dx+dy*dy <= b.Radius*b.Radius {
-				circle.Set(x, y, color.RGBA{0, 0, 255, 255}) // Blue color
+				circle.Set(x, y, color.RGBA{0, 0, 255, 255})
 			}
 		}
 	}
@@ -85,15 +82,13 @@ type Game struct {
 func NewGame() *Game {
 	layoutSystem := layout.NewLayoutSystem(nil)
 
-	// Define UI elements
 	redRect := &RedRectangle{Width: 100, Height: 50}
 	blueCircle := &BlueCircle{Radius: 40}
 
-	// Add elements to the game
 	game := &Game{
 		layoutSystem: layoutSystem,
 		elements:     []UIElement{redRect, blueCircle},
-		previousBP:   -1, // Initialize with an invalid breakpoint
+		previousBP:   -1,
 	}
 
 	return game
@@ -107,33 +102,27 @@ func (g *Game) Update() error {
 	return nil
 }
 
-// layoutElements calculates and sets the positions of UI elements based on the current layout.
 func (g *Game) layoutElements() {
 	layout := g.layoutSystem.GetLayout(g.currentBP)
 	numColumns := layout.Columns
 	columnWidth := float64(layout.Width) / float64(numColumns)
 	padding := 20.0
 
-	// Initialize a slice to track the current Y position for each column
 	columnY := make([]float64, numColumns)
 	for i := 0; i < numColumns; i++ {
 		columnY[i] = padding
 	}
 
 	for idx, element := range g.elements {
-		// Determine column index based on element index
+
 		columnIndex := idx % numColumns
 
-		// X position is based on the column index
 		x := float64(columnIndex)*columnWidth + padding
 
-		// Y position is based on the current Y position of the column
 		y := columnY[columnIndex]
 
-		// Set the element's position
 		element.SetPosition(x, y)
 
-		// Update the current Y position for the column
 		columnY[columnIndex] += element.GetHeight() + padding
 	}
 }
@@ -141,17 +130,15 @@ func (g *Game) layoutElements() {
 func (g *Game) Draw(screen *ebiten.Image) {
 	layout := g.layoutSystem.GetLayout(g.currentBP)
 
-	// Draw the layout background and column guides
 	layout.DrawLayout(screen)
 
-	// Render each UI element at its position
 	for _, element := range g.elements {
 		element.Draw(screen)
 	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	// Determine the current breakpoint based on window width
+
 	g.currentBP = g.layoutSystem.DetermineBreakpoint(outsideWidth, outsideHeight)
 	currentLayout := g.layoutSystem.GetLayout(g.currentBP)
 	return currentLayout.Width, currentLayout.Height

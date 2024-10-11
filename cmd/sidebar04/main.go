@@ -11,7 +11,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// ***** INPUT MANAGER *****
 type InputManager struct {
 	clickables       []Clickable
 	screenClickables []Clickable
@@ -79,13 +78,12 @@ func checkClickable(c Clickable, mouseX, mouseY int) bool {
 			return true
 		}
 	}
-	// Update hover state
+
 	c.SetHovered(c.Contains(mouseX, mouseY))
 
 	return false
 }
 
-// ***** CLICKABLE INTERFACE *****
 type Clickable interface {
 	Contains(x, y int) bool
 	OnClick()
@@ -93,7 +91,6 @@ type Clickable interface {
 	SetHovered(isHovered bool)
 }
 
-// ***** BUTTON *****
 type Button struct {
 	X, Y, Width, Height int
 	Label               string
@@ -102,7 +99,7 @@ type Button struct {
 	ClickColor          color.Color
 	isHovered           bool
 	isPressed           bool
-	OnClickFunc         func() // Callback function
+	OnClickFunc         func()
 	offsetY             int
 	target              *GeneralScreen
 }
@@ -159,14 +156,12 @@ func (b *Button) SetHovered(isHovered bool) {
 	b.isHovered = isHovered
 }
 
-// ***** SCREEN INTERFACE *****
 type Screen interface {
 	Update(navigator *Navigator) error
 	Draw(screen *ebiten.Image)
 	RegisterClickables(inputManager *InputManager)
 }
 
-// ***** NAVIGATOR *****
 type Navigator struct {
 	stack        []Screen
 	inputManager *InputManager
@@ -224,7 +219,6 @@ func (n *Navigator) Update() {
 	n.inputManager.Update()
 }
 
-// ***** GENERAL SCREEN *****
 type GeneralScreen struct {
 	color         color.RGBA
 	label         string
@@ -279,11 +273,10 @@ func (gs *GeneralScreen) Draw(screen *ebiten.Image) {
 }
 
 func (gs *GeneralScreen) Update(navigator *Navigator) error {
-	// ...
+
 	return nil
 }
 
-// ***** TOP BAR *****
 type TopBar struct {
 	X, Y, Width, Height int
 	Buttons             []*Button
@@ -329,10 +322,9 @@ func (tb *TopBar) Draw(screen *ebiten.Image) {
 }
 
 func (tb *TopBar) Update() {
-	// ...
+
 }
 
-// ***** SIDEBAR CONTROLLER *****
 type SidebarController struct {
 	Sidebar       *Sidebar
 	ClickableArea *ClickableArea
@@ -349,7 +341,7 @@ func NewSidebarController(width, height, topOffset, screenWidth, screenHeight in
 		color.RGBA{30, 30, 30, 150},
 		sidebar.Visible,
 		func() {
-			// Placeholder for button-specific logic
+
 		},
 	)
 
@@ -403,7 +395,6 @@ func (sc *SidebarController) Draw(screen *ebiten.Image) {
 	sc.ClickableArea.Draw(screen)
 }
 
-// ***** SIDEBAR *****
 type Sidebar struct {
 	X, Y, Width, Height int
 	Speed               int
@@ -439,7 +430,6 @@ func (s *Sidebar) Draw(screen *ebiten.Image) {
 
 }
 
-// ***** CLICKABLE AREA *****
 type ClickableArea struct {
 	X, Y, Width, Height int
 	Color               color.Color
@@ -506,7 +496,6 @@ func (ca *ClickableArea) Draw(screen *ebiten.Image) {
 	)
 }
 
-// ***** GAME *****
 type Game struct {
 	navigator         *Navigator
 	screenWidth       int
@@ -517,7 +506,7 @@ type Game struct {
 
 func NewGame(screenWidth, screenHeight int) *Game {
 	var topBarHeight int = 50
-	// Generate buttons for each screen
+
 	inputManager := &InputManager{}
 	navigator := NewNavigator(inputManager)
 
@@ -531,7 +520,6 @@ func NewGame(screenWidth, screenHeight int) *Game {
 	}
 	topBar.RegisterClickables(inputManager)
 
-	// Create the example screens
 	screenA := &GeneralScreen{
 		color:   color.RGBA{255, 0, 0, 255},
 		label:   "Screen A\nClick to navigate",
@@ -569,7 +557,6 @@ func NewGame(screenWidth, screenHeight int) *Game {
 		offsetY: topBar.Height,
 	}
 
-	// Establish the links
 	screenA.targets = []*GeneralScreen{screenB, screenC}
 	screenB.targets = []*GeneralScreen{screenD, screenE}
 	screenC.targets = []*GeneralScreen{screenF}
@@ -608,7 +595,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	// Draw the current screen in a new image
+
 	ebitenImage := ebiten.NewImage(g.screenWidth, g.screenHeight-g.topBar.Height)
 
 	var currentScreen Screen
@@ -629,7 +616,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return g.screenWidth, g.screenHeight
 }
 
-// ***** MAIN *****
 func main() {
 	game := NewGame(800, 600)
 

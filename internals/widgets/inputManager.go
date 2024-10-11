@@ -5,7 +5,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// ***** INPUT MANAGER *****
 type InputManager struct {
 	Clickables     []Clickable
 	MouseX, MouseY int
@@ -36,7 +35,6 @@ func (im *InputManager) Update() {
 		}
 	}
 
-	// Update hover state
 	for _, c := range im.Clickables {
 		c.SetHovered(c.Contains(im.MouseX, im.MouseY))
 	}

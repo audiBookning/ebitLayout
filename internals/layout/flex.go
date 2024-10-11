@@ -14,7 +14,7 @@ type Element struct {
 	Flex                int
 	Text                string
 	TextWrapper         *textwrapper.TextWrapper
-	TextSize            float64 // Add this field to store the fixed text size
+	TextSize            float64
 }
 
 func (e *Element) Draw(screen *ebiten.Image) {
@@ -27,15 +27,13 @@ func (e *Element) Draw(screen *ebiten.Image) {
 	)
 
 	if e.TextWrapper != nil {
-		// Use the fixed text size
+
 		e.TextWrapper.SetFontSize(e.TextSize)
 		textWidth, textHeight := e.TextWrapper.MeasureText(e.Text)
 
-		// Calculate the center position of the element
 		centerX := float64(e.X) + float64(e.Width)/2
 		centerY := float64(e.Y) + float64(e.Height)/2
 
-		// Calculate the position to draw the text (centered)
 		textX := centerX - textWidth/2
 		textY := centerY - textHeight/2
 
@@ -44,11 +42,10 @@ func (e *Element) Draw(screen *ebiten.Image) {
 }
 
 func (e *Element) Update() error {
-	// Add any update logic here if needed
+
 	return nil
 }
 
-// rename this method so as to not confuse with ebit layout method
 func (e *Element) Layout(x, y, width, height int) {
 	e.X = x
 	e.Y = y
@@ -58,9 +55,9 @@ func (e *Element) Layout(x, y, width, height int) {
 
 type FlexBox struct {
 	Elements       []Element
-	Direction      string // "row" or "column"
-	JustifyContent string // "flex-start", "center", "flex-end", "space-between", "space-around"
-	AlignItems     string // "flex-start", "center", "flex-end"
+	Direction      string
+	JustifyContent string
+	AlignItems     string
 }
 
 func (fb *FlexBox) Layout(width, height int) {
@@ -78,11 +75,11 @@ func (fb *FlexBox) Layout(width, height int) {
 
 	var offset int
 	if fb.Direction == "row" {
-		// Calculate available space
+
 		availableSpace := width - totalSize
 		for i := range fb.Elements {
 			if fb.Elements[i].Flex > 0 {
-				// Distribute available space according to flex-grow
+
 				flexSize := (availableSpace * fb.Elements[i].Flex) / totalFlex
 				fb.Elements[i].Width += flexSize
 			}
@@ -94,7 +91,7 @@ func (fb *FlexBox) Layout(width, height int) {
 			offset += fb.Elements[i].Width
 		}
 	} else {
-		// Handle column layout similarly
+
 		availableSpace := height - totalSize
 		for i := range fb.Elements {
 			if fb.Elements[i].Flex > 0 {

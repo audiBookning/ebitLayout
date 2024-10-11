@@ -26,7 +26,7 @@ func NewGame() *Game {
 	if err != nil {
 		log.Fatalf("Failed to create TextWrapper: %v", err)
 	}
-	textWrapper.Color = color.RGBA{255, 255, 255, 255} // White color
+	textWrapper.Color = color.RGBA{255, 255, 255, 255}
 
 	screenWidth, screenHeight := 800, 600
 	g := &Game{
@@ -35,23 +35,19 @@ func NewGame() *Game {
 		textWrapper: textWrapper,
 	}
 
-	// Define the onExit callback
 	onExit := func() {
 		log.Println("Exiting game...")
 		g.exit = true
 	}
 
-	// Initialize navigator *without* setting the initial page yet
 	g.navigator = navigator.NewNavigator(onExit)
 
-	// Initialize pages with the navigator's SwitchTo method
 	mainMenu := builder.NewMainMenuPage(g.navigator, textWrapper, screenWidth, screenHeight)
 	settings := builder.NewSettingsPage(g.navigator, textWrapper, screenWidth, screenHeight)
 	audio := builder.NewAudioPage(g.navigator, textWrapper, screenWidth, screenHeight)
 	graphics := builder.NewGraphicsPage(g.navigator, textWrapper, screenWidth, screenHeight)
 	startGame := builder.NewLevelGamePage(g.navigator, textWrapper, screenWidth, screenHeight, "start", "Start Game")
 
-	// Add pages to navigator
 	g.navigator.AddPage("main", mainMenu)
 	g.navigator.AddPage("settings", settings)
 	g.navigator.AddPage("start", startGame)
@@ -60,8 +56,7 @@ func NewGame() *Game {
 
 	g.navigator.Layout(g.prevWidth, g.prevHeight)
 
-	// Set the initial page
-	g.navigator.SwitchTo("main") // Start with the main menu
+	g.navigator.SwitchTo("main")
 
 	return g
 }
@@ -78,10 +73,9 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	// Clear the screen with a background color
-	//screen.Fill(color.RGBA{0x1F, 0x1F, 0x1F, 0xFF}) // Dark gray background
 
-	// Draw the current page
+	//screen.Fill(color.RGBA{0x1F, 0x1F, 0x1F, 0xFF})
+
 	g.navigator.CurrentActivePage().Draw(screen)
 }
 

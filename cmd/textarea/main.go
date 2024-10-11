@@ -31,7 +31,7 @@ func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Enhanced Text Input Example")
 	game := &Game{
-		textarea: widgets.NewTextArea(50, 50, 540, 300, 10), // Using the constants from the original code
+		textarea: widgets.NewTextArea(50, 50, 540, 300, 10),
 	}
 	if err := ebiten.RunGame(game); err != nil {
 		panic(err)

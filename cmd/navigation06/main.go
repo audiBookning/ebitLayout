@@ -21,15 +21,13 @@ import (
 const (
 	screenWidth     = 800
 	screenHeight    = 600
-	leftColumnWidth = 160 // Width of the static left column
+	leftColumnWidth = 160
 )
 
-// Game represents the entire game state.
 type Game struct {
 	navigator     *navigator.Navigator
 	lastKeyState  map[ebiten.Key]bool
 	leftColumnMsg string
-	// Remove pageRegistry from Game struct
 }
 
 func NewGame(navigator *navigator.Navigator) *Game {
@@ -37,28 +35,23 @@ func NewGame(navigator *navigator.Navigator) *Game {
 		navigator:     navigator,
 		lastKeyState:  make(map[ebiten.Key]bool),
 		leftColumnMsg: "Static Left Column",
-		// Remove pageRegistry initialization
 	}
 }
 
-// Update handles game logic, including keyboard inputs and navigator updates.
 func (g *Game) Update() error {
-	// Handle left arrow key press to pop the current content
+
 	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) && !g.lastKeyState[ebiten.KeyArrowLeft] {
 		g.navigator.Pop()
 		g.lastKeyState[ebiten.KeyArrowLeft] = true
 	}
 
-	// Reset key state when not pressed
 	if !ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
 		g.lastKeyState[ebiten.KeyArrowLeft] = false
 	}
 
-	// Define navigatorOffsetX and navigatorOffsetY based on layout
 	navigatorOffsetX := float32(leftColumnWidth)
-	navigatorOffsetY := float32(0) // Assuming navigator starts at top
+	navigatorOffsetY := float32(0)
 
-	// Delegate update to Navigator
 	_, err := g.navigator.Update(navigatorOffsetX, navigatorOffsetY)
 	if err != nil {
 		return err
@@ -67,18 +60,15 @@ func (g *Game) Update() error {
 	return nil
 }
 
-// Draw renders the game screen, including the left column and navigator content.
 func (g *Game) Draw(screen *ebiten.Image) {
-	// Draw the static left column
+
 	leftColumn := ebiten.NewImage(leftColumnWidth, screenHeight)
-	leftColumn.Fill(color.RGBA{50, 50, 50, 255}) // Dark gray color
+	leftColumn.Fill(color.RGBA{50, 50, 50, 255})
 	ebitenutil.DebugPrintAt(leftColumn, g.leftColumnMsg, 10, 10)
 	screen.DrawImage(leftColumn, nil)
 
-	// Define the navigator area rectangle
 	navigatorAreaRect := image.Rect(leftColumnWidth, 0, screenWidth, screenHeight)
 
-	// Delegate the drawing of the navigator area to the Navigator
 	g.navigator.Draw(screen, navigatorAreaRect)
 }
 
@@ -93,7 +83,7 @@ type RedPage struct {
 
 func NewRedPage(tw *textwrapper.TextWrapper, navigatorAreaWidth, navigatorAreaHeight float32) *RedPage {
 	basePage := page.NewBasePage(
-		color.RGBA{255, 0, 0, 255}, // Red background
+		color.RGBA{255, 0, 0, 255},
 		"Red Page - Rotating",
 		tw,
 		0,
@@ -107,17 +97,12 @@ func NewRedPage(tw *textwrapper.TextWrapper, navigatorAreaWidth, navigatorAreaHe
 		rotationAngle: 0,
 	}
 
-	// the rotating example is too wild and dificult to use
-	// we must change it to another use case
-	// redPage.SetCustomDraw(redPage.customDraw)
-
 	return redPage
 }
 
 func (rp *RedPage) customDraw(screen *ebiten.Image) {
 	rp.rotationAngle += 0.02
 
-	// Rotate the PageArea content
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(-float64(rp.Width)/2, -float64(rp.Height)/2)
 	op.GeoM.Rotate(rp.rotationAngle)
@@ -132,13 +117,13 @@ type BluePage struct {
 
 func NewBluePage(tw *textwrapper.TextWrapper, navigatorAreaWidth, navigatorAreaHeight float32) *BluePage {
 	basePage := page.NewBasePage(
-		color.RGBA{0, 0, 255, 255}, // Blue background
+		color.RGBA{0, 0, 255, 255},
 		"Blue Page - Wave",
 		tw,
 		0,
 		0,
 		navigatorAreaWidth,
-		navigatorAreaHeight/2, // Half height for demonstration
+		navigatorAreaHeight/2,
 	)
 
 	bluePage := &BluePage{
@@ -153,7 +138,7 @@ func NewBluePage(tw *textwrapper.TextWrapper, navigatorAreaWidth, navigatorAreaH
 
 func (bp *BluePage) customDraw(screen *ebiten.Image) {
 	bp.waveOffset += 0.1
-	// Draw a sine wave
+
 	for x := float64(0); x < float64(bp.Width); x++ {
 		y := math.Sin(x*0.05+bp.waveOffset)*20 + float64(bp.Height)/2
 		vector.StrokeLine(bp.PageArea, float32(x), float32(y), float32(x), float32(y+1), 2, color.White, false)
@@ -165,7 +150,6 @@ type GreenPage struct {
 	particles []Particle
 }
 
-// Particle represents a single particle in GreenPage
 type Particle struct {
 	X, Y   float64
 	SpeedX float64
@@ -175,13 +159,13 @@ type Particle struct {
 
 func NewGreenPage(tw *textwrapper.TextWrapper, navigatorAreaWidth, navigatorAreaHeight float32) *GreenPage {
 	basePage := page.NewBasePage(
-		color.RGBA{0, 255, 0, 255}, // Green background
+		color.RGBA{0, 255, 0, 255},
 		"Green Page - Particles",
 		tw,
 		0,
-		navigatorAreaHeight/2, // Start at half height
+		navigatorAreaHeight/2,
 		navigatorAreaWidth,
-		navigatorAreaHeight/2, // Half height
+		navigatorAreaHeight/2,
 	)
 
 	greenPage := &GreenPage{
@@ -189,7 +173,6 @@ func NewGreenPage(tw *textwrapper.TextWrapper, navigatorAreaWidth, navigatorArea
 		particles: make([]Particle, 20),
 	}
 
-	// Initialize particles
 	for i := range greenPage.particles {
 		greenPage.particles[i] = Particle{
 			X:      rand.Float64() * float64(greenPage.Width),
@@ -206,7 +189,7 @@ func NewGreenPage(tw *textwrapper.TextWrapper, navigatorAreaWidth, navigatorArea
 }
 
 func (gp *GreenPage) customDraw(screen *ebiten.Image) {
-	// Update particle positions and handle collisions
+
 	for i := range gp.particles {
 		gp.particles[i].X += gp.particles[i].SpeedX
 		gp.particles[i].Y += gp.particles[i].SpeedY
@@ -219,7 +202,6 @@ func (gp *GreenPage) customDraw(screen *ebiten.Image) {
 		}
 	}
 
-	// Draw particles
 	for _, p := range gp.particles {
 		vector.DrawFilledCircle(
 			gp.PageArea,
@@ -239,13 +221,13 @@ type YellowPage struct {
 
 func NewYellowPage(tw *textwrapper.TextWrapper, navigatorAreaWidth, navigatorAreaHeight float32) *YellowPage {
 	basePage := page.NewBasePage(
-		color.RGBA{255, 255, 0, 255}, // Yellow background
+		color.RGBA{255, 255, 0, 255},
 		"Yellow Page - Pulsating Text",
 		tw,
-		navigatorAreaWidth/4,  // Centered horizontally
-		navigatorAreaHeight/4, // Centered vertically
-		navigatorAreaWidth/2,  // Half width
-		navigatorAreaHeight/2, // Half height
+		navigatorAreaWidth/4,
+		navigatorAreaHeight/4,
+		navigatorAreaWidth/2,
+		navigatorAreaHeight/2,
 	)
 
 	yellowPage := &YellowPage{
@@ -264,14 +246,12 @@ func (yp *YellowPage) Update(navigatorOffsetX, navigatorOffsetY float32, isAnima
 }
 
 func (yp *YellowPage) customDraw(screen *ebiten.Image) {
-	// Update text scale based on time
+
 	scaledMessage := fmt.Sprintf("Scale: %.2f", yp.textScale)
 	textWidth, _ := yp.TextWrapper.MeasureText(scaledMessage)
 	x := float64(yp.Width)/2 - textWidth/2
 	y := float64(yp.Height) - 30
 
-	// note: Before changing the Geom, reset it
-	// to avoid weird transformations between frames
 	tw := yp.TextWrapper
 	tw.ResetGeom()
 	tw.SetGeomScale(yp.textScale, yp.textScale)
@@ -287,7 +267,7 @@ type MagentaPage struct {
 
 func NewMagentaPage(tw *textwrapper.TextWrapper, navigatorAreaWidth, navigatorAreaHeight float32) *MagentaPage {
 	basePage := page.NewBasePage(
-		color.RGBA{255, 0, 255, 255}, // Magenta background
+		color.RGBA{255, 0, 255, 255},
 		"Magenta Page - Gradient",
 		tw,
 		50,
@@ -302,12 +282,10 @@ func NewMagentaPage(tw *textwrapper.TextWrapper, navigatorAreaWidth, navigatorAr
 		needsUpdate: true,
 	}
 
-	// Initialize gradient
 	magentaPage.updateGradient()
 
 	basePage.SetCustomDrawBackground(magentaPage.DrawBackground)
 
-	// NOTE: another way of doing it
 	//magentaPage.SetCustomDraw(magentaPage.customDraw)
 
 	return magentaPage
@@ -329,7 +307,6 @@ func (mp *MagentaPage) customDraw(screen *ebiten.Image) {
 		mp.needsUpdate = false
 	}
 
-	// Draw the gradient instead of a solid color
 	mp.PageArea.DrawImage(mp.gradient, nil)
 }
 
@@ -342,7 +319,7 @@ func (mp *MagentaPage) Update(navigatorOffsetX, navigatorOffsetY float32, isAnim
 }
 
 func (mp *MagentaPage) DrawBackground(screen *ebiten.Image) {
-	// Draw the gradient instead of a solid color
+
 	screen.DrawImage(mp.gradient, nil)
 }
 
@@ -350,13 +327,11 @@ func (mp *MagentaPage) GetType() string {
 	return "MagentaPage"
 }
 
-// registerPages function
 func registerPages(
 	tw *textwrapper.TextWrapper,
 	navigatorAreaWidth, navigatorAreaHeight float32,
 	navigator *navigator.Navigator) page.Page {
 
-	// Instantiate custom pages
 	redPage := NewRedPage(tw, navigatorAreaWidth, navigatorAreaHeight)
 	bluePage := NewBluePage(tw, navigatorAreaWidth, navigatorAreaHeight)
 	greenPage := NewGreenPage(tw, navigatorAreaWidth, navigatorAreaHeight)
@@ -405,7 +380,7 @@ func registerPages(
 		Label: "To Red",
 	}, func() { navigator.Push(redPage) })
 
-	return redPage // Return the initial page
+	return redPage
 }
 
 func main() {
@@ -417,20 +392,16 @@ func main() {
 
 	navigator := navigator.NewNavigator()
 
-	// Initialize TextWrapper
 	textWrapper, err := textwrapper.NewTextWrapper(fontPath, 16, false)
 	if err != nil {
 		log.Fatalf("Failed to create TextWrapper: %v", err)
 	}
 
-	// Calculate navigatorAreaWidth based on global constants
 	navigatorAreaWidth := float32(screenWidth - leftColumnWidth)
 	navigatorAreaHeight := float32(screenHeight)
 
-	// Register all pages and get the initial page
 	initialPage := registerPages(textWrapper, navigatorAreaWidth, navigatorAreaHeight, navigator)
 
-	// Push the initial page
 	navigator.Push(initialPage)
 
 	game := NewGame(navigator)

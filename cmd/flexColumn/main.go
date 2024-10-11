@@ -18,7 +18,7 @@ type Game struct {
 	initialWindowWidth   int
 	initialWindowHeight  int
 	initialFontSize      float64
-	initialElementHeight int // Add this field
+	initialElementHeight int
 }
 
 func Create12ColumnLayout(
@@ -28,13 +28,13 @@ func Create12ColumnLayout(
 	columns := make([]layout.Element, 8)
 	for i := range columns {
 		columns[i] = layout.Element{
-			Width:       0, // Will be calculated in Layout
+			Width:       0,
 			Height:      initialElementHeight,
 			Color:       color.RGBA{uint8(20 * i), uint8(255 - 20*i), uint8(128 + 10*i), 255},
-			Flex:        1, // Equal flex for all columns
+			Flex:        1,
 			Text:        fmt.Sprintf("%d", i+1),
 			TextWrapper: textWrapper,
-			TextSize:    24, // Set a fixed text size
+			TextSize:    24,
 		}
 	}
 
@@ -59,7 +59,7 @@ func NewGame() *Game {
 	_, filePathTxt, _, _ = runtime.Caller(0)
 	fontpath := GetFilePath("assets/fonts/roboto_regularTTF.ttf")
 	log.Println("fontpath", fontpath)
-	// print the current working directory
+
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
@@ -67,7 +67,7 @@ func NewGame() *Game {
 	log.Println("current working directory", dir)
 	initialWindowWidth, initialWindowHeight := 1200, 600
 	initialFontSize := 24.0
-	initialElementHeight := 100 // Set this to your initial element height
+	initialElementHeight := 100
 
 	textWrapper, err := textwrapper.NewTextWrapper(
 		fontpath, initialFontSize, false)
@@ -88,15 +88,14 @@ func NewGame() *Game {
 }
 
 func (g *Game) Update() error {
-	// Remove the layout calculation from here
+
 	return nil
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	// Calculate the scaling factor based on the width change
+
 	scaleFactor := float64(outsideWidth) / float64(g.initialWindowWidth)
 
-	// Adjust font size and element height for all elements
 	newFontSize := g.initialFontSize * scaleFactor
 	newElementHeight := int(float64(g.initialElementHeight) * scaleFactor)
 
@@ -105,7 +104,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 		g.flexbox.Elements[i].Height = newElementHeight
 	}
 
-	// Recalculate layout
 	g.flexbox.Layout(outsideWidth, outsideHeight)
 
 	return outsideWidth, outsideHeight

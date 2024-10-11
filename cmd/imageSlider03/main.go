@@ -50,19 +50,15 @@ func (g *Game) Update() error {
 		g.mouseDragged = false
 	}
 
-	// Apply snap force towards the nearest fixed position
 	nearestPosition := roundToNearestPosition(g.contentX)
 	distance := nearestPosition - g.contentX
 	force := distance * snapStrength
 	g.velocity += force
 
-	// Update position based on velocity
 	g.contentX += g.velocity
 
-	// Apply drag to the velocity
 	g.velocity *= dragFactor
 
-	// Stop the movement if the velocity is very low
 	if math.Abs(g.velocity) < minVelocity {
 		g.velocity = 0
 		g.contentX = nearestPosition

@@ -9,7 +9,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// SettingsPage represents the settings UI.
 type SettingsPage struct {
 	ui         *responsive.UI
 	manager    *responsive.LayoutManager
@@ -70,11 +69,10 @@ func (p *SettingsPage) Update() error {
 }
 
 func (p *SettingsPage) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x1F, 0x1F, 0x1F, 0xFF}) // Dark gray background
+	screen.Fill(color.RGBA{0x1F, 0x1F, 0x1F, 0xFF})
 	p.ui.Draw(screen)
 }
 
-// HandleInput processes input specific to the page (if any).
 func (p *SettingsPage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }

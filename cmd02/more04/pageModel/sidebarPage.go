@@ -10,39 +10,31 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// SidebarPageBase manages the game levels with a sidebar for navigation.
 type SidebarPageBase struct {
 	ID            string
 	Label         string
 	MainUI        *responsive.UI
-	SidebarUI     *responsive.UI // Sidebar UI
+	SidebarUI     *responsive.UI
 	SubNavigator  *navigator.Navigator
 	PrevWidth     int
 	PrevHeight    int
 	SidebarWidth  int
-	Navigator     *navigator.Navigator // Main navigator, used to navigate to LevelGamePage itself
+	Navigator     *navigator.Navigator
 	BackgroundClr color.Color
 }
 
-// Define a constant for sidebar width (for layout purposes)
-// Adjust this value as needed
-
 func NewSidebarPage(mainNav *navigator.Navigator, screenWidth, screenHeight int, id string, label string) *SidebarPageBase {
-	// Initialize the sub-navigator for LevelGamePage
-	subNav := navigator.NewNavigator(nil) // No onExit needed for sub-navigator
 
-	// Initialize Level01 and Level02 pages with sub-navigator
+	subNav := navigator.NewNavigator(nil)
+
 	level01 := NewSubPage(subNav, screenWidth, screenHeight)
 	level02 := NewSubPage(subNav, screenWidth, screenHeight)
 
-	// Add subpages to sub-navigator
 	subNav.AddPage("sub01", level01)
 	subNav.AddPage("sub02", level02)
 
-	// Optionally, set an initial subpage if needed
 	subNav.SwitchTo("sub01")
 
-	// Main UI setup (could include additional buttons relevant to LevelGamePage)
 	mainBreakpoints := []responsive.Breakpoint{
 		{Width: 1200, LayoutMode: responsive.LayoutGrid},
 		{Width: 800, LayoutMode: responsive.LayoutVertical},
@@ -66,20 +58,17 @@ func NewSidebarPage(mainNav *navigator.Navigator, screenWidth, screenHeight int,
 
 	mainUI := responsive.NewUI("Start Game", mainBreakpoints, mainButtons)
 
-	// Sidebar UI setup
 	sidebarBreakpoints := []responsive.Breakpoint{
-		{Width: 0, LayoutMode: responsive.LayoutVertical}, // Always vertical for sidebar
+		{Width: 0, LayoutMode: responsive.LayoutVertical},
 	}
 
 	sidebarUI := responsive.NewUI(label, sidebarBreakpoints, sidebarButtons)
 
-	// Initialize screen dimensions
 	const sidebarFixedWidth = 200
 
 	mainUI.Update(screenWidth-sidebarFixedWidth, screenHeight)
 	sidebarUI.Update(sidebarFixedWidth, screenHeight)
 
-	// Initialize LevelGamePage
 	page := &SidebarPageBase{
 		ID:            "sidebar",
 		Label:         "Sidebar",
@@ -89,11 +78,10 @@ func NewSidebarPage(mainNav *navigator.Navigator, screenWidth, screenHeight int,
 		PrevWidth:     screenWidth,
 		PrevHeight:    screenHeight,
 		SidebarWidth:  sidebarFixedWidth,
-		Navigator:     mainNav, // Reference to main navigator to allow navigating back to main menu
+		Navigator:     mainNav,
 		BackgroundClr: color.RGBA{0x3E, 0x3E, 0x3E, 0xFF},
 	}
 
-	// Reset button states when creating the page
 	page.ResetAllButtonStates()
 
 	return page
@@ -119,13 +107,11 @@ func (p *SidebarPageBase) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func (p *SidebarPageBase) Update() error {
 
-	// Handle clicks for both UIs
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		p.HandleInput(x, y)
 	}
 
-	// Update the current subpage
 	p.SubNavigator.CurrentActivePage().Update()
 
 	return nil
@@ -135,7 +121,7 @@ func (p *SidebarPageBase) HandleInput(x, y int) {
 	if x < p.SidebarWidth {
 		p.SidebarUI.HandleClick(x, y)
 	} else {
-		// Pass the click to the current subpage
+
 		if p.SubNavigator.CurrentActivePage() != nil {
 			p.SubNavigator.CurrentActivePage().HandleInput(x-p.SidebarWidth, y)
 		}
@@ -148,25 +134,22 @@ func (p *SidebarPageBase) DrawBackGround(screen *ebiten.Image) {
 
 func (p *SidebarPageBase) Draw(screen *ebiten.Image) {
 	p.DrawBackGround(screen)
-	// Draw the sidebar and main UI
+
 	p.SidebarUI.Draw(screen)
 	p.MainUI.Draw(screen)
 
-	// Draw the current subpage in the play-render-space
 	if p.SubNavigator.CurrentActivePage() != nil {
 		screenWidth, screenHeight := screen.Size()
-		// Create a subimage for the play-render-space
+
 		playRenderSpace := ebiten.NewImage(screenWidth-p.SidebarWidth, screenHeight)
 		p.SubNavigator.CurrentActivePage().Draw(playRenderSpace)
 
-		// Draw the subimage onto the main screen with translation
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(float64(p.SidebarWidth), 0)
 		screen.DrawImage(playRenderSpace, op)
 	}
 
-	// Optional: Draw a separator line between sidebar and main UI
-	separatorColor := color.RGBA{0x00, 0x00, 0x00, 0xFF} // Black
+	separatorColor := color.RGBA{0x00, 0x00, 0x00, 0xFF}
 	separatorImg := ebiten.NewImage(2, p.PrevHeight)
 	separatorImg.Fill(separatorColor)
 	op := &ebiten.DrawImageOptions{}

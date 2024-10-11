@@ -50,7 +50,6 @@ func (g *Game) Update() error {
 		g.mouseDragged = false
 	}
 
-	// Snap to the nearest fixed position when key is released
 	if !ebiten.IsKeyPressed(ebiten.KeyRight) && !ebiten.IsKeyPressed(ebiten.KeyLeft) && g.keyPressed {
 		g.contentX = roundToNearestPosition(g.contentX)
 		g.keyPressed = false
@@ -61,7 +60,7 @@ func (g *Game) Update() error {
 
 func roundToNearestPosition(x int) int {
 	positionWidth := rectWidth + 20
-	// Calculate the nearest position
+
 	return ((x + positionWidth/2) / positionWidth) * positionWidth
 }
 

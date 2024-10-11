@@ -23,7 +23,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	margin := 2 // Margin between cells
+	margin := 2
 	borderColor := color.RGBA{0, 0, 0, 255}
 
 	for _, row := range g.grid.Cells {
@@ -33,17 +33,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			w := float32(cell.Width)
 			h := float32(cell.Height)
 
-			// Draw the cell background with a margin
 			vector.DrawFilledRect(screen, x+float32(margin), y+float32(margin), w-float32(2*margin), h-float32(2*margin), color.RGBA{255, 255, 255, 255}, true)
 
-			// Draw the cell borders
-			// Top border
 			vector.DrawFilledRect(screen, x, y, w, float32(margin), borderColor, true)
-			// Bottom border
+
 			vector.DrawFilledRect(screen, x, y+h-float32(margin), w, float32(margin), borderColor, true)
-			// Left border
+
 			vector.DrawFilledRect(screen, x, y, float32(margin), h, borderColor, true)
-			// Right border
+
 			vector.DrawFilledRect(screen, x+w-float32(margin), y, float32(margin), h, borderColor, true)
 		}
 	}

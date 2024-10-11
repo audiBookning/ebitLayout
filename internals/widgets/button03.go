@@ -19,7 +19,7 @@ type ToggleButton03 struct {
 }
 
 func (b *ToggleButton03) OnMouseDown() {
-	// not implemented
+
 	b.IsToggled = !b.IsToggled
 	if b.IsToggled {
 		b.CurrentColor = b.ToggleColor
@@ -30,7 +30,7 @@ func (b *ToggleButton03) OnMouseDown() {
 }
 
 func (b *ToggleButton03) SetHovered(isHovered bool) {
-	// not implemented
+
 }
 
 func NewToggleButton03(
@@ -68,10 +68,9 @@ func (b *ToggleButton03) Update() {
 }
 
 func (b *ToggleButton03) Draw(screen *ebiten.Image) {
-	// Draw background
+
 	vector.DrawFilledRect(screen, float32(b.X), float32(b.Y), float32(b.Width), float32(b.Height), color.RGBA{200, 200, 200, 255}, true)
 
-	// Draw knob
 	knobSize := float32(b.Height)
 	vector.DrawFilledRect(
 		screen,

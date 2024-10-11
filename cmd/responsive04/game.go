@@ -19,7 +19,6 @@ func NewGame() *Game {
 		pages: make(map[string]Page),
 	}
 
-	// Define a function to switch pages
 	switchPage := func(pageName string) {
 		if page, exists := g.pages[pageName]; exists {
 			log.Printf("Switching to page: %s\n", pageName)
@@ -29,14 +28,13 @@ func NewGame() *Game {
 		}
 	}
 
-	// Initialize pages with the switchPage function
 	mainMenu := pages.NewMainMenuPage(switchPage)
 	settings := pages.NewSettingsPage(switchPage)
 
 	g.pages["main"] = mainMenu
 	g.pages["settings"] = settings
 
-	g.currentPage = mainMenu // Start with the main menu
+	g.currentPage = mainMenu
 
 	return g
 }
@@ -49,10 +47,9 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	// Clear the screen with a background color
-	screen.Fill(color.RGBA{0x1F, 0x1F, 0x1F, 0xFF}) // Dark gray background
 
-	// Draw the current page
+	screen.Fill(color.RGBA{0x1F, 0x1F, 0x1F, 0xFF})
+
 	g.currentPage.Draw(screen)
 }
 

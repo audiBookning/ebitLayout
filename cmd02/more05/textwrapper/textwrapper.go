@@ -22,7 +22,6 @@ type TextWrapper struct {
 	textOptionsDirty bool
 }
 
-// NewTextWrapper is a constructor for TextWrapper
 func NewTextWrapper(fontPath string, fontSize float64, isVertical bool) (*TextWrapper, error) {
 	fontData, err := os.ReadFile(fontPath)
 	if err != nil {
@@ -66,15 +65,14 @@ func (tw *TextWrapper) ResetGeom() {
 	tw.textOptions.GeoM.Reset()
 }
 
-// MeasureText measures the bounds of the given text
 func (tw *TextWrapper) MeasureText(s string) (float64, float64) {
 	metrics := tw.GoTextFace.Metrics()
 	var lineSpacing float64
 	if tw.isVertical {
-		// Use vertical metrics for vertical text
+
 		lineSpacing = metrics.VAscent + metrics.VDescent + metrics.VLineGap
 	} else {
-		// Use horizontal metrics for horizontal text
+
 		lineSpacing = metrics.HAscent + metrics.HDescent + metrics.HLineGap
 	}
 	width, height := text.Measure(s, tw.GoTextFace, lineSpacing)
@@ -99,7 +97,6 @@ func (tw *TextWrapper) GetFontMetrics() text.Metrics {
 	return tw.GoTextFace.Metrics()
 }
 
-// Add this new method to get the font face
 func (tw *TextWrapper) GetFontFace() *text.GoTextFace {
 	return tw.GoTextFace
 }

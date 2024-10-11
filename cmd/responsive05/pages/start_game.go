@@ -8,7 +8,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// StartGamePage represents the start game UI.
 type StartGamePage struct {
 	ui         *responsive.UI
 	manager    *responsive.LayoutManager
@@ -16,7 +15,6 @@ type StartGamePage struct {
 	prevHeight int
 }
 
-// NewStartGamePage initializes the start game page with specific breakpoints and buttons.
 func NewStartGamePage(switchPage func(pageName string)) *StartGamePage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1200, LayoutMode: responsive.LayoutGrid},
@@ -64,11 +62,10 @@ func (p *StartGamePage) Update() error {
 }
 
 func (p *StartGamePage) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x3E, 0x3E, 0x3E, 0xFF}) // Slightly lighter gray background
+	screen.Fill(color.RGBA{0x3E, 0x3E, 0x3E, 0xFF})
 	p.ui.Draw(screen)
 }
 
-// HandleInput processes input specific to the page (if any).
 func (p *StartGamePage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }

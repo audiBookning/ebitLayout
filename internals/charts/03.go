@@ -10,24 +10,22 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// Chart03 represents a 2D graph that can plot any set of data points.
 type Chart03 struct {
-	Data        []float64 // The Y-values of the graph (X-values are assumed to be uniformly spaced)
-	XLabel      string    // Label for the X-axis
-	YLabel      string    // Label for the Y-axis
-	NumXTicks   int       // Number of tick marks on the X-axis
-	NumYTicks   int       // Number of tick marks on the Y-axis
-	GutterWidth float32   // Width of the gutter between bars as a factor of the bar width
-	ScreenSize  int       // Size of the screen for layout
+	Data        []float64
+	XLabel      string
+	YLabel      string
+	NumXTicks   int
+	NumYTicks   int
+	GutterWidth float32
+	ScreenSize  int
 	OffsetX     float64
 	OffsetY     float64
 	BarColor    color.RGBA
 	PointColor  color.RGBA
 	AxisColor   color.RGBA
-	TextWrapper *textwrapper.TextWrapper // TextDrawer for drawing text
+	TextWrapper *textwrapper.TextWrapper
 }
 
-// DrawPlotline renders the graph on the given screen.
 func (g *Chart03) DrawPlotline(screen *ebiten.Image) {
 	screenWidth := float64(screen.Bounds().Dx())
 	screenHeight := float64(screen.Bounds().Dy())
@@ -35,10 +33,8 @@ func (g *Chart03) DrawPlotline(screen *ebiten.Image) {
 	usableWidth := screenWidth - g.OffsetX*2
 	usableHeight := screenHeight - g.OffsetY*2
 
-	// Color definitions
 	//green := color.RGBA{0, 255, 0, 255}
 
-	// Get Y range for scaling
 	yMin := g.minValue()
 	yMax := g.maxValue()
 	if yMin > 0 {
@@ -47,9 +43,8 @@ func (g *Chart03) DrawPlotline(screen *ebiten.Image) {
 	yRange := yMax - yMin
 	yScale := usableHeight / yRange
 
-	// Plot the data points
 	for x := 0.0; x < usableWidth; x++ {
-		// Find corresponding Y-value in the data
+
 		dataIndex := int(x / usableWidth * float64(len(g.Data)))
 		if dataIndex < len(g.Data) {
 			y := g.Data[dataIndex]
@@ -62,7 +57,7 @@ func (g *Chart03) DrawPlotline(screen *ebiten.Image) {
 				1,
 				g.PointColor,
 				false,
-			) // Plot the point
+			)
 		}
 	}
 
@@ -70,7 +65,6 @@ func (g *Chart03) DrawPlotline(screen *ebiten.Image) {
 
 }
 
-// DrawBars renders a bar graph on the given screen, specifically for categorical data.
 func (g *Chart03) DrawBars(screen *ebiten.Image) {
 	screenWidth := float64(screen.Bounds().Dx())
 	screenHeight := float64(screen.Bounds().Dy())
@@ -79,16 +73,14 @@ func (g *Chart03) DrawBars(screen *ebiten.Image) {
 	min := g.minValue()
 	max := g.maxValue()
 
-	// Adjust the scaling to avoid zero height for non-zero values
 	if min > 0 {
 		min = 0
 	}
 	adjustedRange := max - min
 
-	// Draw bars for categorical data
 	barWidth := usableWidth / float64(len(g.Data))
 	for i, y := range g.Data {
-		scaledY := ((y - min) / adjustedRange) * usableHeight // Scale based on adjusted range
+		scaledY := ((y - min) / adjustedRange) * usableHeight
 		vector.DrawFilledRect(screen,
 			float32(g.OffsetX+barWidth*float64(i)),
 			float32(screenHeight-g.OffsetY-scaledY),
@@ -99,26 +91,21 @@ func (g *Chart03) DrawBars(screen *ebiten.Image) {
 		)
 	}
 
-	// Draw axes
 	g.drawAxis(screen, min, max)
 
 }
 
-// drawAxis draws the X and Y axes, labels, and tick marks
 func (g *Chart03) drawAxis(screen *ebiten.Image, min, max float64) {
 	screenWidth := float64(screen.Bounds().Dx())
 	screenHeight := float64(screen.Bounds().Dy())
 	usableWidth := screenWidth - g.OffsetX*2
 	usableHeight := screenHeight - g.OffsetY*2
 
-	// Draw axes (X and Y)
-	vector.StrokeLine(screen, float32(g.OffsetX), float32(g.OffsetY), float32(g.OffsetX), float32(screenHeight-g.OffsetY), 1, g.AxisColor, false)                          // Y axis
-	vector.StrokeLine(screen, float32(g.OffsetX), float32(screenHeight-g.OffsetY), float32(screenWidth-g.OffsetX), float32(screenHeight-g.OffsetY), 1, g.AxisColor, false) // X axis
+	vector.StrokeLine(screen, float32(g.OffsetX), float32(g.OffsetY), float32(g.OffsetX), float32(screenHeight-g.OffsetY), 1, g.AxisColor, false)
+	vector.StrokeLine(screen, float32(g.OffsetX), float32(screenHeight-g.OffsetY), float32(screenWidth-g.OffsetX), float32(screenHeight-g.OffsetY), 1, g.AxisColor, false)
 
-	// Draw axis labels
 	g.drawAxisLabels(screen)
 
-	// Draw X-Axis ticks and labels
 	for i := 0; i <= g.NumXTicks; i++ {
 		tickX := g.OffsetX + (usableWidth/float64(g.NumXTicks))*float64(i)
 		vector.StrokeLine(screen, float32(tickX), float32(screenHeight-g.OffsetY), float32(tickX), float32(screenHeight-g.OffsetY+5), 1, g.AxisColor, false)
@@ -132,7 +119,6 @@ func (g *Chart03) drawAxis(screen *ebiten.Image, min, max float64) {
 		)
 	}
 
-	// Draw Y-Axis ticks and labels
 	for i := 0; i <= g.NumYTicks; i++ {
 		tickY := screenHeight - g.OffsetY - (usableHeight/float64(g.NumYTicks))*float64(i)
 		vector.StrokeLine(screen, float32(g.OffsetX), float32(tickY), float32(g.OffsetX-5), float32(tickY), 1, g.AxisColor, false)
@@ -147,12 +133,10 @@ func (g *Chart03) drawAxis(screen *ebiten.Image, min, max float64) {
 	}
 }
 
-// drawAxisLabels draws the X and Y axis labels
 func (g *Chart03) drawAxisLabels(screen *ebiten.Image) {
 	screenWidth := float64(screen.Bounds().Dx())
 	screenHeight := float64(screen.Bounds().Dy())
 
-	// Draw axis labels
 	g.TextWrapper.DrawText(
 		screen,
 		g.XLabel,
@@ -168,7 +152,6 @@ func (g *Chart03) drawAxisLabels(screen *ebiten.Image) {
 	)
 }
 
-// minValue returns the minimum Y value in the data set.
 func (g *Chart03) minValue() float64 {
 	min := g.Data[0]
 	for _, v := range g.Data {
@@ -179,7 +162,6 @@ func (g *Chart03) minValue() float64 {
 	return min
 }
 
-// maxValue returns the maximum Y value in the data set.
 func (g *Chart03) maxValue() float64 {
 	max := g.Data[0]
 	for _, v := range g.Data {

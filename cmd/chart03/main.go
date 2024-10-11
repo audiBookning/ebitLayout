@@ -23,15 +23,13 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	// Create sub-images for each graph
+
 	barImage := ebiten.NewImage(screen.Bounds().Dx()/2, screen.Bounds().Dy())
 	plotlineImage := ebiten.NewImage(screen.Bounds().Dx()/2, screen.Bounds().Dy())
 
-	// Draw each graph on its respective sub-image
 	g.barGraph.DrawBars(barImage)
 	g.plotlineGraph.DrawPlotline(plotlineImage)
 
-	// Draw the sub-images on the main screen
 	op := &ebiten.DrawImageOptions{}
 	screen.DrawImage(barImage, op)
 
@@ -53,7 +51,7 @@ var filePathTxt string
 const Assets_Relative_Path = "../../"
 
 func main() {
-	// Generate some sine wave sinData for demonstration
+
 	_, filePathTxt, _, _ = runtime.Caller(0)
 
 	ScreenSize := 800
@@ -67,10 +65,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	textWrapper.Color = color.RGBA{255, 255, 255, 255} // white
+	textWrapper.Color = color.RGBA{255, 255, 255, 255}
 	textWrapper.SetFontSize(12)
 
-	// Create the bar graph
 	randomData := []float64{4.2, 7.5, 3.8, 6.1, 9.4}
 	barGraph := &charts.Chart03{
 		Data:        randomData,
@@ -88,7 +85,6 @@ func main() {
 		TextWrapper: textWrapper,
 	}
 
-	// Create the plotline graph
 	sinData := make([]float64, 100)
 	for i := 0; i < len(sinData); i++ {
 		normalizedX := float64(i) / float64(len(sinData)) * 2 * math.Pi
@@ -111,7 +107,6 @@ func main() {
 		TextWrapper: textWrapper,
 	}
 
-	// Create the game object and run it
 	game := &Game{barGraph: barGraph, plotlineGraph: plotlineGraph}
 	ebiten.SetWindowSize(ScreenSize, ScreenSize)
 	ebiten.SetWindowTitle("Bar and Plotline Graphs")

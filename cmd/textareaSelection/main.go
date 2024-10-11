@@ -34,7 +34,7 @@ func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Text Input with Selection Example")
 	game := &Game{
-		textarea: widgets.NewTextAreaSelection(textAreaX, textAreaY, textAreaW, textAreaH, 10), // 10 is the maxLines
+		textarea: widgets.NewTextAreaSelection(textAreaX, textAreaY, textAreaW, textAreaH, 10),
 	}
 	if err := ebiten.RunGame(game); err != nil {
 		panic(err)

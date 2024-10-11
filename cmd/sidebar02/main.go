@@ -11,7 +11,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// ***** INPUT MANAGER *****
 type InputManager struct {
 	Clickables     []Clickable
 	MouseX, MouseY int
@@ -42,13 +41,11 @@ func (im *InputManager) Update() {
 		}
 	}
 
-	// Update hover state
 	for _, c := range im.Clickables {
 		c.SetHovered(c.Contains(im.MouseX, im.MouseY))
 	}
 }
 
-// ***** CLICKABLE INTERFACE *****
 type Clickable interface {
 	Contains(x, y int) bool
 	OnClick()
@@ -56,7 +53,6 @@ type Clickable interface {
 	SetHovered(isHovered bool)
 }
 
-// ***** BUTTON *****
 type Button struct {
 	X, Y, Width, Height int
 	Label               string
@@ -65,7 +61,7 @@ type Button struct {
 	ClickColor          color.Color
 	isHovered           bool
 	isPressed           bool
-	OnClickFunc         func() // Callback function
+	OnClickFunc         func()
 }
 
 func NewButton(x, y, width, height int, label string, color, hoverColor, clickColor color.Color, onClick func()) *Button {
@@ -116,7 +112,6 @@ func (b *Button) SetHovered(isHovered bool) {
 	b.isHovered = isHovered
 }
 
-// ***** TOP BAR *****
 type TopBar struct {
 	X, Y, Width, Height int
 	Buttons             []*Button
@@ -131,7 +126,7 @@ func NewTopBar(width, height int, numButtons int, inputManager *InputManager) *T
 			color.RGBA{200, 0, 0, 255},
 			color.RGBA{150, 0, 0, 255},
 			color.RGBA{100, 0, 0, 255},
-			nil, // Placeholder for button-specific logic
+			nil,
 		)
 		inputManager.Register(buttons[i])
 	}
@@ -152,10 +147,9 @@ func (tb *TopBar) Draw(screen *ebiten.Image) {
 }
 
 func (tb *TopBar) Update() {
-	// ...
+
 }
 
-// ***** SIDEBAR CONTROLLER *****
 type SidebarController struct {
 	Sidebar       *Sidebar
 	ClickableArea *ClickableArea
@@ -169,7 +163,7 @@ func NewSidebarController(width, height, topOffset int, screenWidth, screenHeigh
 		Y:      sidebar.Y,
 		Height: sidebar.Height,
 		OnClickFunc: func() {
-			// Placeholder for button-specific logic
+
 		},
 		Active: sidebar.Visible,
 	}
@@ -221,7 +215,6 @@ func (sc *SidebarController) Draw(screen *ebiten.Image) {
 	sc.ClickableArea.Draw(screen)
 }
 
-// ***** CLICKABLE AREA (OUTSIDE SIDEBAR) *****
 type ClickableArea struct {
 	X, Y, Width, Height int
 	OnClickFunc         func()
@@ -232,7 +225,7 @@ func (ca *ClickableArea) Contains(x, y int) bool {
 	if !ca.Active {
 		return false
 	}
-	// Check if the click is within the main area excluding the sidebar and top bar
+
 	return x > ca.X &&
 		y > ca.Y &&
 		x <= ca.Width &&
@@ -246,11 +239,11 @@ func (ca *ClickableArea) OnClick() {
 }
 
 func (ca *ClickableArea) OnMouseDown() {
-	// Placeholder: No action required for mouse down in clickable area
+
 }
 
 func (ca *ClickableArea) SetHovered(isHovered bool) {
-	// Placeholder: No action required for hover in clickable area
+
 }
 
 func (ca *ClickableArea) Draw(screen *ebiten.Image) {
@@ -260,7 +253,6 @@ func (ca *ClickableArea) Draw(screen *ebiten.Image) {
 	vector.DrawFilledRect(screen, float32(ca.X), float32(ca.Y), float32(ca.Width), float32(ca.Height), color.RGBA{30, 30, 30, 150}, true)
 }
 
-// ***** SIDEBAR *****
 type Sidebar struct {
 	X, Y, Width, Height int
 	Visible             bool
@@ -284,7 +276,6 @@ func (s *Sidebar) Draw(screen *ebiten.Image) {
 	vector.DrawFilledRect(screen, float32(s.X), float32(s.Y), float32(s.Width), float32(s.Height), color.RGBA{50, 50, 50, 255}, true)
 }
 
-// ***** GAME *****
 type Game struct {
 	TopBar                    *TopBar
 	centerButton              *Button
@@ -297,10 +288,8 @@ func NewGame() *Game {
 	var topBarHeight int = 50
 	screenWidth, screenHeight := 640, 480
 
-	// Initialize InputManager
 	inputManager := &InputManager{}
 
-	// Define the number of buttons in the topbar
 	numButtons := 2
 	topbar := NewTopBar(screenWidth, topBarHeight, numButtons, inputManager)
 
@@ -314,7 +303,6 @@ func NewGame() *Game {
 		screenHeight:      screenHeight,
 	}
 
-	// Assign specific functions to button click handlers
 	topbar.Buttons[0].OnClickFunc = func() {
 		log.Println("Button 1 clicked")
 		game.SidebarController.ToggleSidebar()
@@ -325,7 +313,6 @@ func NewGame() *Game {
 		game.SidebarController.ToggleSidebar()
 	}
 
-	// Add another centerButton in the center of the screen for testing purposes
 	centerButton := NewButton(
 		200, 200, 80, 25,
 		"CENTER",
@@ -359,7 +346,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
 
-// ***** MAIN *****
 func main() {
 	game := NewGame()
 	ebiten.SetWindowSize(game.screenWidth, game.screenHeight)
