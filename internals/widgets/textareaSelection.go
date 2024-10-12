@@ -70,6 +70,160 @@ type TextAreaSelection struct {
 	dragOffsetY     float64 // Offset between mouse position and thumb position during drag
 }
 
+func (t *TextAreaSelection) setCursorPos(pos int) {
+	t.cursorPos = clamp(pos, 0, len(t.text))
+}
+
+func (t *TextAreaSelection) handlePageDown() {
+	t.pushUndo()
+	lines := strings.Split(t.text, "\n")
+	totalLines := len(lines)
+
+	// Calculate the new scroll offset
+	newScrollOffset := t.scrollOffset + t.maxLines
+	if newScrollOffset > totalLines-t.maxLines {
+		newScrollOffset = totalLines - t.maxLines
+	}
+	if newScrollOffset < 0 {
+		newScrollOffset = 0
+	}
+
+	// Update the scroll offset
+	t.scrollOffset = newScrollOffset
+
+	// Update the cursor position to the first visible line
+	//t.setCursorPos(t.getCharPosFromLineAndCol(t.scrollOffset, 0))
+}
+
+func (t *TextAreaSelection) handlePageUp() {
+	t.pushUndo()
+	// Calculate the new scroll offset
+	newScrollOffset := t.scrollOffset - t.maxLines
+	if newScrollOffset < 0 {
+		newScrollOffset = 0
+	}
+
+	// Update the scroll offset
+	t.scrollOffset = newScrollOffset
+
+	// Update the cursor position to the first visible line
+	//t.setCursorPos(t.getCharPosFromLineAndCol(t.scrollOffset, 0))
+}
+
+func (t *TextAreaSelection) handleKeyboardInput() error {
+
+	// Define the keys that support repeat
+	repeatKeys := []ebiten.Key{
+		ebiten.KeyBackspace,
+		ebiten.KeyDelete,
+		ebiten.KeyTab,
+		ebiten.KeyEnter,
+		ebiten.KeyLeft,
+		ebiten.KeyRight,
+		ebiten.KeyHome,
+		ebiten.KeyEnd,
+		ebiten.KeyUp,
+		ebiten.KeyDown,
+	}
+
+	// Handle repeat keys
+	for _, key := range repeatKeys {
+		if ebiten.IsKeyPressed(key) {
+			// Initialize key state if not present
+			if _, exists := t.heldKeys[key]; !exists {
+				t.heldKeys[key] = &KeyState{
+					InitialPress:    true,
+					FramesHeld:      0,
+					FramesUntilNext: keyRepeatInitialDelay,
+				}
+			}
+			keyState := t.heldKeys[key]
+			if keyState.InitialPress {
+				// Handle the initial key press
+				t.handleKeyPress(key)
+				keyState.InitialPress = false
+			} else {
+				// Increment frames held
+				keyState.FramesHeld++
+				// Check if it's time to repeat the action
+				if keyState.FramesHeld >= keyState.FramesUntilNext {
+					// Handle the repeated action
+					t.handleKeyPress(key)
+					// Reset frames until next action
+					keyState.FramesUntilNext = keyRepeatInterval
+				}
+			}
+		} else {
+			// Remove key from heldKeys when released
+			delete(t.heldKeys, key)
+		}
+	}
+
+	// Handle character input
+	for _, char := range ebiten.InputChars() {
+		if char != '\n' && char != '\r' {
+			t.text = t.text[:t.cursorPos] + string(char) + t.text[t.cursorPos:]
+			t.cursorPos++
+			t.clearSelection()
+		}
+	}
+
+	// ------------------
+	// Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+Z, Ctrl+Y, Ctrl+A
+	if t.isCtrlPressed() {
+		if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+			t.handleCopySelection()
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyX) {
+			t.handleCutSelection()
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyV) {
+			t.handlePasteClipboard()
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
+			t.handleUndo()
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyY) {
+			t.handleRedo()
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyA) {
+			t.handleSelectAll()
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyBackspace) {
+			t.handleCtrlBackspace()
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyDelete) {
+			t.handleCtrlDelete()
+		}
+	}
+
+	// Handle Page Up and Page Down keys
+	if inpututil.IsKeyJustPressed(ebiten.KeyPageUp) {
+		t.pushUndo()
+		t.handlePageUp()
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyPageDown) {
+		t.pushUndo()
+		t.handlePageDown()
+	}
+
+	// ------------------
+	// Clamp cursor position to valid range
+	//t.setCursorPos(clamp(t.cursorPos, 0, len(t.text)))
+
+	t.counter++
+	return nil
+}
+
+func (t *TextAreaSelection) handleSrollToEnd() {
+	// Scroll down by one page without moving the cursor
+	t.scrollOffset = clamp(t.scrollOffset+t.maxLines, 0, len(strings.Split(t.text, "\n"))-t.maxLines)
+}
+
+func (t *TextAreaSelection) handleScrollToStart() {
+	// Scroll up by one page without moving the cursor
+	t.scrollOffset = clamp(t.scrollOffset-t.maxLines, 0, len(strings.Split(t.text, "\n"))-t.maxLines)
+}
+
 func (t *TextAreaSelection) setSelectionStart(pos int) {
 	t.selectionStart = pos
 	fmt.Printf("Selection Start Updated: %d\n", pos)
@@ -119,7 +273,7 @@ func (t *TextAreaSelection) updateSelectionWithShiftKey(offset int) {
 			}
 		}
 
-		t.cursorPos = newCursorPos
+		t.setCursorPos(newCursorPos)
 	} else {
 		t.clearSelection()
 	}
@@ -127,7 +281,7 @@ func (t *TextAreaSelection) updateSelectionWithShiftKey(offset int) {
 	fmt.Printf("Selection Updated: Start=%d, End=%d, CursorPos=%d\n", t.selectionStart, t.selectionEnd, t.cursorPos)
 }
 
-func NewTextAreaSelection(x, y, w, h, maxLines int) *TextAreaSelection {
+func NewTextAreaSelection(x, y, w, h, maxLines int, startTxt string) *TextAreaSelection {
 	err := clipboard.Init()
 	if err != nil {
 		return nil
@@ -150,6 +304,7 @@ func NewTextAreaSelection(x, y, w, h, maxLines int) *TextAreaSelection {
 		doubleClickThreshold: 30,    // Threshold frames to consider as a double-click
 		doubleClickHandled:   false, // Indicates if a double-click has just been handled
 		scrollOffset:         0,
+		text:                 startTxt, // Default text added here
 	}
 }
 
@@ -227,33 +382,28 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 		t.drawScrollbar(screen, len(lines))
 	}
 
-	// Draw the cursor if the text area has focus
+	// Draw the cursor if the text area has focus and the cursor is within the visible lines
 	if t.hasFocus {
 		cursorLine, cursorCol := t.getCursorLineAndCol()
-		// Ensure cursorLine does not exceed the number of lines
-		if cursorLine >= len(lines) {
-			cursorLine = len(lines) - 1
-		}
-		if cursorLine < 0 {
-			cursorLine = 0
-		}
-		// Calculate cursorX and cursorY
-		cursorX := t.x + t.textWidth(strings.Split(t.text, "\n")[cursorLine][:cursorCol])
-		cursorY := t.y + (cursorLine-t.scrollOffset)*t.lineHeight
+		if cursorLine >= t.scrollOffset && cursorLine < t.scrollOffset+t.maxLines {
+			// Calculate cursorX and cursorY
+			cursorX := t.x + t.textWidth(strings.Split(t.text, "\n")[cursorLine][:cursorCol])
+			cursorY := t.y + (cursorLine-t.scrollOffset)*t.lineHeight
 
-		// Clamp the cursor position within textarea bounds
-		cursorX = clamp(cursorX, t.x, t.x+t.w)
-		cursorY = clamp(cursorY, t.y, t.y+t.h-t.lineHeight)
+			// Clamp the cursor position within textarea bounds
+			cursorX = clamp(cursorX, t.x, t.x+t.w)
+			cursorY = clamp(cursorY, t.y, t.y+t.h-t.lineHeight)
 
-		// Render the blinking cursor
-		if t.counter%(t.cursorBlinkRate*2) < t.cursorBlinkRate {
-			vector.DrawFilledRect(screen,
-				float32(cursorX),
-				float32(cursorY),
-				2,
-				float32(t.lineHeight),
-				color.RGBA{0, 0, 0, 255},
-				true)
+			// Render the blinking cursor
+			if t.counter%(t.cursorBlinkRate*2) < t.cursorBlinkRate {
+				vector.DrawFilledRect(screen,
+					float32(cursorX),
+					float32(cursorY),
+					2,
+					float32(t.lineHeight),
+					color.RGBA{0, 0, 0, 255},
+					true)
+			}
 		}
 	}
 }
@@ -282,7 +432,7 @@ func (t *TextAreaSelection) Update() error {
 				// Single click
 				t.hasFocus = true
 				charPos := t.getCharPosFromPosition(x, y)
-				t.cursorPos = charPos
+				t.setCursorPos(charPos)
 				t.setSelectionStart(charPos)
 				t.setSelectionEnd(charPos)
 				// Initially, no selection is active
@@ -314,7 +464,7 @@ func (t *TextAreaSelection) Update() error {
 					t.setSelectionStart(t.cursorPos)
 				}
 				t.setSelectionEnd(charPos)
-				t.cursorPos = charPos
+				t.setCursorPos(charPos)
 			}
 		}
 	}
@@ -436,7 +586,7 @@ func (t *TextAreaSelection) selectWordAt(pos int) {
 
 	t.setSelectionStart(byteStart)
 	t.setSelectionEnd(byteEnd)
-	t.cursorPos = byteEnd
+	t.setCursorPos(byteEnd)
 	t.isSelecting = false // Ensure no ongoing selection
 	completeWord := t.text[byteStart:byteEnd]
 	fmt.Printf("Word Selected=%s | pos=%d | Byte Start=%d, Byte End=%d \n", completeWord, pos, start, end)
@@ -484,101 +634,6 @@ func (t *TextAreaSelection) isCtrlPressed() bool {
 	return ebiten.IsKeyPressed(ebiten.KeyControlLeft) || ebiten.IsKeyPressed(ebiten.KeyControlRight)
 }
 
-func (t *TextAreaSelection) handleKeyboardInput() error {
-
-	// Define the keys that support repeat
-	repeatKeys := []ebiten.Key{
-		ebiten.KeyBackspace,
-		ebiten.KeyDelete,
-		ebiten.KeyTab,
-		ebiten.KeyEnter,
-		ebiten.KeyLeft,
-		ebiten.KeyRight,
-		ebiten.KeyHome,
-		ebiten.KeyEnd,
-		ebiten.KeyUp,
-		ebiten.KeyDown,
-	}
-
-	// Handle repeat keys
-	for _, key := range repeatKeys {
-		if ebiten.IsKeyPressed(key) {
-			// Initialize key state if not present
-			if _, exists := t.heldKeys[key]; !exists {
-				t.heldKeys[key] = &KeyState{
-					InitialPress:    true,
-					FramesHeld:      0,
-					FramesUntilNext: keyRepeatInitialDelay,
-				}
-			}
-			keyState := t.heldKeys[key]
-			if keyState.InitialPress {
-				// Handle the initial key press
-				t.handleKeyPress(key)
-				keyState.InitialPress = false
-			} else {
-				// Increment frames held
-				keyState.FramesHeld++
-				// Check if it's time to repeat the action
-				if keyState.FramesHeld >= keyState.FramesUntilNext {
-					// Handle the repeated action
-					t.handleKeyPress(key)
-					// Reset frames until next action
-					keyState.FramesUntilNext = keyRepeatInterval
-				}
-			}
-		} else {
-			// Remove key from heldKeys when released
-			delete(t.heldKeys, key)
-		}
-	}
-
-	// Handle character input
-	for _, char := range ebiten.InputChars() {
-		if char != '\n' && char != '\r' {
-			t.text = t.text[:t.cursorPos] + string(char) + t.text[t.cursorPos:]
-			t.cursorPos++
-			t.clearSelection()
-		}
-	}
-
-	// ------------------
-	// Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+Z, Ctrl+Y, Ctrl+A
-	if t.isCtrlPressed() {
-		if inpututil.IsKeyJustPressed(ebiten.KeyC) {
-			t.handleCopySelection()
-		}
-		if inpututil.IsKeyJustPressed(ebiten.KeyX) {
-			t.handleCutSelection()
-		}
-		if inpututil.IsKeyJustPressed(ebiten.KeyV) {
-			t.handlePasteClipboard()
-		}
-		if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
-			t.handleUndo()
-		}
-		if inpututil.IsKeyJustPressed(ebiten.KeyY) {
-			t.handleRedo()
-		}
-		if inpututil.IsKeyJustPressed(ebiten.KeyA) {
-			t.handleSelectAll()
-		}
-		if inpututil.IsKeyJustPressed(ebiten.KeyBackspace) {
-			t.handleCtrlBackspace()
-		}
-		if inpututil.IsKeyJustPressed(ebiten.KeyDelete) {
-			t.handleCtrlDelete()
-		}
-	}
-
-	// ------------------
-	// Clamp cursor position to valid range
-	t.cursorPos = clamp(t.cursorPos, 0, len(t.text))
-
-	t.counter++
-	return nil
-}
-
 // getSelectionBoundsStart returns the start position of the current selection
 func (t *TextAreaSelection) getSelectionBoundsStart() int {
 	minPos, _ := t.getSelectionBounds()
@@ -598,10 +653,10 @@ func (t *TextAreaSelection) handleKeyPress(key ebiten.Key) {
 		switch key {
 		case ebiten.KeyLeft, ebiten.KeyUp, ebiten.KeyHome:
 			// Move cursor to the start of the selection
-			t.cursorPos = t.getSelectionBoundsStart()
+			t.setCursorPos(t.getSelectionBoundsStart())
 		case ebiten.KeyRight, ebiten.KeyDown, ebiten.KeyEnd:
 			// Move cursor to the end of the selection
-			t.cursorPos = t.getSelectionBoundsEnd()
+			t.setCursorPos(t.getSelectionBoundsEnd())
 		case ebiten.KeyBackspace, ebiten.KeyDelete:
 			t.handleDelete()
 		}
@@ -680,7 +735,7 @@ func (t *TextAreaSelection) indentSelection() {
 	}
 
 	t.text = strings.Join(lines, "\n")
-	t.cursorPos = t.selectionEnd + len(indent)
+	t.setCursorPos(t.selectionEnd + len(indent))
 }
 
 func (t *TextAreaSelection) clearSelection() {
@@ -772,7 +827,7 @@ func (t *TextAreaSelection) getSelectionBounds() (int, int) {
 func (t *TextAreaSelection) deleteSelection() {
 	minPos, maxPos := t.getSelectionBounds()
 	t.text = t.text[:minPos] + t.text[maxPos:]
-	t.cursorPos = minPos
+	t.setCursorPos(minPos)
 	t.clearSelection()
 }
 
@@ -838,8 +893,8 @@ func (t *TextAreaSelection) updateSelection(newPos int) {
 		t.selectionStart = newPos
 	} else {
 	} */
-	t.selectionEnd = newPos
-	t.cursorPos = newPos
+	t.setSelectionEnd(newPos)
+	t.setCursorPos(newPos)
 }
 
 /*
@@ -882,7 +937,7 @@ func (t *TextAreaSelection) handleCutSelection() {
 
 	// Remove the selected text from the text area
 	t.text = t.text[:minPos] + t.text[maxPos:]
-	t.cursorPos = minPos
+	t.setCursorPos(minPos)
 	t.clearSelection()
 }
 
@@ -897,11 +952,11 @@ func (t *TextAreaSelection) handlePasteClipboard() {
 		// Replace selected text with clipboard text
 		minPos, maxPos := t.getSelectionBounds()
 		t.text = t.text[:minPos] + clipboardText + t.text[maxPos:]
-		t.cursorPos = minPos + len(clipboardText)
+		t.setCursorPos(minPos + len(clipboardText))
 	} else {
 		// Insert clipboard text at cursor position
 		t.text = t.text[:t.cursorPos] + clipboardText + t.text[t.cursorPos:]
-		t.cursorPos += len(clipboardText)
+		t.setCursorPos(t.cursorPos + len(clipboardText))
 	}
 
 	t.clearSelection()
@@ -914,7 +969,7 @@ func (t *TextAreaSelection) handleBackspace() {
 	} else if t.cursorPos > 0 {
 		t.pushUndo()
 		t.text = t.text[:t.cursorPos-1] + t.text[t.cursorPos:]
-		t.cursorPos--
+		t.setCursorPos(t.cursorPos - 1)
 		t.clearSelection()
 	}
 }
@@ -937,7 +992,7 @@ func (t *TextAreaSelection) handleCtrlBackspace() {
 	} else {
 		newPos := t.moveToWordStart(t.cursorPos)
 		t.text = t.text[:newPos] + t.text[t.cursorPos:]
-		t.cursorPos = newPos
+		t.setCursorPos(newPos)
 		t.clearSelection()
 	}
 }
@@ -1015,7 +1070,7 @@ func (t *TextAreaSelection) handleSelectAll() {
 	t.pushUndo()
 	t.setSelectionStart(0)
 	t.setSelectionEnd(len(t.text))
-	t.cursorPos = len(t.text)
+	t.setCursorPos(len(t.text))
 }
 
 func (t *TextAreaSelection) handleHome() {
@@ -1026,7 +1081,7 @@ func (t *TextAreaSelection) handleHome() {
 		t.updateSelection(newPos)
 	} else {
 		t.clearSelection()
-		t.cursorPos = newPos
+		t.setCursorPos(newPos)
 	}
 }
 
@@ -1042,7 +1097,7 @@ func (t *TextAreaSelection) handleEnd() {
 		t.updateSelection(newPos)
 	} else {
 		t.clearSelection()
-		t.cursorPos = newPos
+		t.setCursorPos(newPos)
 	}
 }
 
@@ -1053,7 +1108,7 @@ func (t *TextAreaSelection) handleCtrlLeftArrow() {
 		t.updateSelection(newPos)
 	} else {
 		t.clearSelection()
-		t.cursorPos = newPos
+		t.setCursorPos(newPos)
 	}
 }
 
@@ -1064,7 +1119,7 @@ func (t *TextAreaSelection) handleCtrlRightArrow() {
 		t.updateSelection(newPos)
 	} else {
 		t.clearSelection()
-		t.cursorPos = newPos
+		t.setCursorPos(newPos)
 	}
 }
 
@@ -1080,7 +1135,7 @@ func (t *TextAreaSelection) handleUpArrow() {
 			targetCol = len(lines[targetLine])
 		}
 		newPos := t.getCharPosFromLineAndCol(targetLine, targetCol)
-		t.cursorPos = newPos
+		t.setCursorPos(newPos)
 		t.clearSelection()
 	}
 }
@@ -1096,7 +1151,7 @@ func (t *TextAreaSelection) handleDownArrow() {
 			targetCol = len(lines[targetLine])
 		}
 		newPos := t.getCharPosFromLineAndCol(targetLine, targetCol)
-		t.cursorPos = newPos
+		t.setCursorPos(newPos)
 		t.clearSelection()
 	}
 }
@@ -1188,7 +1243,7 @@ func (t *TextAreaSelection) handleUndo() {
 
 		// Restore the last state
 		t.text = lastState.Text
-		t.cursorPos = lastState.CursorPos
+		t.setCursorPos(lastState.CursorPos)
 		t.clearSelection()
 		t.counter = 0 // Reset blink counter
 	}
@@ -1209,7 +1264,7 @@ func (t *TextAreaSelection) handleRedo() {
 
 		// Restore the last state
 		t.text = lastState.Text
-		t.cursorPos = lastState.CursorPos
+		t.setCursorPos(lastState.CursorPos)
 		t.clearSelection()
 		t.counter = 0 // Reset blink counter
 	}
