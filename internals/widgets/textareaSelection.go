@@ -193,10 +193,18 @@ func (t *TextAreaSelection) handleKeyboardInput() error {
 			t.handleCtrlDelete()
 		}
 		if inpututil.IsKeyJustPressed(ebiten.KeyHome) {
-			t.handleCtrlHome()
+			if t.isShiftPressed() {
+				t.handleCtrlShiftHome()
+			} else {
+				t.handleCtrlHome()
+			}
 		}
 		if inpututil.IsKeyJustPressed(ebiten.KeyEnd) {
-			t.handleCtrlEnd()
+			if t.isShiftPressed() {
+				t.handleCtrlShiftEnd()
+			} else {
+				t.handleCtrlEnd()
+			}
 		}
 	} else {
 		// Handle Page Up and Page Down keys
@@ -286,6 +294,32 @@ func (t *TextAreaSelection) handleKeyPress(key ebiten.Key) {
 		} else {
 			t.handleDownArrow()
 		}
+	}
+}
+
+func (t *TextAreaSelection) handleCtrlShiftHome() {
+	t.pushUndo()
+	// Select from cursor to beginning of text
+	t.setSelectionStart(0)
+	t.setSelectionEnd(t.selectionStart) // Use the existing selection start as the end
+	t.setCursorPos(0)
+
+	// Scroll to the top of the textarea
+	t.scrollOffset = 0
+}
+
+func (t *TextAreaSelection) handleCtrlShiftEnd() {
+	t.pushUndo()
+	// Select from cursor to end of text
+	// TODO: not necessary, but just for clarity of the logic
+	t.setSelectionStart(t.selectionStart) // Use the existing selection start as the start
+	t.setSelectionEnd(len(t.text))
+	t.setCursorPos(len(t.text))
+
+	// Scroll to the bottom of the textarea
+	maxScrollOffset := len(strings.Split(t.text, "\n")) - t.maxLines
+	if maxScrollOffset > 0 {
+		t.scrollOffset = maxScrollOffset
 	}
 }
 

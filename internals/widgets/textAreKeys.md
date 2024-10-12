@@ -42,6 +42,10 @@ Below is an exhaustive list of typical key interactions with a `<textarea>` elem
    - **Shift + Home**: Select from the current cursor position to the beginning of the line.
    - **Shift + End**: Select from the current cursor position to the end of the line.
 
+3. **Ctrl + Shift + Home/End**:
+   - **Ctrl + Shift + Home**: Select all text from the cursor to the beginning of the text.
+   - **Ctrl + Shift + End**: Select all text from the cursor to the end of the text.
+
 ### Clipboard Operations
 
 1. **Ctrl + C** (or Command + C on macOS): Copy the selected text to the clipboard.
@@ -77,9 +81,7 @@ done
    - **Ctrl + Shift + Up Arrow**: Select from the current cursor position to the beginning of the paragraph.
    - **Ctrl + Shift + Down Arrow**: Select from the current cursor position to the end of the paragraph.
 
-2. **Ctrl + Shift + Home/End**:
-   - **Ctrl + Shift + Home**: Select all text from the cursor to the beginning of the text.
-   - **Ctrl + Shift + End**: Select all text from the cursor to the end of the text.
+
 
 ### Other Useful Keys
 
