@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"fmt"
 	"image/color"
 	"strings"
 
@@ -11,46 +12,9 @@ import (
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
 
-	"golang.design/x/clipboard" // Updated clipboard package
+	"golang.design/x/clipboard"
 )
 
-/*
-TODO:
-
-	Ctrl+A - Select All									- works
-	Ctrl+C - Copy										- works
-	Ctrl+X - Cut										- works
-	Ctrl+V - Paste										- works
-	Ctrl+Z - Undo										- works
-	Ctrl+Y - Redo										- works
-	Home - Move to beginning of line					- works
-	End - Move to end of line							- works
-	Ctrl+Left - Move to beginning of word 				- works partially.
-																it is jumping to the beginning of the previous word
-																and not the beginning of the current word as expected
-	Ctrl+Right - Move to end of word 					- works partially.
-																it is jumping to the end of the previous word
-																and not the end of the current word as expected
-	Ctrl+Backspace - Delete to beginning of word		- works
-	Ctrl+Delete - Delete to end of word					- works
-	Up - Move up one line								- works
-	Down - Move down one line							- works
-	Left - Move left one character						- works
-	Right - Move right one character					- works
-	Home - Move to beginning of line					- works
-	End - Move to end of line							- works
-	Shift+Up - Select up one line						- Does not work
-																- It is not as expected: selecting text from the current x cursor position to the x cursor position in the above line
-																- it is wrongly selecting the text of the 3º line above from the end of the line to the beginning of the line
-	Shift+Down - Select down one line					- Does not work
-																- It is not as expected: to select from the current x cursor position to the same x position of the line imediatly bellow
-																- But it is instead wrongly selecting the text from the current x cursor position (ok)
-																- to the beginning of the 3º line bellow
-	Shift+Home - Select to beginning of line			- Does not work
-																- it is putting the cursor to the beginning of the whole line and loosing the selection
-																- instead of selecting the text from the current cursor position to the beginning of the current line
-	Shift+End - Select to end of line					- work
-*/
 const (
 	// keyRepeatInitialDelay is the number of frames to wait before repeating the key action
 	keyRepeatInitialDelay = 30 // Approximately 0.5 seconds at 60 TPS
@@ -134,6 +98,8 @@ func (t *TextAreaSelection) updateSelectionWithShiftKey(offset int) {
 	} else {
 		t.clearSelection()
 	}
+
+	fmt.Printf("Selection Updated: Start=%d, End=%d, CursorPos=%d\n", t.selectionStart, t.selectionEnd, t.cursorPos)
 }
 
 func NewTextAreaSelection(x, y, w, h, maxLines int) *TextAreaSelection {
@@ -143,16 +109,17 @@ func NewTextAreaSelection(x, y, w, h, maxLines int) *TextAreaSelection {
 	}
 
 	return &TextAreaSelection{
-		x:               x,
-		y:               y,
-		w:               w,
-		h:               h,
-		maxLines:        maxLines,
-		cursorBlinkRate: 30,
-		tabWidth:        4,
-		lineHeight:      20,
-		font:            basicfont.Face7x13,
-		heldKeys:        make(map[ebiten.Key]*KeyState),
+		x:                x,
+		y:                y,
+		w:                w,
+		h:                h,
+		maxLines:         maxLines,
+		cursorBlinkRate:  30,
+		tabWidth:         4,
+		lineHeight:       20,
+		font:             basicfont.Face7x13,
+		heldKeys:         make(map[ebiten.Key]*KeyState),
+		desiredCursorCol: -1,
 	}
 }
 
@@ -287,10 +254,10 @@ func (t *TextAreaSelection) handleKeyboardInput() error {
 		ebiten.KeyEnter,
 		ebiten.KeyLeft,
 		ebiten.KeyRight,
-		ebiten.KeyHome, // Added for Home key repeat
-		ebiten.KeyEnd,  // Added for End key repeat
-		ebiten.KeyUp,   // Added for Shift+Up
-		ebiten.KeyDown, // Added for Shift+Down
+		ebiten.KeyHome,
+		ebiten.KeyEnd,
+		ebiten.KeyUp,
+		ebiten.KeyDown,
 	}
 
 	// Handle repeat keys
@@ -304,103 +271,18 @@ func (t *TextAreaSelection) handleKeyboardInput() error {
 					FramesUntilNext: keyRepeatInitialDelay,
 				}
 			}
-
 			keyState := t.heldKeys[key]
-
 			if keyState.InitialPress {
 				// Handle the initial key press
-				switch key {
-				case ebiten.KeyBackspace:
-					t.handleBackspace()
-				case ebiten.KeyDelete:
-					t.handleDelete()
-				case ebiten.KeyTab:
-					t.handleTab()
-				case ebiten.KeyEnter:
-					t.handleEnter()
-				case ebiten.KeyLeft:
-					if t.isCtrlPressed() {
-						t.handleCtrlLeftArrow()
-					} else {
-						t.handleLeftArrow()
-					}
-				case ebiten.KeyRight:
-					if t.isCtrlPressed() {
-						t.handleCtrlRightArrow()
-					} else {
-						t.handleRightArrow()
-					}
-				case ebiten.KeyHome:
-					if t.isShiftPressed() {
-						t.handleShiftHome()
-					} else {
-						t.handleHome()
-					}
-				case ebiten.KeyEnd:
-					if t.isShiftPressed() {
-						t.handleShiftEnd()
-					} else {
-						t.handleEnd()
-					}
-				case ebiten.KeyUp:
-					if t.isShiftPressed() {
-						t.handleShiftUp()
-					}
-				case ebiten.KeyDown:
-					if t.isShiftPressed() {
-						t.handleShiftDown()
-					}
-				}
+				t.handleKeyPress(key)
 				keyState.InitialPress = false
 			} else {
 				// Increment frames held
 				keyState.FramesHeld++
-
 				// Check if it's time to repeat the action
 				if keyState.FramesHeld >= keyState.FramesUntilNext {
 					// Handle the repeated action
-					switch key {
-					case ebiten.KeyBackspace:
-						t.handleBackspace()
-					case ebiten.KeyDelete:
-						t.handleDelete()
-					case ebiten.KeyTab:
-						t.handleTab()
-					case ebiten.KeyEnter:
-						t.handleEnter()
-					case ebiten.KeyLeft:
-						if t.isCtrlPressed() {
-							t.handleCtrlLeftArrow()
-						} else {
-							t.handleLeftArrow()
-						}
-					case ebiten.KeyRight:
-						if t.isCtrlPressed() {
-							t.handleCtrlRightArrow()
-						} else {
-							t.handleRightArrow()
-						}
-					case ebiten.KeyHome:
-						if t.isShiftPressed() {
-							t.handleShiftHome()
-						} else {
-							t.handleHome()
-						}
-					case ebiten.KeyEnd:
-						if t.isShiftPressed() {
-							t.handleShiftEnd()
-						} else {
-							t.handleEnd()
-						}
-					case ebiten.KeyUp:
-						if t.isShiftPressed() {
-							t.handleShiftUp()
-						}
-					case ebiten.KeyDown:
-						if t.isShiftPressed() {
-							t.handleShiftDown()
-						}
-					}
+					t.handleKeyPress(key)
 					// Reset frames until next action
 					keyState.FramesUntilNext = keyRepeatInterval
 				}
@@ -421,22 +303,17 @@ func (t *TextAreaSelection) handleKeyboardInput() error {
 	}
 
 	// ------------------
+	// Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+Z, Ctrl+Y, Ctrl+A
 	if t.isCtrlPressed() {
-		// Copy (Ctrl+C)
 		if inpututil.IsKeyJustPressed(ebiten.KeyC) {
 			t.handleCopySelection()
 		}
-
-		// Cut (Ctrl+X)
 		if inpututil.IsKeyJustPressed(ebiten.KeyX) {
 			t.handleCutSelection()
 		}
-
-		// Paste (Ctrl+V)
 		if inpututil.IsKeyJustPressed(ebiten.KeyV) {
 			t.handlePasteClipboard()
 		}
-
 		if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
 			t.handleUndo()
 		}
@@ -446,61 +323,11 @@ func (t *TextAreaSelection) handleKeyboardInput() error {
 		if inpututil.IsKeyJustPressed(ebiten.KeyA) {
 			t.handleSelectAll()
 		}
-
-		if inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
-			t.handleCtrlLeftArrow()
-		}
-		if inpututil.IsKeyJustPressed(ebiten.KeyRight) {
-			t.handleCtrlRightArrow()
-		}
-
 		if inpututil.IsKeyJustPressed(ebiten.KeyBackspace) {
 			t.handleCtrlBackspace()
 		}
 		if inpututil.IsKeyJustPressed(ebiten.KeyDelete) {
 			t.handleCtrlDelete()
-		}
-	}
-
-	if ebiten.IsKeyPressed(ebiten.KeyShift) {
-		if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
-			t.handleShiftUp()
-		}
-		if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
-			t.handleShiftDown()
-		}
-
-		if inpututil.IsKeyJustPressed(ebiten.KeyHome) {
-			t.handleShiftHome()
-		}
-		if inpututil.IsKeyJustPressed(ebiten.KeyEnd) {
-			t.handleShiftEnd()
-		}
-	}
-
-	// ------------------
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyHome) {
-		t.handleHome()
-	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyEnd) {
-		t.handleEnd()
-	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
-		if ebiten.IsKeyPressed(ebiten.KeyShift) {
-			t.handleShiftUp()
-		} else {
-			t.handleUpArrow()
-		}
-	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
-		if ebiten.IsKeyPressed(ebiten.KeyShift) {
-			t.handleShiftDown()
-		} else {
-			t.handleDownArrow()
 		}
 	}
 
@@ -510,6 +337,86 @@ func (t *TextAreaSelection) handleKeyboardInput() error {
 
 	t.counter++
 	return nil
+}
+
+// getSelectionBoundsStart returns the start position of the current selection
+func (t *TextAreaSelection) getSelectionBoundsStart() int {
+	minPos, _ := t.getSelectionBounds()
+	return minPos
+}
+
+// getSelectionBoundsEnd returns the end position of the current selection
+func (t *TextAreaSelection) getSelectionBoundsEnd() int {
+	_, maxPos := t.getSelectionBounds()
+	return maxPos
+}
+
+func (t *TextAreaSelection) handleKeyPress(key ebiten.Key) {
+	// If there is an active selection and Shift is not pressed,
+	// move the cursor to the appropriate end of the selection and clear the selection.
+	if t.selectionStart != t.selectionEnd && !t.isShiftPressed() {
+		switch key {
+		case ebiten.KeyLeft, ebiten.KeyUp, ebiten.KeyHome:
+			// Move cursor to the start of the selection
+			t.cursorPos = t.getSelectionBoundsStart()
+		case ebiten.KeyRight, ebiten.KeyDown, ebiten.KeyEnd:
+			// Move cursor to the end of the selection
+			t.cursorPos = t.getSelectionBoundsEnd()
+		case ebiten.KeyBackspace, ebiten.KeyDelete:
+			t.handleDelete()
+		}
+
+		// Clear the selection
+		t.clearSelection()
+		return // Exit early to prevent further processing
+	}
+
+	switch key {
+	case ebiten.KeyBackspace:
+		t.handleBackspace()
+	case ebiten.KeyDelete:
+		t.handleDelete()
+	case ebiten.KeyTab:
+		t.handleTab()
+	case ebiten.KeyEnter:
+		t.handleEnter()
+	case ebiten.KeyLeft:
+		if t.isCtrlPressed() {
+			t.handleCtrlLeftArrow()
+		} else {
+			t.handleLeftArrow()
+		}
+	case ebiten.KeyRight:
+		if t.isCtrlPressed() {
+			t.handleCtrlRightArrow()
+		} else {
+			t.handleRightArrow()
+		}
+	case ebiten.KeyHome:
+		if t.isShiftPressed() {
+			t.handleShiftHome()
+		} else {
+			t.handleHome()
+		}
+	case ebiten.KeyEnd:
+		if t.isShiftPressed() {
+			t.handleShiftEnd()
+		} else {
+			t.handleEnd()
+		}
+	case ebiten.KeyUp:
+		if t.isShiftPressed() {
+			t.handleShiftUp()
+		} else {
+			t.handleUpArrow()
+		}
+	case ebiten.KeyDown:
+		if t.isShiftPressed() {
+			t.handleShiftDown()
+		} else {
+			t.handleDownArrow()
+		}
+	}
 }
 
 func clamp(value, min, max int) int {
@@ -549,6 +456,7 @@ func (t *TextAreaSelection) indentSelection() {
 func (t *TextAreaSelection) clearSelection() {
 	t.selectionStart = t.cursorPos
 	t.selectionEnd = t.cursorPos
+	fmt.Printf("Selection Cleared: Start=%d, End=%d, CursorPos=%d\n", t.selectionStart, t.selectionEnd, t.cursorPos)
 }
 
 func (t *TextAreaSelection) getCharPosFromLineAndCol(line, col int) int {
@@ -695,11 +603,11 @@ func (t *TextAreaSelection) isShiftPressed() bool {
 }
 
 func (t *TextAreaSelection) updateSelection(newPos int) {
-	if t.selectionStart > t.selectionEnd {
+	/* if t.selectionStart > t.selectionEnd {
 		t.selectionStart = newPos
 	} else {
-		t.selectionEnd = newPos
-	}
+	} */
+	t.selectionEnd = newPos
 	t.cursorPos = newPos
 }
 
@@ -720,8 +628,7 @@ func (t *TextAreaSelection) handleCopySelection() {
 	// Write to clipboard using golang-design/clipboard
 	err := clipboard.Write(clipboard.FmtText, []byte(selectedText))
 	if err != nil {
-		// Handle the error appropriately (e.g., log it)
-		// For simplicity, we'll ignore it here
+		fmt.Println("handleCopySelection - Error writing to clipboard:", err)
 	}
 }
 
@@ -739,8 +646,7 @@ func (t *TextAreaSelection) handleCutSelection() {
 	// Write to clipboard using golang-design/clipboard
 	err := clipboard.Write(clipboard.FmtText, []byte(selectedText))
 	if err != nil {
-		// Handle the error appropriately (e.g., log it)
-		// For simplicity, we'll ignore it here
+		fmt.Println("handleCutSelection - Error writing to clipboard:", err)
 	}
 
 	// Remove the selected text from the text area
@@ -770,29 +676,52 @@ func (t *TextAreaSelection) handlePasteClipboard() {
 	t.clearSelection()
 }
 
-// handleBackspace processes the Backspace key press
 func (t *TextAreaSelection) handleBackspace() {
-	t.pushUndo()
 	if t.selectionStart != t.selectionEnd {
-		// **Active Selection**: Delete the entire selection
+		t.pushUndo()
 		t.deleteSelection()
 	} else if t.cursorPos > 0 {
-		// **No Selection**: Delete character before cursor
+		t.pushUndo()
 		t.text = t.text[:t.cursorPos-1] + t.text[t.cursorPos:]
 		t.cursorPos--
 		t.clearSelection()
 	}
 }
 
-// handleDelete processes the Delete key press
 func (t *TextAreaSelection) handleDelete() {
-	t.pushUndo()
 	if t.selectionStart != t.selectionEnd {
-		// **Active Selection**: Delete the entire selection
+		t.pushUndo()
 		t.deleteSelection()
 	} else if t.cursorPos < len(t.text) {
-		// **No Selection**: Delete character after cursor
+		t.pushUndo()
 		t.text = t.text[:t.cursorPos] + t.text[t.cursorPos+1:]
+		t.clearSelection()
+	}
+}
+
+func (t *TextAreaSelection) handleCtrlBackspace() {
+	t.pushUndo()
+	if t.selectionStart != t.selectionEnd {
+		t.deleteSelection()
+	} else {
+		newPos := t.moveToWordStart(t.cursorPos)
+		t.text = t.text[:newPos] + t.text[t.cursorPos:]
+		t.cursorPos = newPos
+		t.clearSelection()
+	}
+}
+
+func (t *TextAreaSelection) handleCtrlDelete() {
+	t.pushUndo()
+	if t.selectionStart != t.selectionEnd {
+		t.deleteSelection()
+	} else {
+		newPos := t.moveToWordEnd(t.cursorPos)
+		// Prevent deleting the newline if cursor is at the end of a line
+		if newPos > t.cursorPos && t.text[newPos-1] == '\n' {
+			newPos--
+		}
+		t.text = t.text[:t.cursorPos] + t.text[newPos:]
 		t.clearSelection()
 	}
 }
@@ -908,33 +837,6 @@ func (t *TextAreaSelection) handleCtrlRightArrow() {
 	}
 }
 
-func (t *TextAreaSelection) handleCtrlBackspace() {
-	t.pushUndo()
-	if t.selectionStart != t.selectionEnd {
-		t.deleteSelection()
-	} else {
-		newPos := t.moveToWordStart(t.cursorPos)
-		t.text = t.text[:newPos] + t.text[t.cursorPos:]
-		t.cursorPos = newPos
-		t.clearSelection()
-	}
-}
-
-func (t *TextAreaSelection) handleCtrlDelete() {
-	t.pushUndo()
-	if t.selectionStart != t.selectionEnd {
-		t.deleteSelection()
-	} else {
-		newPos := t.moveToWordEnd(t.cursorPos)
-		// Prevent deleting the newline if cursor is at the end of a line
-		if newPos > t.cursorPos && t.text[newPos-1] == '\n' {
-			newPos--
-		}
-		t.text = t.text[:t.cursorPos] + t.text[newPos:]
-		t.clearSelection()
-	}
-}
-
 // ---------------------
 func (t *TextAreaSelection) handleUpArrow() {
 	t.pushUndo()
@@ -985,6 +887,7 @@ func (t *TextAreaSelection) handleShiftUp() {
 		}
 		newPos := t.getCharPosFromLineAndCol(targetLine, desiredCol)
 		t.updateSelection(newPos)
+		t.desiredCursorCol = -1
 	}
 }
 
@@ -1004,6 +907,7 @@ func (t *TextAreaSelection) handleShiftDown() {
 		}
 		newPos := t.getCharPosFromLineAndCol(targetLine, desiredCol)
 		t.updateSelection(newPos)
+		t.desiredCursorCol = -1
 	}
 }
 
