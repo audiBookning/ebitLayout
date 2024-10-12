@@ -217,6 +217,106 @@ func (t *TextAreaSelection) handleKeyboardInput() error {
 	return nil
 }
 
+func (t *TextAreaSelection) handleKeyPress(key ebiten.Key) {
+	// If there is an active selection and Shift is not pressed,
+	// move the cursor to the appropriate end of the selection and clear the selection.
+	if t.selectionStart != t.selectionEnd && !t.isShiftPressed() {
+		switch key {
+		case ebiten.KeyLeft, ebiten.KeyUp, ebiten.KeyHome:
+			// Move cursor to the start of the selection
+			t.setCursorPos(t.getSelectionBoundsStart())
+		case ebiten.KeyRight, ebiten.KeyDown, ebiten.KeyEnd:
+			// Move cursor to the end of the selection
+			t.setCursorPos(t.getSelectionBoundsEnd())
+		case ebiten.KeyBackspace, ebiten.KeyDelete:
+			t.handleDelete()
+		}
+
+		// Clear the selection
+		t.clearSelection()
+		return // Exit early to prevent further processing
+	}
+
+	switch key {
+	case ebiten.KeyBackspace:
+		t.handleBackspace()
+	case ebiten.KeyDelete:
+		t.handleDelete()
+	case ebiten.KeyTab:
+		t.handleTab()
+	case ebiten.KeyEnter:
+		t.handleEnter()
+	case ebiten.KeyLeft:
+		if t.isCtrlPressed() {
+			t.handleCtrlLeftArrow()
+		} else {
+			t.handleLeftArrow()
+		}
+	case ebiten.KeyRight:
+		if t.isCtrlPressed() {
+			t.handleCtrlRightArrow()
+		} else {
+			t.handleRightArrow()
+		}
+	case ebiten.KeyHome:
+		if t.isShiftPressed() {
+			t.handleShiftHome()
+		} else {
+			t.handleHome()
+		}
+	case ebiten.KeyEnd:
+		if t.isShiftPressed() {
+			t.handleShiftEnd()
+		} else {
+			t.handleEnd()
+		}
+	case ebiten.KeyUp:
+		if t.isCtrlPressed() {
+			t.handleCtrlUpArrow()
+		} else if t.isShiftPressed() {
+			t.handleShiftUp()
+		} else {
+			t.handleUpArrow()
+		}
+	case ebiten.KeyDown:
+		if t.isCtrlPressed() {
+			t.handleCtrlDownArrow()
+		} else if t.isShiftPressed() {
+			t.handleShiftDown()
+		} else {
+			t.handleDownArrow()
+		}
+	}
+}
+
+func (t *TextAreaSelection) handleCtrlUpArrow() {
+	t.pushUndo()
+	currentLine, _ := t.getCursorLineAndColForPos(t.cursorPos)
+	newPos := t.getCharPosFromLineAndCol(currentLine, 0)
+	if t.isShiftPressed() {
+		t.updateSelection(newPos)
+	} else {
+		t.clearSelection()
+		t.setCursorPos(newPos)
+	}
+}
+
+func (t *TextAreaSelection) handleCtrlDownArrow() {
+	t.pushUndo()
+	currentLine, _ := t.getCursorLineAndColForPos(t.cursorPos)
+	lines := strings.Split(t.text, "\n")
+
+	if currentLine < len(lines) {
+		newPos := t.getCharPosFromLineAndCol(currentLine, len(lines[currentLine]))
+		if t.isShiftPressed() {
+			t.updateSelection(newPos)
+		} else {
+			t.clearSelection()
+			t.setCursorPos(newPos)
+		}
+	}
+}
+
 func (t *TextAreaSelection) handleCtrlHome() {
 	t.pushUndo()
 	// Move cursor to the very beginning of the text
@@ -670,74 +770,6 @@ func (t *TextAreaSelection) getSelectionBoundsStart() int {
 func (t *TextAreaSelection) getSelectionBoundsEnd() int {
 	_, maxPos := t.getSelectionBounds()
 	return maxPos
-}
-
-func (t *TextAreaSelection) handleKeyPress(key ebiten.Key) {
-	// If there is an active selection and Shift is not pressed,
-	// move the cursor to the appropriate end of the selection and clear the selection.
-	if t.selectionStart != t.selectionEnd && !t.isShiftPressed() {
-		switch key {
-		case ebiten.KeyLeft, ebiten.KeyUp, ebiten.KeyHome:
-			// Move cursor to the start of the selection
-			t.setCursorPos(t.getSelectionBoundsStart())
-		case ebiten.KeyRight, ebiten.KeyDown, ebiten.KeyEnd:
-			// Move cursor to the end of the selection
-			t.setCursorPos(t.getSelectionBoundsEnd())
-		case ebiten.KeyBackspace, ebiten.KeyDelete:
-			t.handleDelete()
-		}
-
-		// Clear the selection
-		t.clearSelection()
-		return // Exit early to prevent further processing
-	}
-
-	switch key {
-	case ebiten.KeyBackspace:
-		t.handleBackspace()
-	case ebiten.KeyDelete:
-		t.handleDelete()
-	case ebiten.KeyTab:
-		t.handleTab()
-	case ebiten.KeyEnter:
-		t.handleEnter()
-	case ebiten.KeyLeft:
-		if t.isCtrlPressed() {
-			t.handleCtrlLeftArrow()
-		} else {
-			t.handleLeftArrow()
-		}
-	case ebiten.KeyRight:
-		if t.isCtrlPressed() {
-			t.handleCtrlRightArrow()
-		} else {
-			t.handleRightArrow()
-		}
-	case ebiten.KeyHome:
-		if t.isShiftPressed() {
-			t.handleShiftHome()
-		} else {
-			t.handleHome()
-		}
-	case ebiten.KeyEnd:
-		if t.isShiftPressed() {
-			t.handleShiftEnd()
-		} else {
-			t.handleEnd()
-		}
-	case ebiten.KeyUp:
-		if t.isShiftPressed() {
-			t.handleShiftUp()
-		} else {
-			t.handleUpArrow()
-		}
-	case ebiten.KeyDown:
-		if t.isShiftPressed() {
-			t.handleShiftDown()
-		} else {
-			t.handleDownArrow()
-		}
-	}
 }
 
 func (t *TextAreaSelection) indentSelection() {
