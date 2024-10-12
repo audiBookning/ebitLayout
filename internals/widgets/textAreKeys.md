@@ -18,6 +18,14 @@ Below is an exhaustive list of typical key interactions with a `<textarea>` elem
    - **Ctrl + Left Arrow**: Move the cursor one word to the left.
    - **Ctrl + Right Arrow**: Move the cursor one word to the right.
 
+4. **Page Up/Page Down**:
+   - **Page Up**: Scroll up the content by one visible page without moving the cursor.
+   - **Page Down**: Scroll down the content by one visible page without moving the cursor.
+
+5. **Ctrl + Home/End**:
+- **Ctrl + Home**: Move the cursor to the very beginning of the text (top of the textarea).
+- **Ctrl + End**: Move the cursor to the very end of the text (bottom of the textarea).
+
 ### Selection Keys
 
 1. **Shift + Arrow Keys**:
@@ -55,17 +63,13 @@ Below is an exhaustive list of typical key interactions with a `<textarea>` elem
 
 ### Navigation Keys
 
-1. **Page Up/Page Down**:
-   - **Page Up**: Scroll up the content by one visible page without moving the cursor.
-   - **Page Down**: Scroll down the content by one visible page without moving the cursor.
+... 
 
 2. **Ctrl + Arrow Keys** (or Command + Arrow Keys on macOS):
    - **Ctrl + Up Arrow**: Move the cursor to the beginning of the current paragraph.
    - **Ctrl + Down Arrow**: Move the cursor to the end of the current paragraph.
 
-3. **Ctrl + Home/End**:
-   - **Ctrl + Home**: Move the cursor to the very beginning of the text (top of the textarea).
-   - **Ctrl + End**: Move the cursor to the very end of the text (bottom of the textarea).
+
 
 ### Selection Keys
 

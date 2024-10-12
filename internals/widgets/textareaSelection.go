@@ -91,8 +91,6 @@ func (t *TextAreaSelection) handlePageDown() {
 	// Update the scroll offset
 	t.scrollOffset = newScrollOffset
 
-	// Update the cursor position to the first visible line
-	//t.setCursorPos(t.getCharPosFromLineAndCol(t.scrollOffset, 0))
 }
 
 func (t *TextAreaSelection) handlePageUp() {
@@ -106,8 +104,6 @@ func (t *TextAreaSelection) handlePageUp() {
 	// Update the scroll offset
 	t.scrollOffset = newScrollOffset
 
-	// Update the cursor position to the first visible line
-	//t.setCursorPos(t.getCharPosFromLineAndCol(t.scrollOffset, 0))
 }
 
 func (t *TextAreaSelection) handleKeyboardInput() error {
@@ -169,7 +165,8 @@ func (t *TextAreaSelection) handleKeyboardInput() error {
 	}
 
 	// ------------------
-	// Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+Z, Ctrl+Y, Ctrl+A
+	// Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+Z, Ctrl+Y, Ctrl+A,
+	// Ctrl+Home, Ctrl+End, Ctrl+Backspace, Ctrl+Delete
 	if t.isCtrlPressed() {
 		if inpututil.IsKeyJustPressed(ebiten.KeyC) {
 			t.handleCopySelection()
@@ -195,15 +192,21 @@ func (t *TextAreaSelection) handleKeyboardInput() error {
 		if inpututil.IsKeyJustPressed(ebiten.KeyDelete) {
 			t.handleCtrlDelete()
 		}
-	}
-
-	// Handle Page Up and Page Down keys
-	if inpututil.IsKeyJustPressed(ebiten.KeyPageUp) {
-		t.pushUndo()
-		t.handlePageUp()
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyPageDown) {
-		t.pushUndo()
-		t.handlePageDown()
+		if inpututil.IsKeyJustPressed(ebiten.KeyHome) {
+			t.handleCtrlHome()
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyEnd) {
+			t.handleCtrlEnd()
+		}
+	} else {
+		// Handle Page Up and Page Down keys
+		if inpututil.IsKeyJustPressed(ebiten.KeyPageUp) {
+			t.pushUndo()
+			t.handlePageUp()
+		} else if inpututil.IsKeyJustPressed(ebiten.KeyPageDown) {
+			t.pushUndo()
+			t.handlePageDown()
+		}
 	}
 
 	// ------------------
@@ -214,14 +217,37 @@ func (t *TextAreaSelection) handleKeyboardInput() error {
 	return nil
 }
 
-func (t *TextAreaSelection) handleSrollToEnd() {
-	// Scroll down by one page without moving the cursor
-	t.scrollOffset = clamp(t.scrollOffset+t.maxLines, 0, len(strings.Split(t.text, "\n"))-t.maxLines)
+func (t *TextAreaSelection) handleCtrlHome() {
+	t.pushUndo()
+	// Move cursor to the very beginning of the text
+	t.setCursorPos(0)
+
+	if t.isShiftPressed() {
+		t.setSelectionEnd(0)
+	} else {
+		t.clearSelection()
+	}
+
+	// Scroll to the top of the textarea
+	t.scrollOffset = 0
 }
 
-func (t *TextAreaSelection) handleScrollToStart() {
-	// Scroll up by one page without moving the cursor
-	t.scrollOffset = clamp(t.scrollOffset-t.maxLines, 0, len(strings.Split(t.text, "\n"))-t.maxLines)
+func (t *TextAreaSelection) handleCtrlEnd() {
+	t.pushUndo()
+	// Move cursor to the very end of the text
+	t.setCursorPos(len(t.text))
+
+	if t.isShiftPressed() {
+		t.setSelectionEnd(len(t.text))
+	} else {
+		t.clearSelection()
+	}
+
+	// Scroll to the bottom of the textarea
+	maxScrollOffset := len(strings.Split(t.text, "\n")) - t.maxLines
+	if maxScrollOffset > 0 {
+		t.scrollOffset = maxScrollOffset
+	}
 }
 
 func (t *TextAreaSelection) setSelectionStart(pos int) {
