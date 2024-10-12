@@ -36,23 +36,37 @@ type TextState struct {
 }
 
 type TextAreaSelection struct {
-	text             string
-	hasFocus         bool
-	cursorPos        int
-	counter          int
-	selectionStart   int
-	selectionEnd     int
-	isSelecting      bool
-	x, y, w, h       int
-	maxLines         int
-	cursorBlinkRate  int
-	tabWidth         int
-	lineHeight       int
-	font             font.Face
-	heldKeys         map[ebiten.Key]*KeyState
-	undoStack        []TextState
-	redoStack        []TextState
-	desiredCursorCol int
+	text                 string
+	hasFocus             bool
+	cursorPos            int
+	counter              int
+	selectionStart       int
+	selectionEnd         int
+	isSelecting          bool
+	x, y, w, h           int
+	maxLines             int
+	cursorBlinkRate      int
+	tabWidth             int
+	lineHeight           int
+	font                 font.Face
+	heldKeys             map[ebiten.Key]*KeyState
+	undoStack            []TextState
+	redoStack            []TextState
+	desiredCursorCol     int
+	lastClickTime        int  // Frame count of the last click
+	clickCount           int  // Number of consecutive clicks
+	doubleClickThreshold int  // Threshold frames to consider as a double-click
+	doubleClickHandled   bool // Indicates if a double-click has just been handled
+}
+
+func (t *TextAreaSelection) setSelectionStart(pos int) {
+	t.selectionStart = pos
+	fmt.Printf("Selection Start Updated: %d\n", pos)
+}
+
+func (t *TextAreaSelection) setSelectionEnd(pos int) {
+	t.selectionEnd = pos
+	fmt.Printf("Selection End Updated: %d\n", pos)
 }
 
 func (t *TextAreaSelection) updateSelectionWithShiftKey(offset int) {
@@ -69,27 +83,27 @@ func (t *TextAreaSelection) updateSelectionWithShiftKey(offset int) {
 				if newCursorPos > t.selectionEnd {
 					t.selectionEnd = newCursorPos
 				} else {
-					t.selectionStart = newCursorPos
+					t.setSelectionStart(newCursorPos)
 				}
 			} else {
 				if newCursorPos < t.selectionStart {
-					t.selectionStart = newCursorPos
+					t.setSelectionStart(newCursorPos)
 				} else {
-					t.selectionEnd = newCursorPos
+					t.setSelectionEnd(newCursorPos)
 				}
 			}
 		} else { // Moving right
 			if newCursorPos > t.cursorPos {
 				if newCursorPos > t.selectionEnd {
-					t.selectionEnd = newCursorPos
+					t.setSelectionEnd(newCursorPos)
 				} else {
-					t.selectionStart = newCursorPos
+					t.setSelectionStart(newCursorPos)
 				}
 			} else {
 				if newCursorPos < t.selectionStart {
-					t.selectionStart = newCursorPos
+					t.setSelectionStart(newCursorPos)
 				} else {
-					t.selectionEnd = newCursorPos
+					t.setSelectionEnd(newCursorPos)
 				}
 			}
 		}
@@ -109,17 +123,21 @@ func NewTextAreaSelection(x, y, w, h, maxLines int) *TextAreaSelection {
 	}
 
 	return &TextAreaSelection{
-		x:                x,
-		y:                y,
-		w:                w,
-		h:                h,
-		maxLines:         maxLines,
-		cursorBlinkRate:  30,
-		tabWidth:         4,
-		lineHeight:       20,
-		font:             basicfont.Face7x13,
-		heldKeys:         make(map[ebiten.Key]*KeyState),
-		desiredCursorCol: -1,
+		x:                    x,
+		y:                    y,
+		w:                    w,
+		h:                    h,
+		maxLines:             maxLines,
+		cursorBlinkRate:      30,
+		tabWidth:             4,
+		lineHeight:           20,
+		font:                 basicfont.Face7x13,
+		heldKeys:             make(map[ebiten.Key]*KeyState),
+		desiredCursorCol:     -1,
+		lastClickTime:        0,     // Frame count of the last click
+		clickCount:           0,     // Number of consecutive clicks
+		doubleClickThreshold: 30,    // Threshold frames to consider as a double-click
+		doubleClickHandled:   false, // Indicates if a double-click has just been handled
 	}
 }
 
@@ -193,17 +211,35 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 }
 
 func (t *TextAreaSelection) Update() error {
+
 	// Handle mouse button just pressed (mouse down)
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		currentFrame := t.counter
+		if currentFrame-t.lastClickTime <= t.doubleClickThreshold {
+			t.clickCount++
+		} else {
+			t.clickCount = 1
+			t.doubleClickHandled = false
+		}
+		t.lastClickTime = currentFrame
+
 		x, y := ebiten.CursorPosition()
 		if x >= t.x && x <= t.x+t.w && y >= t.y && y <= t.y+t.h {
-			t.hasFocus = true
-			charPos := t.getCharPosFromPosition(x, y)
-			t.cursorPos = charPos
-			t.selectionStart = charPos
-			t.selectionEnd = charPos
-			// Initially, no selection is active
-			t.isSelecting = false
+			if t.clickCount == 2 {
+				// Double-click detected
+				charPos := t.getCharPosFromPosition(x, y)
+				t.selectWordAt(charPos)
+				t.doubleClickHandled = true // Set the flag
+			} else {
+				// Single click
+				t.hasFocus = true
+				charPos := t.getCharPosFromPosition(x, y)
+				t.cursorPos = charPos
+				t.setSelectionStart(charPos)
+				t.setSelectionEnd(charPos)
+				// Initially, no selection is active
+				t.isSelecting = false
+			}
 		} else {
 			t.hasFocus = false
 			t.isSelecting = false
@@ -211,15 +247,15 @@ func (t *TextAreaSelection) Update() error {
 	}
 
 	// Handle mouse movement while the left button is pressed (dragging)
-	if t.hasFocus && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+	if t.hasFocus && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && !t.doubleClickHandled {
 		x, y := ebiten.CursorPosition()
 		charPos := t.getCharPosFromPosition(x, y)
 		if !t.isSelecting {
 			// Start selection on first movement after click
 			t.isSelecting = true
-			t.selectionStart = t.cursorPos
+			t.setSelectionStart(t.cursorPos)
 		}
-		t.selectionEnd = charPos
+		t.setSelectionEnd(charPos)
 		t.cursorPos = charPos
 	}
 
@@ -238,6 +274,68 @@ func (t *TextAreaSelection) Update() error {
 
 	t.counter++
 	return nil
+}
+
+func (t *TextAreaSelection) selectWordAt(pos int) {
+	if len(t.text) == 0 {
+		return
+	}
+
+	runes := []rune(t.text)
+	textLen := len(runes)
+
+	pos = clamp(pos, 0, textLen-1)
+
+	if isWordSeparator(runes[pos]) {
+		return
+	}
+
+	start := pos
+	for start > 0 && !isWordSeparator(runes[start-1]) {
+		start--
+	}
+
+	end := pos
+	for end < textLen && !isWordSeparator(runes[end]) {
+		end++
+	}
+
+	byteStart := runePosToBytePos(t.text, start)
+	byteEnd := runePosToBytePos(t.text, end)
+
+	t.setSelectionStart(byteStart)
+	t.setSelectionEnd(byteEnd)
+	t.cursorPos = byteEnd
+	t.isSelecting = false // Ensure no ongoing selection
+	completeWord := t.text[byteStart:byteEnd]
+	fmt.Printf("Word Selected=%s | pos=%d | Byte Start=%d, Byte End=%d \n", completeWord, pos, start, end)
+}
+
+// Helper function to determine if a character is a word separator
+func isWordSeparator(r rune) bool {
+	separators := " \n\t.,;:!?'\"()-"
+	return strings.ContainsRune(separators, r)
+}
+
+// Converts rune position to byte position in the original string
+func runePosToBytePos(s string, runePos int) int {
+	runes := []rune(s)
+	if runePos > len(runes) {
+		runePos = len(runes)
+	}
+	return len(string(runes[:runePos]))
+}
+
+// Helper function to clamp a value within a range
+
+func clamp(value, min, max int) int {
+	if value < min {
+		return min
+	}
+	if value > max {
+		return max
+	}
+	return value
 }
 
 func (t *TextAreaSelection) isCtrlPressed() bool {
@@ -419,16 +517,6 @@ func (t *TextAreaSelection) handleKeyPress(key ebiten.Key) {
 	}
 }
 
-func clamp(value, min, max int) int {
-	if value < min {
-		return min
-	}
-	if value > max {
-		return max
-	}
-	return value
-}
-
 func (t *TextAreaSelection) indentSelection() {
 	lines := strings.Split(t.text, "\n")
 	startLine, _ := t.getCursorLineAndColForPos(t.selectionStart)
@@ -454,8 +542,8 @@ func (t *TextAreaSelection) indentSelection() {
 }
 
 func (t *TextAreaSelection) clearSelection() {
-	t.selectionStart = t.cursorPos
-	t.selectionEnd = t.cursorPos
+	t.setSelectionStart(t.cursorPos)
+	t.setSelectionEnd(t.cursorPos)
 	fmt.Printf("Selection Cleared: Start=%d, End=%d, CursorPos=%d\n", t.selectionStart, t.selectionEnd, t.cursorPos)
 }
 
@@ -782,8 +870,8 @@ func (t *TextAreaSelection) handleRightArrow() {
 
 func (t *TextAreaSelection) handleSelectAll() {
 	t.pushUndo()
-	t.selectionStart = 0
-	t.selectionEnd = len(t.text)
+	t.setSelectionStart(0)
+	t.setSelectionEnd(len(t.text))
 	t.cursorPos = len(t.text)
 }
 
