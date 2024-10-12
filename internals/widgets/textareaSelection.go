@@ -57,6 +57,17 @@ type TextAreaSelection struct {
 	clickCount           int  // Number of consecutive clicks
 	doubleClickThreshold int  // Threshold frames to consider as a double-click
 	doubleClickHandled   bool // Indicates if a double-click has just been handled
+	scrollOffset         int
+
+	// Scrollbar Fields
+	scrollbarWidth  int     // Width of the scrollbar
+	scrollbarX      int     // X position of the scrollbar
+	scrollbarY      int     // Y position of the scrollbar
+	scrollbarHeight int     // Height of the scrollbar
+	scrollbarThumbY float64 // Y position of the scrollbar thumb
+	scrollbarThumbH float64 // Height of the scrollbar thumb
+	isDraggingThumb bool    // Indicates if the scrollbar thumb is being dragged
+	dragOffsetY     float64 // Offset between mouse position and thumb position during drag
 }
 
 func (t *TextAreaSelection) setSelectionStart(pos int) {
@@ -138,6 +149,7 @@ func NewTextAreaSelection(x, y, w, h, maxLines int) *TextAreaSelection {
 		clickCount:           0,     // Number of consecutive clicks
 		doubleClickThreshold: 30,    // Threshold frames to consider as a double-click
 		doubleClickHandled:   false, // Indicates if a double-click has just been handled
+		scrollOffset:         0,
 	}
 }
 
@@ -149,13 +161,15 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 	lines := strings.Split(t.text, "\n")
 	yOffset := t.y
 
+	// Apply scroll offset
+	startLine := t.scrollOffset
+	endLine := clamp(t.scrollOffset+t.maxLines, 0, len(lines))
+
 	// Retrieve normalized selection bounds
 	minPos, maxPos := t.getSelectionBounds()
 
-	for i, line := range lines {
-		if i >= t.maxLines {
-			break
-		}
+	for i := startLine; i < endLine; i++ {
+		line := lines[i]
 
 		lineText := line
 		lineX := t.x
@@ -163,20 +177,18 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 
 		// Draw selection if active and within this line
 		if minPos != maxPos {
-			startLine, startCol := t.getCursorLineAndColForPos(minPos)
-			endLine, endCol := t.getCursorLineAndColForPos(maxPos)
+			startLineSel, startCol := t.getCursorLineAndColForPos(minPos)
+			endLineSel, endCol := t.getCursorLineAndColForPos(maxPos)
 
-			if i < startLine || i > endLine {
-				// No selection in this line
-			} else {
+			if i >= startLineSel && i <= endLineSel {
 				// Determine selection bounds within the current line
 				var selStart, selEnd int
-				if i == startLine {
+				if i == startLineSel {
 					selStart = startCol
 				} else {
 					selStart = 0
 				}
-				if i == endLine {
+				if i == endLineSel {
 					selEnd = endCol
 				} else {
 					selEnd = len(line)
@@ -186,8 +198,21 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 				selectionXStart := t.x + t.textWidth(lineText[:selStart])
 				selectionXEnd := t.x + t.textWidth(lineText[:selEnd])
 
+				// Clamp the selection rectangle within textarea bounds
+				selectionXStart = clamp(selectionXStart, t.x, t.x+t.w)
+				selectionXEnd = clamp(selectionXEnd, t.x, t.x+t.w)
+
+				// Clamp the yOffset within textarea bounds
+				clampedYOffset := clamp(yOffset, t.y, t.y+t.h-t.lineHeight)
+
 				// Draw the selection rectangle
-				vector.DrawFilledRect(screen, float32(selectionXStart), float32(yOffset), float32(selectionXEnd-selectionXStart), float32(t.lineHeight), color.RGBA{0, 0, 255, 128}, true)
+				vector.DrawFilledRect(screen,
+					float32(selectionXStart),
+					float32(clampedYOffset),
+					float32(selectionXEnd-selectionXStart),
+					float32(t.lineHeight),
+					color.RGBA{0, 0, 255, 128},
+					true)
 			}
 		}
 
@@ -197,15 +222,38 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 		yOffset += t.lineHeight
 	}
 
+	// Draw the scrollbar if content exceeds maxLines
+	if len(lines) > t.maxLines {
+		t.drawScrollbar(screen, len(lines))
+	}
+
 	// Draw the cursor if the text area has focus
 	if t.hasFocus {
 		cursorLine, cursorCol := t.getCursorLineAndCol()
-		cursorX := t.x + t.textWidth(lines[cursorLine][:cursorCol])
-		cursorY := t.y + cursorLine*t.lineHeight
+		// Ensure cursorLine does not exceed the number of lines
+		if cursorLine >= len(lines) {
+			cursorLine = len(lines) - 1
+		}
+		if cursorLine < 0 {
+			cursorLine = 0
+		}
+		// Calculate cursorX and cursorY
+		cursorX := t.x + t.textWidth(strings.Split(t.text, "\n")[cursorLine][:cursorCol])
+		cursorY := t.y + (cursorLine-t.scrollOffset)*t.lineHeight
+
+		// Clamp the cursor position within textarea bounds
+		cursorX = clamp(cursorX, t.x, t.x+t.w)
+		cursorY = clamp(cursorY, t.y, t.y+t.h-t.lineHeight)
 
 		// Render the blinking cursor
 		if t.counter%(t.cursorBlinkRate*2) < t.cursorBlinkRate {
-			vector.DrawFilledRect(screen, float32(cursorX), float32(cursorY), 2, float32(t.lineHeight), color.RGBA{0, 0, 0, 255}, true)
+			vector.DrawFilledRect(screen,
+				float32(cursorX),
+				float32(cursorY),
+				2,
+				float32(t.lineHeight),
+				color.RGBA{0, 0, 0, 255},
+				true)
 		}
 	}
 }
@@ -240,28 +288,43 @@ func (t *TextAreaSelection) Update() error {
 				// Initially, no selection is active
 				t.isSelecting = false
 			}
+		} else if t.isOverScrollbar(x, y) {
+			// Clicked on scrollbar
+			t.isDraggingThumb = true
+			t.dragOffsetY = float64(y) - t.scrollbarThumbY
 		} else {
 			t.hasFocus = false
 			t.isSelecting = false
 		}
 	}
 
-	// Handle mouse movement while the left button is pressed (dragging)
-	if t.hasFocus && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && !t.doubleClickHandled {
+	// Handle mouse movement
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
-		charPos := t.getCharPosFromPosition(x, y)
-		if !t.isSelecting {
-			// Start selection on first movement after click
-			t.isSelecting = true
-			t.setSelectionStart(t.cursorPos)
+		if t.isDraggingThumb {
+			t.dragScrollbar(y)
+		} else if t.hasFocus && ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && !t.doubleClickHandled {
+			if t.isOverScrollbar(x, y) {
+				// Prevent text selection when clicking on scrollbar
+			} else {
+				charPos := t.getCharPosFromPosition(x, y)
+				if !t.isSelecting {
+					// Start selection on first movement after click
+					t.isSelecting = true
+					t.setSelectionStart(t.cursorPos)
+				}
+				t.setSelectionEnd(charPos)
+				t.cursorPos = charPos
+			}
 		}
-		t.setSelectionEnd(charPos)
-		t.cursorPos = charPos
 	}
 
 	// Handle mouse button release (mouse up)
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
-		if t.isSelecting {
+		if t.isDraggingThumb {
+			t.isDraggingThumb = false
+		}
+		if t.isSelecting && !t.isDraggingThumb {
 			// Finalize selection on mouse release
 			t.isSelecting = false
 		}
@@ -272,8 +335,76 @@ func (t *TextAreaSelection) Update() error {
 		t.handleKeyboardInput()
 	}
 
+	// Handle mouse wheel scrolling
+	_, yScroll := ebiten.Wheel()
+	if yScroll != 0 {
+		t.scrollOffset = clamp(t.scrollOffset-int(yScroll), 0, len(strings.Split(t.text, "\n"))-t.maxLines)
+	}
+
 	t.counter++
 	return nil
+}
+
+func (t *TextAreaSelection) isOverScrollbar(x, y int) bool {
+	return x >= t.scrollbarX && x <= t.scrollbarX+t.scrollbarWidth && y >= t.y && y <= t.y+t.h
+}
+
+func (t *TextAreaSelection) dragScrollbar(mouseY int) {
+	// Calculate the new thumb Y position
+	newThumbY := float64(mouseY) - t.dragOffsetY
+
+	// Clamp the thumb position within the scrollbar track
+	maxThumbY := float64(t.scrollbarHeight - int(t.scrollbarThumbH))
+	if newThumbY < 0 {
+		newThumbY = 0
+	}
+	if newThumbY > maxThumbY {
+		newThumbY = maxThumbY
+	}
+
+	t.scrollbarThumbY = newThumbY
+
+	// Calculate the corresponding scrollOffset
+	maxScrollOffset := len(strings.Split(t.text, "\n")) - t.maxLines
+	if maxScrollOffset < 1 {
+		maxScrollOffset = 1
+	}
+
+	t.scrollOffset = int((t.scrollbarThumbY / maxThumbY) * float64(maxScrollOffset))
+	t.scrollOffset = clamp(t.scrollOffset, 0, maxScrollOffset)
+}
+
+func (t *TextAreaSelection) drawScrollbar(screen *ebiten.Image, totalLines int) {
+	// Initialize scrollbar properties
+	t.scrollbarWidth = 10
+	t.scrollbarX = t.x + t.w - t.scrollbarWidth
+	t.scrollbarY = t.y
+	t.scrollbarHeight = t.h
+
+	// Calculate the height of the scrollbar thumb
+	visibleRatio := float64(t.maxLines) / float64(totalLines)
+	t.scrollbarThumbH = float64(t.scrollbarHeight) * visibleRatio
+	if t.scrollbarThumbH < 20 {
+		t.scrollbarThumbH = 20 // Minimum thumb height
+	}
+
+	// Calculate the Y position of the scrollbar thumb
+	maxScrollOffset := len(strings.Split(t.text, "\n")) - t.maxLines
+	if maxScrollOffset < 1 {
+		maxScrollOffset = 1
+	}
+	thumbMaxY := float64(t.scrollbarHeight - int(t.scrollbarThumbH))
+	t.scrollbarThumbY = float64(t.scrollOffset) / float64(maxScrollOffset) * thumbMaxY
+
+	// Draw the scrollbar track
+	vector.DrawFilledRect(screen, float32(t.scrollbarX), float32(t.scrollbarY), float32(t.scrollbarWidth), float32(t.scrollbarHeight), color.RGBA{220, 220, 220, 255}, true)
+
+	// Draw the scrollbar thumb
+	vector.DrawFilledRect(
+		screen,
+		float32(t.scrollbarX), float32(t.scrollbarY)+float32(t.scrollbarThumbY),
+		float32(t.scrollbarWidth), float32(t.scrollbarThumbH),
+		color.RGBA{160, 160, 160, 255}, true)
 }
 
 func (t *TextAreaSelection) selectWordAt(pos int) {
@@ -329,6 +460,17 @@ func runePosToBytePos(s string, runePos int) int {
 // Helper function to clamp a value within a range
 
 func clamp(value, min, max int) int {
+	if value < min {
+		return min
+	}
+	if value > max {
+		return max
+	}
+	return value
+}
+
+// clampFloat limits a float64 value between min and max
+func clampFloat(value, min, max float64) float64 {
 	if value < min {
 		return min
 	}
@@ -583,7 +725,8 @@ func (t *TextAreaSelection) textWidth(str string) int {
 }
 
 func (t *TextAreaSelection) getCharPosFromPosition(x, y int) int {
-	line := (y - t.y) / t.lineHeight
+	// Adjust the line calculation by adding the scrollOffset
+	line := (y-t.y)/t.lineHeight + t.scrollOffset
 	col := x - t.x
 
 	lines := strings.Split(t.text, "\n")
