@@ -5,11 +5,11 @@ import (
 	"image/color"
 	"strings"
 
+	"example.com/menu/internals/textwrapper03"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"golang.org/x/image/font"
+
 	"golang.org/x/image/font/basicfont"
 
 	"golang.design/x/clipboard"
@@ -36,19 +36,19 @@ type TextState struct {
 }
 
 type TextAreaSelection struct {
-	text                 string
-	hasFocus             bool
-	cursorPos            int
-	counter              int
-	selectionStart       int
-	selectionEnd         int
-	isSelecting          bool
-	x, y, w, h           int
-	maxLines             int
-	cursorBlinkRate      int
-	tabWidth             int
-	lineHeight           int
-	font                 font.Face
+	text            string
+	hasFocus        bool
+	cursorPos       int
+	counter         int
+	selectionStart  int
+	selectionEnd    int
+	isSelecting     bool
+	x, y, w, h      int
+	maxLines        int
+	cursorBlinkRate int
+	tabWidth        int
+	lineHeight      int
+	//font                 font.Face
 	heldKeys             map[ebiten.Key]*KeyState
 	undoStack            []TextState
 	redoStack            []TextState
@@ -68,6 +68,39 @@ type TextAreaSelection struct {
 	scrollbarThumbH float64 // Height of the scrollbar thumb
 	isDraggingThumb bool    // Indicates if the scrollbar thumb is being dragged
 	dragOffsetY     float64 // Offset between mouse position and thumb position during drag
+
+	textWrapper *textwrapper03.TextWrapper // Add this field
+}
+
+func NewTextAreaSelection(x, y, w, h, maxLines int, startTxt string) *TextAreaSelection {
+	err := clipboard.Init()
+	if err != nil {
+		return nil
+	}
+
+	fw := textwrapper03.NewTextWrapper(basicfont.Face7x13, 13, color.Black)
+	//fw.SetWordWrap(w, maxLines) // Set word wrap if needed
+
+	return &TextAreaSelection{
+		x:               x,
+		y:               y,
+		w:               w,
+		h:               h,
+		maxLines:        maxLines,
+		cursorBlinkRate: 30,
+		tabWidth:        4,
+		lineHeight:      20,
+		//font:                 basicfont.Face7x13,
+		heldKeys:             make(map[ebiten.Key]*KeyState),
+		desiredCursorCol:     -1,
+		lastClickTime:        0,     // Frame count of the last click
+		clickCount:           0,     // Number of consecutive clicks
+		doubleClickThreshold: 30,    // Threshold frames to consider as a double-click
+		doubleClickHandled:   false, // Indicates if a double-click has just been handled
+		scrollOffset:         0,
+		textWrapper:          fw,
+		text:                 startTxt,
+	}
 }
 
 func (t *TextAreaSelection) setCursorPos(pos int) {
@@ -441,33 +474,6 @@ func (t *TextAreaSelection) updateSelectionWithShiftKey(offset int) {
 	fmt.Printf("Selection Updated: Start=%d, End=%d, CursorPos=%d\n", t.selectionStart, t.selectionEnd, t.cursorPos)
 }
 
-func NewTextAreaSelection(x, y, w, h, maxLines int, startTxt string) *TextAreaSelection {
-	err := clipboard.Init()
-	if err != nil {
-		return nil
-	}
-
-	return &TextAreaSelection{
-		x:                    x,
-		y:                    y,
-		w:                    w,
-		h:                    h,
-		maxLines:             maxLines,
-		cursorBlinkRate:      30,
-		tabWidth:             4,
-		lineHeight:           20,
-		font:                 basicfont.Face7x13,
-		heldKeys:             make(map[ebiten.Key]*KeyState),
-		desiredCursorCol:     -1,
-		lastClickTime:        0,     // Frame count of the last click
-		clickCount:           0,     // Number of consecutive clicks
-		doubleClickThreshold: 30,    // Threshold frames to consider as a double-click
-		doubleClickHandled:   false, // Indicates if a double-click has just been handled
-		scrollOffset:         0,
-		text:                 startTxt, // Default text added here
-	}
-}
-
 func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 
 	// Draw the background of the text area
@@ -488,7 +494,7 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 
 		lineText := line
 		lineX := t.x
-		lineY := yOffset + t.lineHeight/2
+		//lineY := yOffset + t.lineHeight/2
 
 		// Draw selection if active and within this line
 		if minPos != maxPos {
@@ -531,8 +537,7 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 			}
 		}
 
-		// Draw the actual text
-		text.Draw(screen, lineText, t.font, lineX, lineY+t.lineHeight/2, color.Black)
+		t.textWrapper.DrawText(screen, lineText, lineX, yOffset+t.lineHeight)
 
 		yOffset += t.lineHeight
 	}
@@ -865,7 +870,7 @@ func (t *TextAreaSelection) getCursorLineAndCol() (int, int) {
 func (t *TextAreaSelection) textWidth(str string) int {
 	width := 0
 	for _, x := range str {
-		awidth, _ := t.font.GlyphAdvance(x)
+		awidth, _ := t.textWrapper.Font.GlyphAdvance(x)
 		width += int(awidth >> 6)
 	}
 	return width
