@@ -10,17 +10,18 @@ import (
 
 // TextWrapper is a reusable component for rendering and measuring text.
 type TextWrapper struct {
-	Font       font.Face
 	Color      color.Color
 	FontSize   int
-	MaxWidth   int // Optional: Maximum width for text wrapping
 	WordWrap   bool
+	Font       font.Face
+	MaxWidth   int // Optional: Maximum width for text wrapping
 	MaxLines   int // Optional: Maximum number of lines for text wrapping
 	LineHeight int // Height of each line
 }
 
 // NewTextWrapper creates a new instance of TextWrapper.
 func NewTextWrapper(fontFace font.Face, fontSize int, clr color.Color) *TextWrapper {
+
 	return &TextWrapper{
 		Font:       fontFace,
 		Color:      clr,
@@ -59,11 +60,12 @@ func (tw *TextWrapper) DrawTextWithWordWrap(screen *ebiten.Image, str string, x,
 
 // MeasureTextWidth returns the width of the given text string.
 func (tw *TextWrapper) MeasureTextWidth(str string) int {
-	return text.BoundString(tw.Font, str).Dx()
+	width := text.BoundString(tw.Font, str).Dx()
+	return width
 }
 
 // MeasureTextHeight returns the total height of the given text string, considering word wrapping.
-func (tw *TextWrapper) MeasureTextHeight(str string) int {
+func (tw *TextWrapper) MeasureTextHeightWrap(str string) int {
 	if tw.WordWrap && tw.MaxWidth > 0 {
 		lines := tw.wrapText(str)
 		return tw.LineHeight * len(lines)

@@ -9,6 +9,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"golang.org/x/image/font"
 )
 
 type TextWrapper struct {
@@ -20,6 +21,11 @@ type TextWrapper struct {
 	isVertical       bool
 	textOptions      *text.DrawOptions
 	textOptionsDirty bool
+	WordWrap         bool
+	Font             font.Face
+	MaxWidth         int // Optional: Maximum width for text wrapping
+	MaxLines         int // Optional: Maximum number of lines for text wrapping
+	LineHeight       int // Height of each line
 }
 
 func NewTextWrapper(fontPath string, fontSize float64, isVertical bool) (*TextWrapper, error) {
@@ -65,6 +71,75 @@ func (tw *TextWrapper) ResetGeom() {
 	tw.textOptions.GeoM.Reset()
 }
 
+func (tw *TextWrapper) DrawTextWithWordWrap(screen *ebiten.Image, str string, x, y int) {
+	if tw.WordWrap && tw.MaxWidth > 0 {
+		lines := tw.wrapText(str)
+		for i, line := range lines {
+			if tw.MaxLines > 0 && i >= tw.MaxLines {
+				break
+			}
+
+			tw.DrawText(screen, line, float64(x), float64(y+tw.LineHeight*(i+1)))
+		}
+	} else {
+		tw.DrawText(screen, str, float64(x), float64(y))
+	}
+}
+
+func (tw *TextWrapper) wrapText(str string) []string {
+	words := splitIntoWords(str)
+	var lines []string
+	var currentLine string
+
+	for _, word := range words {
+		testLine := currentLine
+		if currentLine != "" {
+			testLine += " "
+		}
+		testLine += word
+
+		if tw.MeasureTextWidth(testLine) > tw.MaxWidth && currentLine != "" {
+			lines = append(lines, currentLine)
+			currentLine = word
+		} else {
+			currentLine = testLine
+		}
+	}
+
+	if currentLine != "" {
+		lines = append(lines, currentLine)
+	}
+
+	return lines
+}
+
+func splitIntoWords(str string) []string {
+	var words []string
+	currentWord := ""
+	for _, r := range str {
+		if r == ' ' || r == '\n' {
+			if currentWord != "" {
+				words = append(words, currentWord)
+				currentWord = ""
+			}
+			if r == '\n' {
+				words = append(words, "\n")
+			}
+		} else {
+			currentWord += string(r)
+		}
+	}
+	if currentWord != "" {
+		words = append(words, currentWord)
+	}
+	return words
+}
+
+func (tw *TextWrapper) MeasureTextWidth(str string) int {
+	width, _ := text.Measure(str, tw.GoTextFace, 0)
+	return int(width)
+}
+
 func (tw *TextWrapper) MeasureText(s string) (float64, float64) {
 	metrics := tw.GoTextFace.Metrics()
 	var lineSpacing float64
@@ -86,6 +161,15 @@ func (tw *TextWrapper) MeasureString(s string) (float64, float64) {
 
 func (tw *TextWrapper) GetFontMetrics() text.Metrics {
 	return tw.GoTextFace.Metrics()
+}
+
+func (tw *TextWrapper) GetMonospaceWidth() float64 {
+	size := tw.GoTextFace.Size
+	return size
+}
+
+func (tw *TextWrapper) SetColor(color color.Color) {
+	tw.Color = color
 }
 
 func (tw *TextWrapper) GetTextFace() *text.GoTextFace {

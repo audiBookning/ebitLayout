@@ -1,9 +1,8 @@
 package widgets
 
 import (
-
-	//"example.com/menu/internals/textwrapper"
-	"example.com/menu/internals/textwrapper02"
+	"example.com/menu/internals/textwrapper"
+	//"example.com/menu/internals/textwrapper02"
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.design/x/clipboard"
 )
@@ -21,7 +20,7 @@ type TextState struct {
 }
 
 type TextAreaSelection struct {
-	textWrapper          *textwrapper02.TextWrapper
+	textWrapper          *textwrapper.TextWrapper
 	text                 string
 	hasFocus             bool
 	cursorPos            int
@@ -43,6 +42,8 @@ type TextAreaSelection struct {
 	doubleClickThreshold int  // Threshold frames to consider as a double-click
 	doubleClickHandled   bool // Indicates if a double-click has just been handled
 	scrollOffset         int
+
+	isMouseLeftPressed bool
 
 	// Scrollbar Fields
 	scrollbarWidth  int     // Width of the scrollbar
@@ -67,24 +68,33 @@ type TextAreaSelection struct {
 	paddingTop    int
 	paddingBottom int
 	clicked       bool
+
+	stepX float64
+	stepY float64
 }
 
 // func NewTextAreaSelection(textWrapper *textwrapper02.TextWrapper, x, y, w, h int, startTxt string) *TextAreaSelection {
-func NewTextAreaSelection(textWrapper *textwrapper02.TextWrapper, x, y, w, h int, startTxt string) *TextAreaSelection {
+func NewTextAreaSelection(textWrapper *textwrapper.TextWrapper, x, y, w, h int, startTxt string) *TextAreaSelection {
 	err := clipboard.Init()
 	if err != nil {
 		return nil
 	}
 
 	// Calculate line height based on font metrics
-	/* metrics := textWrapper.GetFontMetrics()
-	lineHeight := metrics.HAscent + metrics.HDescent + metrics.HLineGap */
-	//lineHeight := float64(metrics.Height)
-	lineHeight := textWrapper.MeasureTextHeight(startTxt)
+	metrics := textWrapper.GetFontMetrics()
+	/*
+		lineHeight := float64(metrics.Height)
+	*/
+	lineHeight := metrics.HAscent + metrics.HDescent + metrics.HLineGap
+	//lineHeight := textWrapper.MeasureTextHeightWrap(startTxt)
+	//_, lineHeight := textWrapper.MeasureText(startTxt)
+
+	//monospaceWidth := textWrapper.GetMonospaceWidth()
+	monospaceWidth, _ := textWrapper.MeasureString("s")
 
 	// Calculate maxLines based on the height of the TextAreaSelection and the line height
-	yPadding := 10
-	maxLines := int((h - 2*yPadding) / lineHeight)
+	padding := 10
+	maxLines := int((h - 2*padding) / int(lineHeight))
 
 	return &TextAreaSelection{
 		textWrapper:          textWrapper,
@@ -108,9 +118,13 @@ func NewTextAreaSelection(textWrapper *textwrapper02.TextWrapper, x, y, w, h int
 		keyRepeatInitialDelay: 30,
 		keyRepeatInterval:     5,
 		isTextChanged:         true,
-		paddingLeft:           5,
-		paddingTop:            yPadding,
-		paddingBottom:         yPadding,
+		paddingLeft:           padding,
+		paddingTop:            padding,
+		paddingBottom:         padding,
 		clicked:               false,
+		isMouseLeftPressed:    false,
+
+		stepX: monospaceWidth,
+		stepY: float64(lineHeight),
 	}
 }

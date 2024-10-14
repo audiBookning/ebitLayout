@@ -78,9 +78,9 @@ func (b *ButtonStd) Update(navigatorOffsetX, navigatorOffsetY float32, isAnimati
 		localX := globalX - navigatorOffsetX
 		localY := globalY - navigatorOffsetY
 
-		log.Printf("Cursor Position: (%f, %f)", globalX, globalY)
+		/* log.Printf("Cursor Position: (%f, %f)", globalX, globalY)
 		log.Printf("Button Position: (%f, %f) with size (%f, %f)", b.X, b.Y, b.Width, b.Height)
-		log.Printf("Local Cursor Position: (%f, %f)", localX, localY)
+		log.Printf("Local Cursor Position: (%f, %f)", localX, localY) */
 
 		chek01 := localX >= b.X
 		chek02 := localX < b.X+b.Width

@@ -13,9 +13,9 @@ func (t *TextAreaSelection) drawCursor(screen *ebiten.Image) {
 	cursorLine, cursorCol := t.getCursorLineAndCol()
 	if cursorLine >= t.scrollOffset && cursorLine < t.scrollOffset+t.maxLines {
 
-		cursorX := t.x + t.textWidth(strings.Split(t.text, "\n")[cursorLine][:cursorCol])
+		cursorX := t.x + t.paddingLeft + int(t.textWidth(strings.Split(t.text, "\n")[cursorLine][:cursorCol]))
 
-		cursorY := float64(t.y) + float64(cursorLine-t.scrollOffset)*t.lineHeight
+		cursorY := float64(t.y+t.paddingTop) + float64(cursorLine-t.scrollOffset)*t.lineHeight
 
 		// Clamp the cursor position within textarea bounds
 		cursorX = clamp(cursorX, t.x, t.x+t.w)
@@ -34,6 +34,45 @@ func (t *TextAreaSelection) drawCursor(screen *ebiten.Image) {
 	}
 }
 
+func (t *TextAreaSelection) drawGrid(screen *ebiten.Image) {
+	gridColor := color.RGBA{255, 0, 0, 255} // Red color
+	strokeWidth := float32(1)               // Thickness of grid lines
+
+	// Calculate the drawable area considering padding
+	startX := float32(t.x + t.paddingLeft)
+	endX := float32(t.x + t.w - t.paddingLeft)
+	startY := float32(t.y + t.paddingTop)
+	endY := float32(t.y + t.h - t.paddingTop)
+
+	// Draw vertical lines
+	for x := float64(startX); x <= float64(endX); x += t.stepX {
+		vector.StrokeLine(
+			screen,
+			float32(x),
+			startY,
+			float32(x),
+			endY,
+			strokeWidth,
+			gridColor,
+			false, // antialiasing
+		)
+	}
+
+	// Draw horizontal lines
+	for y := float64(startY); y <= float64(endY); y += t.stepY {
+		vector.StrokeLine(
+			screen,
+			startX,
+			float32(y),
+			endX,
+			float32(y),
+			strokeWidth,
+			gridColor,
+			false, // antialiasing
+		)
+	}
+}
+
 func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 
 	// Split lines only if text has changed
@@ -45,8 +84,9 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 
 	// Draw the background of the text area
 	vector.DrawFilledRect(screen, float32(t.x), float32(t.y), float32(t.w), float32(t.h), color.RGBA{200, 200, 200, 255}, true)
+	t.drawGrid(screen)
 
-	yOffset := float64(t.y)
+	yOffset := float64(t.y + t.paddingTop)
 	// Apply scroll offset
 	startLine := t.scrollOffset
 	endLine := clamp(t.scrollOffset+t.maxLines, 0, len(lines))
@@ -59,7 +99,7 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 
 		lineText := line
 		lineX := t.x + t.paddingLeft
-		lineY := int(yOffset+t.lineHeight) + t.paddingTop
+		lineY := int(yOffset) //+ t.paddingTop
 
 		// Draw selection if active and within this line
 		if minPos != maxPos {
@@ -81,15 +121,15 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 				}
 
 				// Calculate x positions based on character widths
-				selectionXStart := t.x + t.textWidth(lineText[:selStart])
-				selectionXEnd := t.x + t.textWidth(lineText[:selEnd])
+				selectionXStart := t.x + t.paddingLeft + int(t.textWidth(lineText[:selStart]))
+				selectionXEnd := t.x + t.paddingLeft + int(t.textWidth(lineText[:selEnd]))
 
 				// Clamp the selection rectangle within textarea bounds
 				selectionXStart = clamp(selectionXStart, t.x, t.x+t.w)
 				selectionXEnd = clamp(selectionXEnd, t.x, t.x+t.w)
 
 				// Clamp the yOffset within textarea bounds
-				clampedYOffset := clampFloat(yOffset, float64(t.y), float64(t.y+t.h)-t.lineHeight)
+				clampedYOffset := clampFloat(yOffset, float64(t.y+t.paddingTop), float64(t.y+t.h+t.paddingTop))
 
 				// Draw the selection rectangle
 				vector.DrawFilledRect(screen,
@@ -102,7 +142,7 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 			}
 		}
 
-		t.textWrapper.DrawText(screen, lineText, lineX, lineY)
+		t.textWrapper.DrawText(screen, lineText, float64(lineX), float64(lineY))
 
 		yOffset += t.lineHeight
 	}
@@ -120,8 +160,10 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 
 func (t *TextAreaSelection) Update() error {
 
+	// Single and double click detection
 	// Handle mouse button just pressed (mouse down)
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		t.isMouseLeftPressed = true
 		t.clicked = true
 		currentFrame := t.counter
 		if currentFrame-t.lastClickTime <= t.doubleClickThreshold {
@@ -133,10 +175,12 @@ func (t *TextAreaSelection) Update() error {
 		t.lastClickTime = currentFrame
 
 		x, y := ebiten.CursorPosition()
+		//log.Println("Cursor position", x, y)
 
 		if t.isOverScrollbar(x, y) {
 			// Clicked on scrollbar
-			t.isDraggingThumb = true
+
+			t.SetIsDraggingThumb(true)
 			t.dragOffsetY = float64(y-t.scrollbarY) - t.scrollbarThumbY // Adjust offset calculation
 			return nil                                                  // Exit early to prevent further processing
 		} else if x >= t.x && x <= t.x+t.w && y >= t.y && y <= t.y+t.h {
@@ -145,28 +189,28 @@ func (t *TextAreaSelection) Update() error {
 				charPos := t.getCharPosFromPosition(x, y)
 				t.selectWordAt(charPos)
 				t.doubleClickHandled = true // Set the flag
-
 			} else {
 				// Single click
 				t.hasFocus = true
 				charPos := t.getCharPosFromPosition(x, y)
-				t.setCursorPos(charPos) //
+				t.setCursorPos(charPos) // Set cursor position
 				t.setSelectionStart(charPos)
 				t.setSelectionEnd(charPos)
-				// Initially, no selection is active
-				t.isSelecting = false
+				t.SetIsSelecting(false)
+				t.SetIsDraggingThumb(false)
 			}
 		} else {
 			t.hasFocus = false
-			t.isSelecting = false
+			t.SetIsSelecting(false)
 		}
 	}
 
-	// Handle mouse movement
+	// Handle mouse movement while left button is pressed
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		if t.isDraggingThumb {
 			t.dragScrollbar(y)
+			//} else if t.hasFocus && !t.doubleClickHandled && !t.isMouseLeftPressed {
 		} else if t.hasFocus && !t.doubleClickHandled {
 			if t.isOverScrollbar(x, y) {
 				// Prevent text selection when clicking on scrollbar
@@ -174,23 +218,28 @@ func (t *TextAreaSelection) Update() error {
 				charPos := t.getCharPosFromPosition(x, y)
 				if !t.isSelecting {
 					// Start selection on first movement after click
-					t.isSelecting = true
+					t.SetIsSelecting(true)
 					t.setSelectionStart(t.cursorPos)
 				}
+				//} else if !t.isMouseLeftPressed {
 				t.setSelectionEnd(charPos)
 				t.setCursorPos(charPos) // called 2 times.
+				//}
+
 			}
 		}
 	}
 
 	// Handle mouse button release (mouse up)
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+		t.isMouseLeftPressed = false
 		if t.isDraggingThumb {
-			t.isDraggingThumb = false
+			t.SetIsDraggingThumb(false)
 		}
 		if t.isSelecting && !t.isDraggingThumb {
 			// Finalize selection on mouse release
-			t.isSelecting = false
+
+			t.SetIsSelecting(false)
 		}
 	}
 

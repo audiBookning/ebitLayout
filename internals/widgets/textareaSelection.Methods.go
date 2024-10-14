@@ -103,7 +103,8 @@ func (t *TextAreaSelection) selectWordAt(pos int) {
 	t.setSelectionStart(byteStart)
 	t.setSelectionEnd(byteEnd)
 	t.setCursorPos(byteEnd)
-	t.isSelecting = false // Ensure no ongoing selection
+
+	t.SetIsSelecting(false)
 	/* completeWord := t.text[byteStart:byteEnd]
 	fmt.Printf("Word Selected=%s | pos=%d | Byte Start=%d, Byte End=%d \n", completeWord, pos, start, end) */
 }
@@ -227,33 +228,43 @@ func (t *TextAreaSelection) getCursorLineAndCol() (int, int) {
 	return t.getCursorLineAndColForPos(t.cursorPos)
 }
 
-func (t *TextAreaSelection) textWidth(str string) int {
+func (t *TextAreaSelection) textWidth(str string) float64 {
 	//width, _ := t.textWrapper.MeasureText(str)
-	//width, _ := t.textWrapper.MeasureString(str)
-	width := t.textWrapper.MeasureTextWidth(str)
-	return int(width)
+	width, _ := t.textWrapper.MeasureString(str)
+	//width := t.textWrapper.MeasureTextWidth(str)
+	return width
 }
 
 func (t *TextAreaSelection) getCharPosFromPosition(x, y int) int {
 	// Adjust the line calculation by adding the scrollOffset
-	line := (y-t.y-t.paddingTop)/int(t.lineHeight) + t.scrollOffset
-	col := x - t.x
-
+	line := float64(y-t.y-t.paddingTop)/t.lineHeight + float64(t.scrollOffset)
+	//line := (y-t.y)/int(t.lineHeight) + t.scrollOffset
+	col := float64(x - t.x - t.paddingLeft)
+	//col := x - t.x
+	/*
+		fmt.Println("X      : ", x, "        Y: ", y)
+		fmt.Println("Xpadded: ", t.x+t.paddingLeft, "  YPadded: ", t.y+t.paddingTop)
+		fmt.Println("Line   : ", line, "      Col: ", col)
+	*/
 	lines := t.cachedLines
-	if line >= len(lines) {
-		line = len(lines) - 1
+	if line >= float64(len(lines)) {
+		line = float64(len(lines)) - 1
 	}
 	if line < 0 {
 		line = 0
 	}
 
-	lineText := lines[line]
+	lineint := int(line)
+	lineText := lines[lineint]
 	colIndex := 0
-	accumulatedWidth := 0
+	accumulatedWidth := 0.0
 
+	//fmt.Print(" :  char       charWidth     accumulatedWidth     col      colIndex\n")
 	for i, char := range lineText {
-		charWidth := t.textWidth(string(char))
+		charString := string(char)
+		charWidth := t.textWidth(charString)
 
+		//fmt.Print(i, ":  ", charString, "             ", charWidth, "                 ", accumulatedWidth, "             ", col, "          ", colIndex, "\n")
 		// Check if the click is within the current character's width
 		if col < accumulatedWidth+charWidth {
 			// Determine if the click is in the first half or second half of the character
@@ -267,13 +278,15 @@ func (t *TextAreaSelection) getCharPosFromPosition(x, y int) int {
 		accumulatedWidth += charWidth
 		colIndex = i + 1
 	}
+	//fmt.Println("line = ", line, ", colIndex = ", colIndex)
+	//fmt.Println("----------------------------------------")
 
 	// Ensure colIndex does not exceed line length
 	if colIndex > len(lineText) {
 		colIndex = len(lineText)
 	}
 
-	return t.getCharPosFromLineAndCol(line, colIndex)
+	return t.getCharPosFromLineAndCol(lineint, colIndex)
 }
 
 func (t *TextAreaSelection) getSelectionBounds() (int, int) {

@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"example.com/menu/internals/textwrapper02"
+	//"example.com/menu/internals/textwrapper02"
+	"example.com/menu/internals/textwrapper"
 	"example.com/menu/internals/widgets"
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font/basicfont"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 	screenHeight = 480
 	textAreaX    = 50
 	textAreaY    = 50
-	textAreaW    = 540
+	textAreaW    = 500
 	textAreaH    = 300
 )
 
@@ -58,14 +58,15 @@ func main() {
 	}
 
 	//fontPath := getFilePath("assets/fonts/roboto_regularTTF.ttf")
-	fontSize := 14
+	fontPath := getFilePath("assets/fonts/Anonymous_Pro.ttf")
+	fontSize := 40.0
 
-	textWrapper := textwrapper02.NewTextWrapper(basicfont.Face7x13, fontSize, color.Black)
-	//textWrapper, err := textwrapper.NewTextWrapper(fontPath, fontSize, false)
+	//textWrapper := textwrapper.NewTextWrapper(basicfont.Face7x13, fontSize, color.Black)
+	textWrapper, err := textwrapper.NewTextWrapper(fontPath, fontSize, false)
 	//textWrapper, err := textwrapper02.NewTextWrapper(fontPath, fontSize)
-	/* if err != nil {
+	if err != nil {
 		log.Fatalf("Failed to create text wrapper: %v", err)
-	} */
+	}
 	textWrapper.Color = color.Black
 
 	ebiten.SetWindowSize(screenWidth, screenHeight)

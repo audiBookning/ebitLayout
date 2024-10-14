@@ -18,3 +18,11 @@ func (t *TextAreaSelection) SetScrollOffset(offset int) {
 	t.scrollOffset = offset
 	//t.updateSelectionBounds()
 }
+
+func (t *TextAreaSelection) SetIsSelecting(isSelecting bool) {
+	t.isSelecting = isSelecting
+}
+
+func (t *TextAreaSelection) SetIsDraggingThumb(isDragging bool) {
+	t.isDraggingThumb = isDragging
+}
