@@ -15,6 +15,7 @@ require (
 	github.com/ebitengine/hideconsole v1.0.0 // indirect
 	github.com/ebitengine/purego v0.7.0 // indirect
 	github.com/go-text/typesetting v0.1.1-0.20240325125605-c7936fe59984 // indirect
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/jezek/xgb v1.1.1 // indirect
 	golang.org/x/image v0.18.0
 	golang.org/x/sync v0.7.0 // indirect

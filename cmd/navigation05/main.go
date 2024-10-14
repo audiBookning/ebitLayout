@@ -218,7 +218,7 @@ func (yp *YellowPage) Draw(navigatorArea *ebiten.Image, offsetX, offsetY float64
 	op.GeoM.Translate(x, y)
 	op.ColorScale.ScaleWithColor(color.White)
 
-	text.Draw(yp.BasePage.PageArea, scaledMessage, yp.TextWrapper.GetFontFace(), op)
+	text.Draw(yp.BasePage.PageArea, scaledMessage, yp.TextWrapper.GetTextFace(), op)
 
 	drawOp := &ebiten.DrawImageOptions{}
 	drawOp.GeoM.Translate(float64(yp.X)+offsetX, float64(yp.Y)+offsetY)

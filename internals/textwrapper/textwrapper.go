@@ -79,6 +79,19 @@ func (tw *TextWrapper) MeasureText(s string) (float64, float64) {
 	return width, height
 }
 
+// Add this method to the TextWrapper struct
+func (tw *TextWrapper) MeasureString(s string) (float64, float64) {
+	return text.Measure(s, tw.GoTextFace, 0)
+}
+
+func (tw *TextWrapper) GetFontMetrics() text.Metrics {
+	return tw.GoTextFace.Metrics()
+}
+
+func (tw *TextWrapper) GetTextFace() *text.GoTextFace {
+	return tw.GoTextFace
+}
+
 func (tw *TextWrapper) DrawText(screen *ebiten.Image, textStr string, x, y float64) {
 	//tw.textOptions.GeoM.Reset()
 	if !tw.textOptionsDirty {
@@ -91,12 +104,4 @@ func (tw *TextWrapper) DrawText(screen *ebiten.Image, textStr string, x, y float
 	text.Draw(screen, textStr,
 		tw.GoTextFace,
 		tw.textOptions)
-}
-
-func (tw *TextWrapper) GetFontMetrics() text.Metrics {
-	return tw.GoTextFace.Metrics()
-}
-
-func (tw *TextWrapper) GetFontFace() *text.GoTextFace {
-	return tw.GoTextFace
 }
