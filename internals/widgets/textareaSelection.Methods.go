@@ -1,7 +1,6 @@
 package widgets
 
 import (
-	"fmt"
 	"image/color"
 	"strings"
 
@@ -38,8 +37,7 @@ func (t *TextAreaSelection) dragScrollbar(mouseY int) {
 	t.SetScrollOffset(int((t.scrollbarThumbY / maxThumbY) * float64(maxScrollOffset)))
 	t.SetScrollOffset(clamp(t.scrollOffset, 0, maxScrollOffset))
 
-	// Optional: Print for debugging
-	fmt.Printf("Dragging Scrollbar: ThumbY=%.2f, ScrollOffset=%d\n", t.scrollbarThumbY, t.scrollOffset)
+	//fmt.Printf("Dragging Scrollbar: ThumbY=%.2f, ScrollOffset=%d\n", t.scrollbarThumbY, t.scrollOffset)
 }
 
 func (t *TextAreaSelection) drawScrollbar(screen *ebiten.Image, totalLines int) {
@@ -106,8 +104,8 @@ func (t *TextAreaSelection) selectWordAt(pos int) {
 	t.setSelectionEnd(byteEnd)
 	t.setCursorPos(byteEnd)
 	t.isSelecting = false // Ensure no ongoing selection
-	completeWord := t.text[byteStart:byteEnd]
-	fmt.Printf("Word Selected=%s | pos=%d | Byte Start=%d, Byte End=%d \n", completeWord, pos, start, end)
+	/* completeWord := t.text[byteStart:byteEnd]
+	fmt.Printf("Word Selected=%s | pos=%d | Byte Start=%d, Byte End=%d \n", completeWord, pos, start, end) */
 }
 
 func (t *TextAreaSelection) updateSelectionWithShiftKey(offset int) {
@@ -154,10 +152,8 @@ func (t *TextAreaSelection) updateSelectionWithShiftKey(offset int) {
 		t.clearSelection()
 	}
 
-	fmt.Printf("Selection Updated: Start=%d, End=%d, CursorPos=%d\n", t.selectionStart, t.selectionEnd, t.cursorPos)
+	//fmt.Printf("Selection Updated: Start=%d, End=%d, CursorPos=%d\n", t.selectionStart, t.selectionEnd, t.cursorPos)
 }
-
-// Helper function to determine if a character is a word separator
 
 func (t *TextAreaSelection) isCtrlPressed() bool {
 	return ebiten.IsKeyPressed(ebiten.KeyControlLeft) || ebiten.IsKeyPressed(ebiten.KeyControlRight)
@@ -202,7 +198,7 @@ func (t *TextAreaSelection) indentSelection() {
 func (t *TextAreaSelection) clearSelection() {
 	t.setSelectionStart(t.cursorPos)
 	t.setSelectionEnd(t.cursorPos)
-	fmt.Printf("Selection Cleared: Start=%d, End=%d, CursorPos=%d\n", t.selectionStart, t.selectionEnd, t.cursorPos)
+	//fmt.Printf("Selection Cleared: Start=%d, End=%d, CursorPos=%d\n", t.selectionStart, t.selectionEnd, t.cursorPos)
 }
 
 func (t *TextAreaSelection) getCharPosFromLineAndCol(line, col int) int {
@@ -216,7 +212,7 @@ func (t *TextAreaSelection) getCharPosFromLineAndCol(line, col int) int {
 }
 
 func (t *TextAreaSelection) getCursorLineAndColForPos(pos int) (int, int) {
-	lines := t.cachedLines // Use cached lines instead of splitting
+	lines := t.cachedLines
 	charCount := 0
 	for i, line := range lines {
 		if charCount+len(line)+1 > pos {
@@ -252,7 +248,6 @@ func (t *TextAreaSelection) getCharPosFromPosition(x, y int) int {
 	}
 
 	lineText := lines[line]
-	//runes := []rune(lineText)
 	colIndex := 0
 	accumulatedWidth := 0
 
@@ -281,19 +276,10 @@ func (t *TextAreaSelection) getCharPosFromPosition(x, y int) int {
 	return t.getCharPosFromLineAndCol(line, colIndex)
 }
 
-// getSelectionBounds returns the minimum and maximum positions of the current selection
-/* func (t *TextAreaSelection) getSelectionBounds() (int, int) {
-	if t.selectionStart <= t.selectionEnd {
-		return t.selectionStart, t.selectionEnd
-	}
-	return t.selectionEnd, t.selectionStart
-} */
 func (t *TextAreaSelection) getSelectionBounds() (int, int) {
 	t.updateSelectionBounds()
 	return t.minSelectionPos, t.maxSelectionPos
 }
-
-// handleCopySelection copies the selected text to the OS clipboard
 
 // deleteSelection removes the currently selected text and updates the cursor position
 func (t *TextAreaSelection) deleteSelection() {
@@ -303,7 +289,6 @@ func (t *TextAreaSelection) deleteSelection() {
 	t.clearSelection()
 }
 
-// internals/widgets/textareaSelection01.go
 func (t *TextAreaSelection) moveToWordStart(pos int) int {
 	if pos == 0 {
 		return pos
@@ -351,20 +336,12 @@ func (t *TextAreaSelection) moveToWordEnd(pos int) int {
 	return pos
 }
 
-func (t *TextAreaSelection) cursorColumn() int {
-	_, col := t.getCursorLineAndCol()
-	return col
-}
-
 func (t *TextAreaSelection) isShiftPressed() bool {
 	return ebiten.IsKeyPressed(ebiten.KeyShiftLeft) || ebiten.IsKeyPressed(ebiten.KeyShiftRight)
 }
 
 func (t *TextAreaSelection) updateSelection(newPos int) {
-	/* if t.selectionStart > t.selectionEnd {
-		t.selectionStart = newPos
-	} else {
-	} */
+
 	t.setSelectionEnd(newPos)
 	t.setCursorPos(newPos)
 }

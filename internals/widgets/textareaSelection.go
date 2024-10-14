@@ -3,7 +3,7 @@ package widgets
 import (
 
 	//"example.com/menu/internals/textwrapper"
-	"example.com/menu/internals/textwrapper03"
+	"example.com/menu/internals/textwrapper02"
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.design/x/clipboard"
 )
@@ -21,21 +21,19 @@ type TextState struct {
 }
 
 type TextAreaSelection struct {
-	//textWrapper     *textwrapper02.TextWrapper
-	textWrapper     *textwrapper03.TextWrapper
-	text            string
-	hasFocus        bool
-	cursorPos       int
-	counter         int
-	selectionStart  int
-	selectionEnd    int
-	isSelecting     bool
-	x, y, w, h      int
-	maxLines        int
-	cursorBlinkRate int
-	tabWidth        int
-	lineHeight      float64 // Change to float64
-	//font                 *text.GoTextFace
+	textWrapper          *textwrapper02.TextWrapper
+	text                 string
+	hasFocus             bool
+	cursorPos            int
+	counter              int
+	selectionStart       int
+	selectionEnd         int
+	isSelecting          bool
+	x, y, w, h           int
+	maxLines             int
+	cursorBlinkRate      int
+	tabWidth             int
+	lineHeight           float64
 	heldKeys             map[ebiten.Key]*KeyState
 	undoStack            []TextState
 	redoStack            []TextState
@@ -72,7 +70,7 @@ type TextAreaSelection struct {
 }
 
 // func NewTextAreaSelection(textWrapper *textwrapper02.TextWrapper, x, y, w, h int, startTxt string) *TextAreaSelection {
-func NewTextAreaSelection(textWrapper *textwrapper03.TextWrapper, x, y, w, h int, startTxt string) *TextAreaSelection {
+func NewTextAreaSelection(textWrapper *textwrapper02.TextWrapper, x, y, w, h int, startTxt string) *TextAreaSelection {
 	err := clipboard.Init()
 	if err != nil {
 		return nil
@@ -89,16 +87,15 @@ func NewTextAreaSelection(textWrapper *textwrapper03.TextWrapper, x, y, w, h int
 	maxLines := int((h - 2*yPadding) / lineHeight)
 
 	return &TextAreaSelection{
-		textWrapper:     textWrapper,
-		x:               x,
-		y:               y,
-		w:               w,
-		h:               h,
-		maxLines:        maxLines, // Use the calculated maxLines
-		cursorBlinkRate: 30,
-		tabWidth:        4,
-		lineHeight:      float64(lineHeight),
-		//font:                 textWrapper.GetTextFace(),
+		textWrapper:          textWrapper,
+		x:                    x,
+		y:                    y,
+		w:                    w,
+		h:                    h,
+		maxLines:             maxLines, // Use the calculated maxLines
+		cursorBlinkRate:      30,
+		tabWidth:             4,
+		lineHeight:           float64(lineHeight),
 		heldKeys:             make(map[ebiten.Key]*KeyState),
 		desiredCursorCol:     -1,
 		lastClickTime:        0,     // Frame count of the last click
@@ -111,9 +108,9 @@ func NewTextAreaSelection(textWrapper *textwrapper03.TextWrapper, x, y, w, h int
 		keyRepeatInitialDelay: 30,
 		keyRepeatInterval:     5,
 		isTextChanged:         true,
-		paddingLeft:           5,        // Adjust as needed
-		paddingTop:            yPadding, // Adjust as needed
-		paddingBottom:         yPadding, // Adjust as needed
+		paddingLeft:           5,
+		paddingTop:            yPadding,
+		paddingBottom:         yPadding,
 		clicked:               false,
 	}
 }

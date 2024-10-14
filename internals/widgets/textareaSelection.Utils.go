@@ -4,6 +4,7 @@ import (
 	"strings"
 )
 
+// Helper function to check if a rune is a word separator
 func isWordSeparator(r rune) bool {
 	separators := " \n\t.,;:!?'\"()-"
 	return strings.ContainsRune(separators, r)
@@ -19,7 +20,6 @@ func runePosToBytePos(s string, runePos int) int {
 }
 
 // Helper function to clamp a value within a range
-
 func clamp(value, min, max int) int {
 	if value < min {
 		return min

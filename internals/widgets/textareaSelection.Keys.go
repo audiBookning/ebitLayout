@@ -121,10 +121,13 @@ func (t *TextAreaSelection) checkKeyPress(key ebiten.Key) {
 	case ebiten.KeyHome:
 		if t.isCtrlPressed() {
 			if t.isShiftPressed() {
-				t.handleShiftHome()
+				t.handleCtrlShiftHome()
 			} else {
 				t.handleCtrlHome()
 			}
+		}
+		if t.isShiftPressed() {
+			t.handleShiftHome()
 		}
 		t.handleHome()
 	case ebiten.KeyEnd:
@@ -133,7 +136,7 @@ func (t *TextAreaSelection) checkKeyPress(key ebiten.Key) {
 		}
 		if t.isCtrlPressed() {
 			if t.isShiftPressed() {
-				t.handleShiftEnd()
+				t.handleCtrlShiftEnd()
 			}
 			t.handleCtrlEnd()
 		}

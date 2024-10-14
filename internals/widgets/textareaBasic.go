@@ -12,7 +12,7 @@ import (
 	"golang.org/x/image/font/basicfont"
 )
 
-type TextArea struct {
+type TextAreaBasic struct {
 	text       string
 	hasFocus   bool
 	cursorPos  int
@@ -23,8 +23,8 @@ type TextArea struct {
 	font       font.Face
 }
 
-func NewTextArea(x, y, w, h, maxLines int) *TextArea {
-	return &TextArea{
+func NewTextArea(x, y, w, h, maxLines int) *TextAreaBasic {
+	return &TextAreaBasic{
 		x:         x,
 		y:         y,
 		w:         w,
@@ -35,7 +35,7 @@ func NewTextArea(x, y, w, h, maxLines int) *TextArea {
 	}
 }
 
-func (t *TextArea) Update() error {
+func (t *TextAreaBasic) Update() error {
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
@@ -54,7 +54,7 @@ func (t *TextArea) Update() error {
 	return nil
 }
 
-func (t *TextArea) handleKeyboardInput() {
+func (t *TextAreaBasic) handleKeyboardInput() {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyBackspace) && len(t.text) > 0 && t.cursorPos > 0 {
 		t.text = t.text[:t.cursorPos-1] + t.text[t.cursorPos:]
@@ -81,7 +81,7 @@ func (t *TextArea) handleKeyboardInput() {
 	}
 }
 
-func (t *TextArea) Draw(screen *ebiten.Image) {
+func (t *TextAreaBasic) Draw(screen *ebiten.Image) {
 
 	vector.DrawFilledRect(screen, float32(t.x), float32(t.y), float32(t.w), float32(t.h), color.RGBA{200, 200, 200, 255}, true)
 
@@ -103,7 +103,7 @@ func (t *TextArea) Draw(screen *ebiten.Image) {
 	}
 }
 
-func (t *TextArea) getCursorLineAndCol() (int, int) {
+func (t *TextAreaBasic) getCursorLineAndCol() (int, int) {
 	line, col := 0, 0
 	for i, char := range t.text[:t.cursorPos] {
 		if char == '\n' {
@@ -119,7 +119,7 @@ func (t *TextArea) getCursorLineAndCol() (int, int) {
 	return line, col
 }
 
-func (t *TextArea) textWidth(str string) int {
+func (t *TextAreaBasic) textWidth(str string) int {
 	width := 0
 	for _, x := range str {
 		awidth, _ := t.font.GlyphAdvance(x)

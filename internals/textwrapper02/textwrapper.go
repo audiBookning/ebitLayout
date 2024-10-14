@@ -1,77 +1,142 @@
 package textwrapper02
 
 import (
-	"fmt"
 	"image/color"
-	"os"
 
-	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
-	"golang.org/x/image/math/fixed"
 )
 
-// TextWrapper is responsible for rendering text on the screen.
+// TextWrapper is a reusable component for rendering and measuring text.
 type TextWrapper struct {
-	fontFace font.Face
-	Color    color.Color
+	Font       font.Face
+	Color      color.Color
+	FontSize   int
+	MaxWidth   int // Optional: Maximum width for text wrapping
+	WordWrap   bool
+	MaxLines   int // Optional: Maximum number of lines for text wrapping
+	LineHeight int // Height of each line
 }
 
-// NewTextWrapper initializes a new TextWrapper with the specified font.
-func NewTextWrapper(fontPath string, fontSize float64) (*TextWrapper, error) {
-	fontData, err := os.ReadFile(fontPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read font file: %w", err)
-	}
-
-	tt, err := truetype.Parse(fontData)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse font: %w", err)
-	}
-
-	fontFace := truetype.NewFace(tt, &truetype.Options{
-		Size: fontSize,
-	})
-
+// NewTextWrapper creates a new instance of TextWrapper.
+func NewTextWrapper(fontFace font.Face, fontSize int, clr color.Color) *TextWrapper {
 	return &TextWrapper{
-		fontFace: fontFace,
-		Color:    color.Black,
-	}, nil
-}
-
-// DrawText renders the given string at the specified (x, y) position on the screen.
-func (tw *TextWrapper) DrawText(screen *ebiten.Image, textStr string, x, y float64) {
-	text.Draw(screen, textStr, tw.fontFace, int(x), int(y), tw.Color)
-}
-
-// MeasureString returns the width and height of the given string.
-func (tw *TextWrapper) MeasureString(s string) (float64, float64) {
-	if len(s) == 0 {
-		return 0, tw.FontHeight()
+		Font:       fontFace,
+		Color:      clr,
+		FontSize:   fontSize,
+		WordWrap:   false,
+		MaxWidth:   0,
+		MaxLines:   0,
+		LineHeight: fontFace.Metrics().Height.Ceil(),
 	}
+}
 
-	var widthFixed fixed.Int26_6
-	for _, r := range s {
-		advance, ok := tw.fontFace.GlyphAdvance(r)
-		if !ok {
-			// Handle missing glyphs if necessary
-			continue
+// SetWordWrap enables or disables word wrapping with a specified maximum width and lines.
+func (tw *TextWrapper) SetWordWrap(maxWidth, maxLines int) {
+	tw.WordWrap = true
+	tw.MaxWidth = maxWidth
+	tw.MaxLines = maxLines
+}
+
+// DrawText renders the specified text at the given (x, y) position on the screen.
+func (tw *TextWrapper) DrawText(screen *ebiten.Image, str string, x, y int) {
+	text.Draw(screen, str, tw.Font, x, y, tw.Color)
+}
+func (tw *TextWrapper) DrawTextWithWordWrap(screen *ebiten.Image, str string, x, y int) {
+	if tw.WordWrap && tw.MaxWidth > 0 {
+		lines := tw.wrapText(str)
+		for i, line := range lines {
+			if tw.MaxLines > 0 && i >= tw.MaxLines {
+				break
+			}
+			text.Draw(screen, line, tw.Font, x, y+tw.LineHeight*i, tw.Color)
 		}
-		widthFixed += advance
+	} else {
+		text.Draw(screen, str, tw.Font, x, y, tw.Color)
+	}
+}
+
+// MeasureTextWidth returns the width of the given text string.
+func (tw *TextWrapper) MeasureTextWidth(str string) int {
+	return text.BoundString(tw.Font, str).Dx()
+}
+
+// MeasureTextHeight returns the total height of the given text string, considering word wrapping.
+func (tw *TextWrapper) MeasureTextHeight(str string) int {
+	if tw.WordWrap && tw.MaxWidth > 0 {
+		lines := tw.wrapText(str)
+		return tw.LineHeight * len(lines)
+	}
+	// Single-line height
+	return tw.LineHeight
+}
+
+// wrapText splits the text into lines based on the maximum width.
+func (tw *TextWrapper) wrapText(str string) []string {
+	words := splitIntoWords(str)
+	var lines []string
+	var currentLine string
+
+	for _, word := range words {
+		testLine := currentLine
+		if currentLine != "" {
+			testLine += " "
+		}
+		testLine += word
+
+		if tw.MeasureTextWidth(testLine) > tw.MaxWidth && currentLine != "" {
+			lines = append(lines, currentLine)
+			currentLine = word
+		} else {
+			currentLine = testLine
+		}
 	}
 
-	width := float64(widthFixed) / 64.0 // Convert from fixed.Int26_6 to float64
-	height := tw.FontHeight()
+	if currentLine != "" {
+		lines = append(lines, currentLine)
+	}
 
-	return width, height
+	return lines
 }
 
-// FontHeight returns the height of the font.
-func (tw *TextWrapper) FontHeight() float64 {
-	return float64(tw.fontFace.Metrics().Height) / 64.0
+// splitIntoWords splits a string into words separated by spaces.
+func splitIntoWords(str string) []string {
+	var words []string
+	currentWord := ""
+	for _, r := range str {
+		if r == ' ' || r == '\n' {
+			if currentWord != "" {
+				words = append(words, currentWord)
+				currentWord = ""
+			}
+			if r == '\n' {
+				words = append(words, "\n")
+			}
+		} else {
+			currentWord += string(r)
+		}
+	}
+	if currentWord != "" {
+		words = append(words, currentWord)
+	}
+	return words
 }
 
-func (tw *TextWrapper) GetFontMetrics() font.Metrics {
-	return tw.fontFace.Metrics()
+// splitIntoLines splits a string into lines separated by newline characters.
+func splitIntoLines(str string) []string {
+	var lines []string
+	currentLine := ""
+	for _, r := range str {
+		if r == '\n' {
+			lines = append(lines, currentLine)
+			currentLine = ""
+		} else {
+			currentLine += string(r)
+		}
+	}
+	if currentLine != "" {
+		lines = append(lines, currentLine)
+	}
+	return lines
 }

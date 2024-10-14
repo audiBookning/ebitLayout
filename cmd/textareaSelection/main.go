@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"example.com/menu/internals/textwrapper03"
+	"example.com/menu/internals/textwrapper02"
 	"example.com/menu/internals/widgets"
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font/basicfont"
@@ -60,7 +60,7 @@ func main() {
 	//fontPath := getFilePath("assets/fonts/roboto_regularTTF.ttf")
 	fontSize := 14
 
-	textWrapper := textwrapper03.NewTextWrapper(basicfont.Face7x13, fontSize, color.Black)
+	textWrapper := textwrapper02.NewTextWrapper(basicfont.Face7x13, fontSize, color.Black)
 	//textWrapper, err := textwrapper.NewTextWrapper(fontPath, fontSize, false)
 	//textWrapper, err := textwrapper02.NewTextWrapper(fontPath, fontSize)
 	/* if err != nil {

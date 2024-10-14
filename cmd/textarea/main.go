@@ -12,7 +12,7 @@ const (
 )
 
 type Game struct {
-	textarea *widgets.TextArea
+	textarea *widgets.TextAreaBasic
 }
 
 func (g *Game) Update() error {
