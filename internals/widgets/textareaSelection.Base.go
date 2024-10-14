@@ -160,8 +160,7 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 
 func (t *TextAreaSelection) Update() error {
 
-	// Single and double click detection
-	// Handle mouse button just pressed (mouse down)
+	// Single, double, and triple click detection
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		t.isMouseLeftPressed = true
 		t.clicked = true
@@ -170,34 +169,36 @@ func (t *TextAreaSelection) Update() error {
 			t.clickCount++
 		} else {
 			t.clickCount = 1
-			t.doubleClickHandled = false
 		}
 		t.lastClickTime = currentFrame
 
 		x, y := ebiten.CursorPosition()
-		//log.Println("Cursor position", x, y)
 
 		if t.isOverScrollbar(x, y) {
 			// Clicked on scrollbar
-
 			t.SetIsDraggingThumb(true)
-			t.dragOffsetY = float64(y-t.scrollbarY) - t.scrollbarThumbY // Adjust offset calculation
-			return nil                                                  // Exit early to prevent further processing
+			t.dragOffsetY = float64(y-t.scrollbarY) - t.scrollbarThumbY
+			return nil
 		} else if x >= t.x && x <= t.x+t.w && y >= t.y && y <= t.y+t.h {
-			if t.clickCount == 2 {
-				// Double-click detected
-				charPos := t.getCharPosFromPosition(x, y)
-				t.selectWordAt(charPos)
-				t.doubleClickHandled = true // Set the flag
-			} else {
+			switch t.clickCount {
+			case 1:
 				// Single click
 				t.hasFocus = true
 				charPos := t.getCharPosFromPosition(x, y)
-				t.setCursorPos(charPos) // Set cursor position
+				t.setCursorPos(charPos)
 				t.setSelectionStart(charPos)
 				t.setSelectionEnd(charPos)
 				t.SetIsSelecting(false)
 				t.SetIsDraggingThumb(false)
+			case 2:
+				// Double click
+				charPos := t.getCharPosFromPosition(x, y)
+				t.selectWordAt(charPos)
+				t.doubleClickHandled = true
+			case 3:
+				// Triple click
+				t.selectEntireLineAt(x, y)
+				t.clickCount = 0 // Reset click count after handling triple click
 			}
 		} else {
 			t.hasFocus = false
@@ -210,7 +211,6 @@ func (t *TextAreaSelection) Update() error {
 		x, y := ebiten.CursorPosition()
 		if t.isDraggingThumb {
 			t.dragScrollbar(y)
-			//} else if t.hasFocus && !t.doubleClickHandled && !t.isMouseLeftPressed {
 		} else if t.hasFocus && !t.doubleClickHandled {
 			if t.isOverScrollbar(x, y) {
 				// Prevent text selection when clicking on scrollbar
@@ -221,11 +221,8 @@ func (t *TextAreaSelection) Update() error {
 					t.SetIsSelecting(true)
 					t.setSelectionStart(t.cursorPos)
 				}
-				//} else if !t.isMouseLeftPressed {
 				t.setSelectionEnd(charPos)
 				t.setCursorPos(charPos) // called 2 times.
-				//}
-
 			}
 		}
 	}
@@ -238,7 +235,6 @@ func (t *TextAreaSelection) Update() error {
 		}
 		if t.isSelecting && !t.isDraggingThumb {
 			// Finalize selection on mouse release
-
 			t.SetIsSelecting(false)
 		}
 	}
@@ -256,4 +252,25 @@ func (t *TextAreaSelection) Update() error {
 
 	t.counter++
 	return nil
+}
+
+func (t *TextAreaSelection) selectEntireLineAt(x, y int) {
+	charPos := t.getCharPosFromPosition(x, y)
+	line, _ := t.getCursorLineAndColForPos(charPos)
+	lines := t.cachedLines
+
+	if line < 0 || line >= len(lines) {
+		return
+	}
+
+	// Calculate the start and end positions of the line
+	charStart := t.getCharPosFromLineAndCol(line, 0)
+	charEnd := t.getCharPosFromLineAndCol(line, len(lines[line]))
+
+	// Set the selection to the entire line
+	t.setSelectionStart(charStart)
+	t.setSelectionEnd(charEnd)
+	t.setCursorPos(charEnd)
+
+	t.SetIsSelecting(false)
 }
