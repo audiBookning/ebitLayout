@@ -263,10 +263,18 @@ func (t *TextAreaSelection) Update() error {
 		t.checkKeyboardInput()
 	}
 
-	// Handle mouse wheel scrolling
+	// Handle mouse wheel scrolling with smooth scrolling
 	_, yScroll := ebiten.Wheel()
 	if yScroll != 0 {
-		t.SetScrollOffset(clamp(t.scrollOffset-int(yScroll), 0, len(strings.Split(t.text, "\n"))-t.maxLines))
+		const linesPerWheel = 3
+		targetScrollOffset := clamp(t.scrollOffset-int(yScroll)*linesPerWheel, 0, max(t.scrollOffset, len(strings.Split(t.text, "\n"))-t.maxLines))
+		// Implement smooth transition to targetScrollOffset
+		scrollSpeed := 1 // Adjust this value for faster or slower scrolling
+		if t.scrollOffset < targetScrollOffset {
+			t.SetScrollOffset(t.scrollOffset + scrollSpeed)
+		} else if t.scrollOffset > targetScrollOffset {
+			t.SetScrollOffset(t.scrollOffset - scrollSpeed)
+		}
 	}
 
 	t.counter++
@@ -292,4 +300,12 @@ func (t *TextAreaSelection) selectEntireLineAt(x, y int) {
 	t.setCursorPos(charEnd)
 
 	t.SetIsSelecting(false)
+}
+
+// Helper function to get the maximum of two integers
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }

@@ -68,9 +68,12 @@ func (t *TextAreaSelection) drawScrollbar(screen *ebiten.Image, totalLines int) 
 	// Draw the scrollbar thumb
 	vector.DrawFilledRect(
 		screen,
-		float32(t.scrollbarX), float32(t.scrollbarY)+float32(t.scrollbarThumbY),
-		float32(t.scrollbarWidth), float32(t.scrollbarThumbH),
-		color.RGBA{160, 160, 160, 255}, true)
+		float32(t.scrollbarX),
+		float32(t.scrollbarY)+float32(t.scrollbarThumbY),
+		float32(t.scrollbarWidth),
+		float32(t.scrollbarThumbH),
+		color.RGBA{160, 160, 160, 255},
+		true)
 }
 
 func (t *TextAreaSelection) selectWordAt(pos int) {

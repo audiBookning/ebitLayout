@@ -2,11 +2,6 @@
 
 or any text field in a browser
 
-### Dragging Interactions
-
-2. **Shift + Click (Extend Selection)**:
-   - Click at one position to set the cursor, then hold `Shift` and click at another position to select the text between the two points.
-
 ### Clipboard Operations
 
 1. **Right-Click Menu**:
@@ -17,9 +12,6 @@ or any text field in a browser
      - **Select All**: Select all text in the textarea.
 
 ### Scrolling Interactions
-
-1. **Scroll Wheel**:
-   - Scroll up or down through the content of the textarea using the mouse wheel.
 
 2. **Click and Drag Scrollbar**:
    - Click and hold the scrollbar (usually on the right side of the textarea) to drag up or down and navigate through the text.
@@ -46,3 +38,12 @@ or any text field in a browser
 
 1. **Click and Drag (Text Selection)**:
    - Click and hold the left mouse button at a position within the text, then drag the mouse to select text between the start and end points.
+
+2. **Shift + Click (Extend Selection)**:
+   - Click at one position to set the cursor, then hold `Shift` and click at another position to select the text between the two points.
+
+### Scrolling Interactions
+
+1. **Scroll Wheel**:
+   - Scroll up or down through the content of the textarea using the mouse wheel.
+
