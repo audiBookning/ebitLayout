@@ -160,18 +160,8 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 
 func (t *TextAreaSelection) Update() error {
 
-	// Single, double, and triple click detection
+	// Single, double, triple, and Shift+Click detection
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		t.isMouseLeftPressed = true
-		t.clicked = true
-		currentFrame := t.counter
-		if currentFrame-t.lastClickTime <= t.doubleClickThreshold {
-			t.clickCount++
-		} else {
-			t.clickCount = 1
-		}
-		t.lastClickTime = currentFrame
-
 		x, y := ebiten.CursorPosition()
 
 		if t.isOverScrollbar(x, y) {
@@ -179,30 +169,59 @@ func (t *TextAreaSelection) Update() error {
 			t.SetIsDraggingThumb(true)
 			t.dragOffsetY = float64(y-t.scrollbarY) - t.scrollbarThumbY
 			return nil
-		} else if x >= t.x && x <= t.x+t.w && y >= t.y && y <= t.y+t.h {
-			switch t.clickCount {
-			case 1:
-				// Single click
-				t.hasFocus = true
-				charPos := t.getCharPosFromPosition(x, y)
-				t.setCursorPos(charPos)
-				t.setSelectionStart(charPos)
-				t.setSelectionEnd(charPos)
-				t.SetIsSelecting(false)
-				t.SetIsDraggingThumb(false)
-			case 2:
-				// Double click
-				charPos := t.getCharPosFromPosition(x, y)
-				t.selectWordAt(charPos)
-				t.doubleClickHandled = true
-			case 3:
-				// Triple click
-				t.selectEntireLineAt(x, y)
-				t.clickCount = 0 // Reset click count after handling triple click
+		}
+
+		if t.isShiftPressed() {
+			// Handle Shift + Click: Extend selection
+			charPos := t.getCharPosFromPosition(x, y)
+
+			// If there's no existing selection, set the selection start to the current cursor position
+			if t.selectionStart == t.selectionEnd {
+				t.setSelectionStart(t.cursorPos)
 			}
+
+			// Update the selection end and cursor position
+			t.setSelectionEnd(charPos)
+			t.setCursorPos(charPos)
+			t.SetIsSelecting(true)
 		} else {
-			t.hasFocus = false
-			t.SetIsSelecting(false)
+			// Handle single, double, and triple clicks
+			t.isMouseLeftPressed = true
+			t.clicked = true
+			currentFrame := t.counter
+			if currentFrame-t.lastClickTime <= t.doubleClickThreshold {
+				t.clickCount++
+			} else {
+				t.clickCount = 1
+			}
+			t.lastClickTime = currentFrame
+
+			if x >= t.x && x <= t.x+t.w && y >= t.y && y <= t.y+t.h {
+				switch t.clickCount {
+				case 1:
+					// Single click
+					t.hasFocus = true
+					charPos := t.getCharPosFromPosition(x, y)
+					t.setCursorPos(charPos)
+					t.setSelectionStart(charPos)
+					t.setSelectionEnd(charPos)
+					t.SetIsSelecting(false)
+					t.SetIsDraggingThumb(false)
+				case 2:
+					// Double click
+					charPos := t.getCharPosFromPosition(x, y)
+					t.selectWordAt(charPos)
+					t.doubleClickHandled = true
+				case 3:
+					// Triple click
+					t.selectEntireLineAt(x, y)
+					t.clickCount = 0 // Reset click count after handling triple click
+				}
+			} else {
+				// Clicked outside text area
+				t.hasFocus = false
+				t.SetIsSelecting(false)
+			}
 		}
 	}
 
@@ -211,7 +230,7 @@ func (t *TextAreaSelection) Update() error {
 		x, y := ebiten.CursorPosition()
 		if t.isDraggingThumb {
 			t.dragScrollbar(y)
-		} else if t.hasFocus && !t.doubleClickHandled {
+		} else if t.hasFocus && !(t.isShiftPressed() && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft)) {
 			if t.isOverScrollbar(x, y) {
 				// Prevent text selection when clicking on scrollbar
 			} else {
@@ -222,7 +241,7 @@ func (t *TextAreaSelection) Update() error {
 					t.setSelectionStart(t.cursorPos)
 				}
 				t.setSelectionEnd(charPos)
-				t.setCursorPos(charPos) // called 2 times.
+				t.setCursorPos(charPos)
 			}
 		}
 	}

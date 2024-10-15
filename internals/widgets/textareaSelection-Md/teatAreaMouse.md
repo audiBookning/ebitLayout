@@ -1,19 +1,8 @@
-Here is a list of typical mouse interactions with a `<textarea>` or any text field in a browser:
+# typical mouse interactions with a `<textarea>`
 
-### Basic Mouse Interactions
-
-1. **Single Click**:
-   - Place the cursor at the clicked position within the text.
-
-
-
-3. **Triple Click**:
-   - Select the entire line that is clicked.
+or any text field in a browser
 
 ### Dragging Interactions
-
-1. **Click and Drag (Text Selection)**:
-   - Click and hold the left mouse button at a position within the text, then drag the mouse to select text between the start and end points.
 
 2. **Shift + Click (Extend Selection)**:
    - Click at one position to set the cursor, then hold `Shift` and click at another position to select the text between the two points.
@@ -42,6 +31,18 @@ Here is a list of typical mouse interactions with a `<textarea>` or any text fie
 
 ## DONE
 
+### Basic Mouse Interactions
+
+1. **Single Click**:
+   - Place the cursor at the clicked position within the text.
+
 2. **Double Click**:
    - Select the word that is clicked.
-   
+
+3. **Triple Click**:
+   - Select the entire line that is clicked.
+
+### Dragging Interactions
+
+1. **Click and Drag (Text Selection)**:
+   - Click and hold the left mouse button at a position within the text, then drag the mouse to select text between the start and end points.
