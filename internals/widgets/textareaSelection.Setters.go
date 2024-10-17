@@ -5,12 +5,12 @@ func (t *TextAreaSelection) setCursorPos(pos int) {
 }
 
 func (t *TextAreaSelection) setSelectionStart(pos int) {
-	t.selectionStart = pos
+	t.selectionStart = clamp(pos, 0, len(t.text))
 	t.updateSelectionBounds()
 }
 
 func (t *TextAreaSelection) setSelectionEnd(pos int) {
-	t.selectionEnd = pos
+	t.selectionEnd = clamp(pos, 0, len(t.text))
 	t.updateSelectionBounds()
 }
 

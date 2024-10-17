@@ -197,6 +197,7 @@ func (t *TextAreaSelection) indentSelection() {
 
 	t.text = strings.Join(lines, "\n")
 	t.setCursorPos(t.selectionEnd + len(indent))
+	t.isTextChanged = true // Add this line
 }
 
 func (t *TextAreaSelection) clearSelection() {
@@ -357,9 +358,9 @@ func (t *TextAreaSelection) isShiftPressed() bool {
 }
 
 func (t *TextAreaSelection) updateSelection(newPos int) {
-
 	t.setSelectionEnd(newPos)
 	t.setCursorPos(newPos)
+	t.updateSelectionBounds()
 }
 
 // ---------------------

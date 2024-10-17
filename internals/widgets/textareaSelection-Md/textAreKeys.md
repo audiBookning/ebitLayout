@@ -26,7 +26,7 @@ Below is an exhaustive list of typical key interactions with a `<textarea>` elem
 - **Ctrl + Home**: Move the cursor to the very beginning of the text (top of the textarea).
 - **Ctrl + End**: Move the cursor to the very end of the text (bottom of the textarea).
 
-6. **Ctrl + Arrow Keys**:
+6. **Ctrl + Arrow Keys** - Optional can also just scroll up or down:
    - **Ctrl + Up Arrow**: Move the cursor to the beginning of the current paragraph.
    - **Ctrl + Down Arrow**: Move the cursor to the end of the current paragraph.
 

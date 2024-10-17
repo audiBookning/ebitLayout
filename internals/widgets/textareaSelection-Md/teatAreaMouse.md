@@ -11,16 +11,15 @@ or any text field in a browser
      - **Paste**: Paste the text from the clipboard at the cursor position.
      - **Select All**: Select all text in the textarea.
 
-### Scrolling Interactions
-
-2. **Click and Drag Scrollbar**:
-   - Click and hold the scrollbar (usually on the right side of the textarea) to drag up or down and navigate through the text.
-
 ### Selection Modifiers
 
 1. **Ctrl + Mouse Click**:
    - If supported, Ctrl + Click allows multi-selection or extended selection in some applications, but this may not be typical behavior in plain textareas.
 
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
 ## DONE
 
 ### Basic Mouse Interactions
@@ -46,4 +45,7 @@ or any text field in a browser
 
 1. **Scroll Wheel**:
    - Scroll up or down through the content of the textarea using the mouse wheel.
+
+2. **Click and Drag Scrollbar**:
+   - Click and hold the scrollbar (usually on the right side of the textarea) to drag up or down and navigate through the text.
 

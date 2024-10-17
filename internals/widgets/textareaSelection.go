@@ -3,6 +3,8 @@ package widgets
 import (
 	"example.com/menu/internals/textwrapper"
 	//"example.com/menu/internals/textwrapper02"
+	"fmt"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.design/x/clipboard"
 )
@@ -77,6 +79,7 @@ type TextAreaSelection struct {
 func NewTextAreaSelection(textWrapper *textwrapper.TextWrapper, x, y, w, h int, startTxt string) *TextAreaSelection {
 	err := clipboard.Init()
 	if err != nil {
+		fmt.Println("Clipboard initialization failed:", err)
 		return nil
 	}
 

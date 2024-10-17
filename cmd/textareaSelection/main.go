@@ -59,7 +59,7 @@ func main() {
 
 	//fontPath := getFilePath("assets/fonts/roboto_regularTTF.ttf")
 	fontPath := getFilePath("assets/fonts/Anonymous_Pro.ttf")
-	fontSize := 40.0
+	fontSize := 30.0
 
 	//textWrapper := textwrapper.NewTextWrapper(basicfont.Face7x13, fontSize, color.Black)
 	textWrapper, err := textwrapper.NewTextWrapper(fontPath, fontSize, false)
