@@ -39,3 +39,11 @@ func clampFloat(value, min, max float64) float64 {
 	}
 	return value
 }
+
+// Helper function to get the maximum of two integers
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
