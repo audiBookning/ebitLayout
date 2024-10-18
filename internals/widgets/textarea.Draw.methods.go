@@ -8,13 +8,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-func (t *TextAreaSelection) drawBackground(screen *ebiten.Image) {
+func (t *TextArea) drawBackground(screen *ebiten.Image) {
 	// Draw the background of the text area
 	vector.DrawFilledRect(screen, float32(t.x), float32(t.y), float32(t.w), float32(t.h), color.RGBA{200, 200, 200, 255}, true)
 	t.drawGrid(screen)
 }
 
-func (t *TextAreaSelection) drawSelection(screen *ebiten.Image, minPos, maxPos, lineIndex int, line string, yOffset float64) {
+func (t *TextArea) drawSelection(screen *ebiten.Image, minPos, maxPos, lineIndex int, line string, yOffset float64) {
 	startLineSel, startCol := t.getCursorLineAndColForPos(minPos)
 	endLineSel, endCol := t.getCursorLineAndColForPos(maxPos)
 
@@ -54,7 +54,7 @@ func (t *TextAreaSelection) drawSelection(screen *ebiten.Image, minPos, maxPos, 
 	}
 }
 
-func (t *TextAreaSelection) drawScrollbar(screen *ebiten.Image, totalLines int) {
+func (t *TextArea) drawScrollbar(screen *ebiten.Image, totalLines int) {
 	// Initialize scrollbar properties
 	t.scrollbarWidth = 10
 	t.scrollbarX = t.x + t.w - t.scrollbarWidth
@@ -90,7 +90,7 @@ func (t *TextAreaSelection) drawScrollbar(screen *ebiten.Image, totalLines int) 
 		true)
 }
 
-func (t *TextAreaSelection) drawCursor(screen *ebiten.Image) {
+func (t *TextArea) drawCursor(screen *ebiten.Image) {
 	cursorLine, cursorCol := t.getCursorLineAndCol()
 	if cursorLine >= t.scrollOffset && cursorLine < t.scrollOffset+t.maxLines {
 
@@ -115,7 +115,7 @@ func (t *TextAreaSelection) drawCursor(screen *ebiten.Image) {
 	}
 }
 
-func (t *TextAreaSelection) drawGrid(screen *ebiten.Image) {
+func (t *TextArea) drawGrid(screen *ebiten.Image) {
 	gridColor := color.RGBA{255, 0, 0, 255} // Red color
 	strokeWidth := float32(1)               // Thickness of grid lines
 
@@ -154,6 +154,6 @@ func (t *TextAreaSelection) drawGrid(screen *ebiten.Image) {
 	}
 }
 
-func (t *TextAreaSelection) getCursorLineAndCol() (int, int) {
+func (t *TextArea) getCursorLineAndCol() (int, int) {
 	return t.getCursorLineAndColForPos(t.cursorPos)
 }

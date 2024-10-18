@@ -4,7 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
+func (t *TextArea) Draw(screen *ebiten.Image) {
 
 	// Split lines only if text has changed
 
@@ -17,7 +17,7 @@ func (t *TextAreaSelection) Draw(screen *ebiten.Image) {
 	endLine := clamp(startLine+t.maxLines, 0, len(t.cachedLines))
 
 	// Retrieve normalized selection bounds
-	minPos, maxPos := t.getSelectionBounds()
+	minPos, maxPos := t.selection.getSelectionBounds()
 	//fmt.Printf("Drawing selection from byte %d to byte %d\n", minPos, maxPos)
 
 	for i := startLine; i < endLine; i++ {

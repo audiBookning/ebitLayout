@@ -7,7 +7,7 @@ import (
 	"golang.design/x/clipboard"
 )
 
-func (t *TextAreaSelection) handlePageDown() {
+func (t *TextArea) handlePageDown() {
 	t.pushUndo()
 	lines := strings.Split(t.text, "\n")
 	totalLines := len(lines)
@@ -24,7 +24,7 @@ func (t *TextAreaSelection) handlePageDown() {
 
 }
 
-func (t *TextAreaSelection) handlePageUp() {
+func (t *TextArea) handlePageUp() {
 	t.pushUndo()
 	// Calculate the new scroll offset
 	newScrollOffset := t.scrollOffset - t.maxLines
@@ -36,78 +36,79 @@ func (t *TextAreaSelection) handlePageUp() {
 
 }
 
-func (t *TextAreaSelection) handleCtrlShiftLeftArrow() {
+func (t *TextArea) handleCtrlShiftLeftArrow() {
 	t.pushUndo()
 	newPos := t.moveToWordStart(t.cursorPos)
 	t.updateSelection(newPos)
 }
 
-func (t *TextAreaSelection) handleCtrlShiftRightArrow() {
+func (t *TextArea) handleCtrlShiftRightArrow() {
 	t.pushUndo()
 	newPos := t.moveToWordEnd(t.cursorPos)
 	t.updateSelection(newPos)
 }
 
-func (t *TextAreaSelection) handleCtrlShiftUpArrow() {
+func (t *TextArea) handleCtrlShiftUpArrow() {
 	t.pushUndo()
 	currentLine, _ := t.getCursorLineAndColForPos(t.cursorPos)
-	newPos := t.getCharPosFromLineAndCol(currentLine, 0)
+	newPos := t.getCharPosFromLineAndColWithclamp(currentLine, 0)
 	t.updateSelection(newPos)
 }
 
-func (t *TextAreaSelection) handleCtrlShiftDownArrow() {
+func (t *TextArea) handleCtrlShiftDownArrow() {
 	t.pushUndo()
 	currentLine, _ := t.getCursorLineAndColForPos(t.cursorPos)
 	lines := strings.Split(t.text, "\n")
 	if currentLine < len(lines) {
-		newPos := t.getCharPosFromLineAndCol(currentLine, len(lines[currentLine]))
+		newPos := t.getCharPosFromLineAndColWithclamp(currentLine, len(lines[currentLine]))
 		t.updateSelection(newPos)
 	}
 }
 
-func (t *TextAreaSelection) handleCtrlUpArrow() {
+func (t *TextArea) handleCtrlUpArrow() {
 	t.pushUndo()
 	currentLine, _ := t.getCursorLineAndColForPos(t.cursorPos)
-	newPos := t.getCharPosFromLineAndCol(currentLine, 0)
+	newPos := t.getCharPosFromLineAndColWithclamp(currentLine, 0)
 	if t.isShiftPressed() {
 		t.updateSelection(newPos)
 	} else {
-		t.clearSelection()
+
+		t.selection.ClearSelection(t.cursorPos)
 		t.setCursorPos(newPos)
 	}
 }
 
-func (t *TextAreaSelection) handleCtrlDownArrow() {
+func (t *TextArea) handleCtrlDownArrow() {
 	t.pushUndo()
 	currentLine, _ := t.getCursorLineAndColForPos(t.cursorPos)
 	lines := strings.Split(t.text, "\n")
 	if currentLine < len(lines) {
-		newPos := t.getCharPosFromLineAndCol(currentLine, len(lines[currentLine]))
+		newPos := t.getCharPosFromLineAndColWithclamp(currentLine, len(lines[currentLine]))
 		if t.isShiftPressed() {
 			t.updateSelection(newPos)
 		} else {
-			t.clearSelection()
+			t.selection.ClearSelection(t.cursorPos)
 			t.setCursorPos(newPos)
 		}
 	}
 }
 
-func (t *TextAreaSelection) handleCtrlShiftHome() {
+func (t *TextArea) handleCtrlShiftHome() {
 	t.pushUndo()
 	// Select from cursor to beginning of text
-	t.setSelectionStart(0)
-	t.setSelectionEnd(t.selectionStart) // Use the existing selection start as the end
+	t.selection.setSelectionStart(0)
+	t.selection.setSelectionEnd(t.selection.selectionStart)
 	t.setCursorPos(0)
 	// Scroll to the top of the textarea
 	t.SetScrollOffset(0)
 }
 
-func (t *TextAreaSelection) handleCtrlShiftEnd() {
+func (t *TextArea) handleCtrlShiftEnd() {
 	t.pushUndo()
 	// Select from cursor to end of text
 	// TODO: not necessary, but just for clarity of the logic
-	t.setSelectionStart(t.selectionStart) // Use the existing selection start as the start
-	t.setSelectionEnd(len(t.text))
+	t.selection.setSelectionStart(t.selection.selectionStart) // Use the existing selection start as the start
+	t.selection.setSelectionEnd(len(t.text))
 	t.setCursorPos(len(t.text))
 	// Scroll to the bottom of the textarea
 	maxScrollOffset := len(strings.Split(t.text, "\n")) - t.maxLines
@@ -116,27 +117,29 @@ func (t *TextAreaSelection) handleCtrlShiftEnd() {
 	}
 }
 
-func (t *TextAreaSelection) handleCtrlHome() {
+func (t *TextArea) handleCtrlHome() {
 	t.pushUndo()
 	// Move cursor to the very beginning of the text
 	t.setCursorPos(0)
 	if t.isShiftPressed() {
-		t.setSelectionEnd(0)
+		t.selection.setSelectionEnd(0)
+
 	} else {
-		t.clearSelection()
+		t.selection.ClearSelection(t.cursorPos)
 	}
 	// Scroll to the top of the textarea
 	t.SetScrollOffset(0)
 }
 
-func (t *TextAreaSelection) handleCtrlEnd() {
+func (t *TextArea) handleCtrlEnd() {
 	t.pushUndo()
 	// Move cursor to the very end of the text
 	t.setCursorPos(len(t.text))
 	if t.isShiftPressed() {
-		t.setSelectionEnd(len(t.text))
+
+		t.selection.setSelectionEnd(len(t.text))
 	} else {
-		t.clearSelection()
+		t.selection.ClearSelection(t.cursorPos)
 	}
 	// Scroll to the bottom of the textarea
 	maxScrollOffset := len(strings.Split(t.text, "\n")) - t.maxLines
@@ -145,13 +148,13 @@ func (t *TextAreaSelection) handleCtrlEnd() {
 	}
 }
 
-func (t *TextAreaSelection) handleCopySelection() {
-	if t.selectionStart == t.selectionEnd {
+func (t *TextArea) handleCopySelection() {
+	if t.selection.selectionStart == t.selection.selectionEnd {
 		// No selection to copy
 		fmt.Println("handleCopySelection - No selection to copy.")
 		return
 	}
-	minPos, maxPos := t.getSelectionBounds()
+	minPos, maxPos := t.selection.getSelectionBounds()
 	selectedText := t.text[minPos:maxPos]
 	fmt.Printf("handleCopySelection - Copying text from %d to %d: %q\n", minPos, maxPos, selectedText)
 	// Write to clipboard using golang-design/clipboard
@@ -164,14 +167,14 @@ func (t *TextAreaSelection) handleCopySelection() {
 }
 
 // handleCutSelection copies the selected text to the OS clipboard and removes it from the text area
-func (t *TextAreaSelection) handleCutSelection() {
-	if t.selectionStart == t.selectionEnd {
+func (t *TextArea) handleCutSelection() {
+	if t.selection.selectionStart == t.selection.selectionEnd {
 		// No selection to cut
 		fmt.Println("handleCutSelection - No selection to cut.")
 		return
 	}
 	t.pushUndo()
-	minPos, maxPos := t.getSelectionBounds()
+	minPos, maxPos := t.selection.getSelectionBounds()
 	selectedText := t.text[minPos:maxPos]
 	fmt.Printf("handleCutSelection - Cutting text from %d to %d: %q\n", minPos, maxPos, selectedText)
 	// Write to clipboard using golang-design/clipboard
@@ -184,18 +187,18 @@ func (t *TextAreaSelection) handleCutSelection() {
 	// Remove the selected text from the text area
 	t.text = t.text[:minPos] + t.text[maxPos:]
 	t.setCursorPos(minPos)
-	t.clearSelection()
+	t.selection.ClearSelection(t.cursorPos)
 	t.isTextChanged = true
 }
 
 // handlePasteClipboard inserts text from the OS clipboard into the text area at the current cursor position
-func (t *TextAreaSelection) handlePasteClipboard() {
+func (t *TextArea) handlePasteClipboard() {
 	t.pushUndo() // Ensure each paste is undoable individually
 	clipboardBytes := clipboard.Read(clipboard.FmtText)
 	clipboardText := string(clipboardBytes)
-	if t.selectionStart != t.selectionEnd {
+	if t.selection.selectionStart != t.selection.selectionEnd {
 		// Replace selected text with clipboard text
-		minPos, maxPos := t.getSelectionBounds()
+		minPos, maxPos := t.selection.getSelectionBounds()
 		t.text = t.text[:minPos] + clipboardText + t.text[maxPos:]
 		t.cursorPos = minPos + len(clipboardText)
 		t.isTextChanged = true
@@ -205,11 +208,11 @@ func (t *TextAreaSelection) handlePasteClipboard() {
 		t.cursorPos += len(clipboardText)
 		t.isTextChanged = true
 	}
-	t.clearSelection()
+	t.selection.ClearSelection(t.cursorPos)
 }
 
-func (t *TextAreaSelection) handleBackspace() {
-	if t.selectionStart != t.selectionEnd {
+func (t *TextArea) handleBackspace() {
+	if t.selection.selectionStart != t.selection.selectionEnd {
 		t.pushUndo()
 		t.deleteSelection()
 		t.isTextChanged = true
@@ -218,12 +221,12 @@ func (t *TextAreaSelection) handleBackspace() {
 		t.text = t.text[:t.cursorPos-1] + t.text[t.cursorPos:]
 		t.cursorPos--
 		t.isTextChanged = true
-		t.clearSelection()
+		t.selection.ClearSelection(t.cursorPos)
 	}
 }
 
-func (t *TextAreaSelection) handleDelete() {
-	if t.selectionStart != t.selectionEnd {
+func (t *TextArea) handleDelete() {
+	if t.selection.selectionStart != t.selection.selectionEnd {
 		t.pushUndo()
 		t.deleteSelection()
 		t.isTextChanged = true
@@ -231,12 +234,12 @@ func (t *TextAreaSelection) handleDelete() {
 		t.pushUndo()
 		t.text = t.text[:t.cursorPos] + t.text[t.cursorPos+1:]
 		t.isTextChanged = true
-		t.clearSelection()
+		t.selection.ClearSelection(t.cursorPos)
 	}
 }
 
-func (t *TextAreaSelection) handleCtrlBackspace() {
-	if t.selectionStart != t.selectionEnd {
+func (t *TextArea) handleCtrlBackspace() {
+	if t.selection.selectionStart != t.selection.selectionEnd {
 		// If there's an active selection, delete the selected text
 		t.pushUndo()
 		t.deleteSelection()
@@ -248,13 +251,13 @@ func (t *TextAreaSelection) handleCtrlBackspace() {
 		t.text = t.text[:newPos] + t.text[t.cursorPos:]
 		t.setCursorPos(newPos)
 		t.isTextChanged = true
-		t.clearSelection()
+		t.selection.ClearSelection(t.cursorPos)
 	}
 }
 
 // handleCtrlDelete deletes text from the current cursor position to the end of the word
-func (t *TextAreaSelection) handleCtrlDelete() {
-	if t.selectionStart != t.selectionEnd {
+func (t *TextArea) handleCtrlDelete() {
+	if t.selection.selectionStart != t.selection.selectionEnd {
 		// If there's an active selection, delete the selected text
 		t.pushUndo()
 		t.deleteSelection()
@@ -269,107 +272,107 @@ func (t *TextAreaSelection) handleCtrlDelete() {
 		}
 		t.text = t.text[:t.cursorPos] + t.text[newPos:]
 		t.isTextChanged = true
-		t.clearSelection()
+		t.selection.ClearSelection(t.cursorPos)
 	}
 }
 
-func (t *TextAreaSelection) handleTab() {
+func (t *TextArea) handleTab() {
 	t.pushUndo()
-	if t.isSelecting {
+	if t.selection.isSelecting {
 		t.indentSelection()
 	} else {
 		t.text = t.text[:t.cursorPos] + strings.Repeat(" ", t.tabWidth) + t.text[t.cursorPos:]
 		t.cursorPos += t.tabWidth
 	}
-	t.clearSelection()
+	t.selection.ClearSelection(t.cursorPos)
 }
 
-func (t *TextAreaSelection) handleEnter() {
+func (t *TextArea) handleEnter() {
 	t.pushUndo()
 	t.text = t.text[:t.cursorPos] + "\n" + t.text[t.cursorPos:]
 	t.cursorPos++
-	t.clearSelection()
+	t.selection.ClearSelection(t.cursorPos)
 }
 
-func (t *TextAreaSelection) handleLeftArrow() {
+func (t *TextArea) handleLeftArrow() {
 	t.pushUndo()
-	if t.selectionStart != t.selectionEnd {
-		t.clearSelection()
+	if t.selection.selectionStart != t.selection.selectionEnd {
+		t.selection.ClearSelection(t.cursorPos)
 	} else {
 		if t.cursorPos > 0 {
 			t.cursorPos--
-			t.clearSelection()
+			t.selection.ClearSelection(t.cursorPos)
 		}
 	}
 }
 
-func (t *TextAreaSelection) handleShiftLeftArrow() {
+func (t *TextArea) handleShiftLeftArrow() {
 	t.pushUndo()
 	t.updateSelectionWithShiftKey(-1)
 }
 
-func (t *TextAreaSelection) handleShiftRightArrow() {
+func (t *TextArea) handleShiftRightArrow() {
 	t.updateSelectionWithShiftKey(1)
 }
 
-func (t *TextAreaSelection) handleRightArrow() {
+func (t *TextArea) handleRightArrow() {
 	t.pushUndo()
-	if t.selectionStart != t.selectionEnd {
-		t.clearSelection()
+	if t.selection.selectionStart != t.selection.selectionEnd {
+		t.selection.ClearSelection(t.cursorPos)
 	} else {
 		if t.cursorPos < len(t.text) {
 			t.cursorPos++
-			t.clearSelection()
+			t.selection.ClearSelection(t.cursorPos)
 		}
 	}
 }
 
-func (t *TextAreaSelection) handleSelectAll() {
+func (t *TextArea) handleSelectAll() {
 	t.pushUndo()
-	t.setSelectionStart(0)
-	t.setSelectionEnd(len(t.text))
+	t.selection.setSelectionStart(0)
+	t.selection.setSelectionEnd(len(t.text))
 	t.setCursorPos(len(t.text))
 }
 
-func (t *TextAreaSelection) handleHome() {
+func (t *TextArea) handleHome() {
 	t.pushUndo()
 	line, _ := t.getCursorLineAndColForPos(t.cursorPos)
-	newPos := t.getCharPosFromLineAndCol(line, 0)
-	t.clearSelection()
+	newPos := t.getCharPosFromLineAndColWithclamp(line, 0)
+	t.selection.ClearSelection(t.cursorPos)
 	t.setCursorPos(newPos)
 
 }
 
-func (t *TextAreaSelection) handleEnd() {
+func (t *TextArea) handleEnd() {
 	t.pushUndo()
 	line, _ := t.getCursorLineAndColForPos(t.cursorPos)
 	lines := strings.Split(t.text, "\n")
 	if line >= len(lines) {
 		line = len(lines) - 1
 	}
-	newPos := t.getCharPosFromLineAndCol(line, len(lines[line]))
+	newPos := t.getCharPosFromLineAndColWithclamp(line, len(lines[line]))
 
-	t.clearSelection()
+	t.selection.ClearSelection(t.cursorPos)
 	t.setCursorPos(newPos)
 }
 
-func (t *TextAreaSelection) handleCtrlLeftArrow() {
+func (t *TextArea) handleCtrlLeftArrow() {
 	t.pushUndo()
 	newPos := t.moveToWordStart(t.cursorPos)
-	t.clearSelection()
+	t.selection.ClearSelection(t.cursorPos)
 	t.setCursorPos(newPos)
 }
 
-func (t *TextAreaSelection) handleCtrlRightArrow() {
+func (t *TextArea) handleCtrlRightArrow() {
 	t.pushUndo()
 	newPos := t.moveToWordEnd(t.cursorPos)
 
-	t.clearSelection()
+	t.selection.ClearSelection(t.cursorPos)
 	t.setCursorPos(newPos)
 }
 
 // ---------------------
-func (t *TextAreaSelection) handleUpArrow() {
+func (t *TextArea) handleUpArrow() {
 	t.pushUndo()
 	currentLine, currentCol := t.getCursorLineAndColForPos(t.cursorPos)
 	if currentLine > 0 {
@@ -379,13 +382,13 @@ func (t *TextAreaSelection) handleUpArrow() {
 		if targetCol > len(lines[targetLine]) {
 			targetCol = len(lines[targetLine])
 		}
-		newPos := t.getCharPosFromLineAndCol(targetLine, targetCol)
+		newPos := t.getCharPosFromLineAndColWithclamp(targetLine, targetCol)
 		t.setCursorPos(newPos)
-		t.clearSelection()
+		t.selection.ClearSelection(t.cursorPos)
 	}
 }
 
-func (t *TextAreaSelection) handleDownArrow() {
+func (t *TextArea) handleDownArrow() {
 	t.pushUndo()
 	currentLine, currentCol := t.getCursorLineAndColForPos(t.cursorPos)
 	lines := strings.Split(t.text, "\n")
@@ -395,13 +398,13 @@ func (t *TextAreaSelection) handleDownArrow() {
 		if targetCol > len(lines[targetLine]) {
 			targetCol = len(lines[targetLine])
 		}
-		newPos := t.getCharPosFromLineAndCol(targetLine, targetCol)
+		newPos := t.getCharPosFromLineAndColWithclamp(targetLine, targetCol)
 		t.setCursorPos(newPos)
-		t.clearSelection()
+		t.selection.ClearSelection(t.cursorPos)
 	}
 }
 
-func (t *TextAreaSelection) handleShiftUp() {
+func (t *TextArea) handleShiftUp() {
 	t.pushUndo()
 	currentLine, currentCol := t.getCursorLineAndColForPos(t.cursorPos)
 	if currentLine > 0 {
@@ -415,13 +418,13 @@ func (t *TextAreaSelection) handleShiftUp() {
 		if desiredCol > len(lines[targetLine]) {
 			desiredCol = len(lines[targetLine])
 		}
-		newPos := t.getCharPosFromLineAndCol(targetLine, desiredCol)
+		newPos := t.getCharPosFromLineAndColWithclamp(targetLine, desiredCol)
 		t.updateSelection(newPos)
 		t.desiredCursorCol = -1
 	}
 }
 
-func (t *TextAreaSelection) handleShiftDown() {
+func (t *TextArea) handleShiftDown() {
 	t.pushUndo()
 	currentLine, currentCol := t.getCursorLineAndColForPos(t.cursorPos)
 	lines := strings.Split(t.text, "\n")
@@ -435,50 +438,50 @@ func (t *TextAreaSelection) handleShiftDown() {
 		if desiredCol > len(lines[targetLine]) {
 			desiredCol = len(lines[targetLine])
 		}
-		newPos := t.getCharPosFromLineAndCol(targetLine, desiredCol)
+		newPos := t.getCharPosFromLineAndColWithclamp(targetLine, desiredCol)
 		t.updateSelection(newPos)
 		t.desiredCursorCol = -1
 	}
 }
 
 // ---------------------
-func (t *TextAreaSelection) handleShiftHome() {
-	if t.selectionStart != t.selectionEnd || !t.hasSelectionStarted() {
+func (t *TextArea) handleShiftHome() {
+	if t.selection.selectionStart != t.selection.selectionEnd || !t.hasSelectionStarted() {
 		t.pushUndo()
 	}
 
 	// Initialize selectionStart if no selection is active
-	if t.selectionStart == t.selectionEnd {
-		t.setSelectionStart(t.cursorPos)
+	if t.selection.selectionStart == t.selection.selectionEnd {
+		t.selection.setSelectionStart(t.cursorPos)
 	}
 	currentLine, _ := t.getCursorLineAndColForPos(t.cursorPos)
-	newPos := t.getCharPosFromLineAndCol(currentLine, 0)
+	newPos := t.getCharPosFromLineAndColWithclamp(currentLine, 0)
 	t.updateSelection(newPos)
 }
 
-func (t *TextAreaSelection) handleShiftEnd() {
+func (t *TextArea) handleShiftEnd() {
 	// Only push to undo stack if a selection will be changed
-	if t.selectionStart != t.selectionEnd || !t.hasSelectionStarted() {
+	if t.selection.selectionStart != t.selection.selectionEnd || !t.hasSelectionStarted() {
 		t.pushUndo()
 	}
 
 	// Initialize selectionStart if no selection is active
-	if t.selectionStart == t.selectionEnd {
-		t.setSelectionStart(t.cursorPos)
+	if t.selection.selectionStart == t.selection.selectionEnd {
+		t.selection.setSelectionStart(t.cursorPos)
 	}
 
 	currentLine, _ := t.getCursorLineAndColForPos(t.cursorPos)
 	lines := strings.Split(t.text, "\n")
-	newPos := t.getCharPosFromLineAndCol(currentLine, len(lines[currentLine]))
+	newPos := t.getCharPosFromLineAndColWithclamp(currentLine, len(lines[currentLine]))
 	t.updateSelection(newPos)
 }
 
 // Helper method to check if selection has started
-func (t *TextAreaSelection) hasSelectionStarted() bool {
-	return t.selectionStart != t.selectionEnd
+func (t *TextArea) hasSelectionStarted() bool {
+	return t.selection.selectionStart != t.selection.selectionEnd
 }
 
-func (t *TextAreaSelection) handleUndo() {
+func (t *TextArea) handleUndo() {
 	if len(t.undoStack) > 0 {
 		// Pop the last state from undoStack
 		lastState := t.undoStack[len(t.undoStack)-1]
@@ -492,13 +495,13 @@ func (t *TextAreaSelection) handleUndo() {
 		// Restore the last state
 		t.text = lastState.Text
 		t.setCursorPos(lastState.CursorPos)
-		t.clearSelection()
+		t.selection.ClearSelection(t.cursorPos)
 		t.isTextChanged = true
 		t.counter = 0 // Reset blink counter
 	}
 }
 
-func (t *TextAreaSelection) handleRedo() {
+func (t *TextArea) handleRedo() {
 	if len(t.redoStack) > 0 {
 		// Pop the last state from redoStack
 		lastState := t.redoStack[len(t.redoStack)-1]
@@ -512,7 +515,7 @@ func (t *TextAreaSelection) handleRedo() {
 		// Restore the last state
 		t.text = lastState.Text
 		t.setCursorPos(lastState.CursorPos)
-		t.clearSelection()
+		t.selection.ClearSelection(t.cursorPos)
 		t.isTextChanged = true
 		t.counter = 0 // Reset blink counter
 	}

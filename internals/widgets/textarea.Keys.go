@@ -4,7 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func (t *TextAreaSelection) checkKeyboardInput() error {
+func (t *TextArea) checkKeyboardInput() error {
 
 	// Define the keys that support repeat
 	repeatKeys := []ebiten.Key{
@@ -67,7 +67,7 @@ func (t *TextAreaSelection) checkKeyboardInput() error {
 			t.text = t.text[:t.cursorPos] + string(char) + t.text[t.cursorPos:]
 			t.cursorPos++
 			t.isTextChanged = true // Add this line
-			t.clearSelection()
+			t.selection.ClearSelection(t.cursorPos)
 		}
 	}
 
@@ -75,22 +75,22 @@ func (t *TextAreaSelection) checkKeyboardInput() error {
 	return nil
 }
 
-func (t *TextAreaSelection) checkKeyPress(key ebiten.Key) {
+func (t *TextArea) checkKeyPress(key ebiten.Key) {
 	// If there is an active selection and Shift or ctrl is not pressed,
 	// move the cursor to the appropriate end of the selection and clear the selection.
-	if t.selectionStart != t.selectionEnd && !t.isShiftPressed() && !t.isCtrlPressed() {
+	if t.selection.selectionStart != t.selection.selectionEnd && !t.isShiftPressed() && !t.isCtrlPressed() {
 		switch key {
 		case ebiten.KeyLeft, ebiten.KeyUp, ebiten.KeyHome:
 			// Move cursor to the start of the selection
-			t.setCursorPos(t.getSelectionBoundsStart())
+			t.setCursorPos(t.selection.getSelectionBoundsStart())
 		case ebiten.KeyRight, ebiten.KeyDown, ebiten.KeyEnd:
 			// Move cursor to the end of the selection
-			t.setCursorPos(t.getSelectionBoundsEnd())
+			t.setCursorPos(t.selection.getSelectionBoundsEnd())
 		case ebiten.KeyBackspace, ebiten.KeyDelete:
 			t.handleDelete()
 		}
 		// Clear the selection
-		t.clearSelection()
+		t.selection.ClearSelection(t.cursorPos)
 		return // Exit early to prevent further processing
 	}
 

@@ -10,7 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-func (t *TextAreaSelection) Update() error {
+func (t *TextArea) Update() error {
 
 	if t.isTextChanged {
 		t.cachedLines = strings.Split(t.text, "\n")
@@ -33,14 +33,17 @@ func (t *TextAreaSelection) Update() error {
 			charPos := t.getCharPosFromPosition(x, y)
 
 			// If there's no existing selection, set the selection start to the current cursor position
-			if t.selectionStart == t.selectionEnd {
-				t.setSelectionStart(t.cursorPos)
+			if t.selection.selectionStart == t.selection.selectionEnd {
+				poos := clamp(t.cursorPos, 0, len(t.text))
+				t.selection.setSelectionStart(poos)
+
 			}
 
 			// Update the selection end and cursor position
-			t.setSelectionEnd(charPos)
+			poos := clamp(charPos, 0, len(t.text))
+			t.selection.setSelectionEnd(poos)
 			t.setCursorPos(charPos)
-			t.SetIsSelecting(true)
+			t.selection.SetIsSelecting(true)
 		} else {
 			// Handle single, double, and triple clicks
 			t.isMouseLeftPressed = true
@@ -60,9 +63,12 @@ func (t *TextAreaSelection) Update() error {
 					t.hasFocus = true
 					charPos := t.getCharPosFromPosition(x, y)
 					t.setCursorPos(charPos)
-					t.setSelectionStart(charPos)
-					t.setSelectionEnd(charPos)
-					t.SetIsSelecting(false)
+					poos := clamp(charPos, 0, len(t.text))
+					// todo: clearSelection with param
+					t.selection.setSelectionStart(poos)
+					t.selection.setSelectionEnd(poos)
+
+					t.selection.SetIsSelecting(false)
 					t.SetIsDraggingThumb(false)
 				case 2:
 					// Double click
@@ -77,7 +83,7 @@ func (t *TextAreaSelection) Update() error {
 			} else {
 				// Clicked outside text area
 				t.hasFocus = false
-				t.SetIsSelecting(false)
+				t.selection.SetIsSelecting(false)
 			}
 		}
 	}
@@ -97,12 +103,15 @@ func (t *TextAreaSelection) Update() error {
 					// Prevent text selection when clicking on scrollbar
 				} else {
 					charPos := t.getCharPosFromPosition(x, y)
-					if !t.isSelecting {
+					if !t.selection.isSelecting {
 						// Start selection on first movement after click
-						t.SetIsSelecting(true)
-						t.setSelectionStart(t.cursorPos)
+						// ??? not using charPos
+						t.selection.SetIsSelecting(true)
+						poos := clamp(t.cursorPos, 0, len(t.text))
+						t.selection.setSelectionStart(poos)
 					}
-					t.setSelectionEnd(charPos)
+					poos := clamp(charPos, 0, len(t.text))
+					t.selection.setSelectionEnd(poos)
 					t.setCursorPos(charPos)
 				}
 			}
@@ -115,9 +124,9 @@ func (t *TextAreaSelection) Update() error {
 		if t.isDraggingThumb {
 			t.SetIsDraggingThumb(false)
 		}
-		if t.isSelecting && !t.isDraggingThumb {
+		if t.selection.isSelecting && !t.isDraggingThumb {
 			// Finalize selection on mouse release
-			t.SetIsSelecting(false)
+			t.selection.SetIsSelecting(false)
 		}
 		if t.doubleClickHandled {
 			// Reset the double click handled flag upon mouse release

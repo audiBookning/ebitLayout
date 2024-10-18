@@ -5,11 +5,11 @@ import (
 	"strings"
 )
 
-func (t *TextAreaSelection) isOverScrollbar(x, y int) bool {
+func (t *TextArea) isOverScrollbar(x, y int) bool {
 	return x >= t.scrollbarX && x <= t.scrollbarX+t.scrollbarWidth && y >= t.y && y <= t.y+t.h
 }
 
-func (t *TextAreaSelection) dragScrollbar(mouseY int) {
+func (t *TextArea) dragScrollbar(mouseY int) {
 	// Calculate the new thumb Y position relative to the scrollbar's track
 	newThumbY := float64(mouseY-t.scrollbarY) - t.dragOffsetY
 
@@ -37,7 +37,7 @@ func (t *TextAreaSelection) dragScrollbar(mouseY int) {
 	//fmt.Printf("Dragging Scrollbar: ThumbY=%.2f, ScrollOffset=%d\n", t.scrollbarThumbY, t.scrollOffset)
 }
 
-func (t *TextAreaSelection) selectWordAt(pos int) {
+func (t *TextArea) selectWordAt(pos int) {
 	if len(t.text) == 0 {
 		return
 	}
@@ -62,17 +62,19 @@ func (t *TextAreaSelection) selectWordAt(pos int) {
 		end++
 	}
 
-	t.setSelectionStart(start)
-	t.setSelectionEnd(end)
+	start = clamp(start, 0, len(t.text))
+	end = clamp(end, 0, len(t.text))
+	t.selection.setSelectionStart(start)
+	t.selection.setSelectionEnd(end)
 	t.setCursorPos(end)
 
-	t.SetIsSelecting(false)
+	t.selection.SetIsSelecting(false)
 
 	// Debugging statement to verify selection
 	fmt.Printf("Selected word from byte %d to byte %d: %q\n", start, end, t.text[start:end])
 }
 
-func (t *TextAreaSelection) selectEntireLineAt(x, y int) {
+func (t *TextArea) selectEntireLineAt(x, y int) {
 	charPos := t.getCharPosFromPosition(x, y)
 	line, _ := t.getCursorLineAndColForPos(charPos)
 	lines := t.cachedLines
@@ -82,18 +84,20 @@ func (t *TextAreaSelection) selectEntireLineAt(x, y int) {
 	}
 
 	// Calculate the start and end positions of the line
-	charStart := t.getCharPosFromLineAndCol(line, 0)
-	charEnd := t.getCharPosFromLineAndCol(line, len(lines[line]))
+	charStart := t.getCharPosFromLineAndColWithclamp(line, 0)
+	charEnd := t.getCharPosFromLineAndColWithclamp(line, len(lines[line]))
 
 	// Set the selection to the entire line
-	t.setSelectionStart(charStart)
-	t.setSelectionEnd(charEnd)
+
+	t.selection.setSelectionStart(charStart)
+	poos := clamp(charPos, 0, len(t.text))
+	t.selection.setSelectionEnd(poos)
 	t.setCursorPos(charEnd)
 
-	t.SetIsSelecting(false)
+	t.selection.SetIsSelecting(false)
 }
 
-func (t *TextAreaSelection) getCharPosFromPosition(x, y int) int {
+func (t *TextArea) getCharPosFromPosition(x, y int) int {
 	// Adjust the line calculation by adding the scrollOffset
 	line := float64(y-t.y-t.paddingTop)/t.lineHeight + float64(t.scrollOffset)
 	col := float64(x - t.x - t.paddingLeft)
@@ -140,7 +144,7 @@ func (t *TextAreaSelection) getCharPosFromPosition(x, y int) int {
 		colIndex = len(lineText)
 	}
 
-	charPos := t.getCharPosFromLineAndCol(lineInt, colIndex)
+	charPos := t.getCharPosFromLineAndColWithclamp(lineInt, colIndex)
 	fmt.Printf("Mouse click at (x=%d, y=%d) mapped to byte position %d\n", x, y, charPos)
 	return charPos
 }

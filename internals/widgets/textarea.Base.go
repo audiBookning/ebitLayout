@@ -21,15 +21,16 @@ type TextState struct {
 	CursorPos int
 }
 
-type TextAreaSelection struct {
-	textWrapper          *textwrapper.TextWrapper
-	text                 string
-	hasFocus             bool
-	cursorPos            int
-	counter              int
-	selectionStart       int
-	selectionEnd         int
-	isSelecting          bool
+type TextArea struct {
+	textWrapper *textwrapper.TextWrapper
+	text        string
+	selection   *SelectionBounds
+	hasFocus    bool
+	cursorPos   int
+	counter     int
+	//selectionStart       int
+	//selectionEnd         int
+	//isSelecting          bool
 	x, y, w, h           int
 	maxLines             int
 	cursorBlinkRate      int
@@ -61,10 +62,10 @@ type TextAreaSelection struct {
 	keyRepeatInitialDelay int
 	keyRepeatInterval     int
 	// performance
-	cachedLines     []string
-	isTextChanged   bool
-	minSelectionPos int
-	maxSelectionPos int
+	cachedLines   []string
+	isTextChanged bool
+	//minSelectionPos int
+	//maxSelectionPos int
 	// Minimum movement to consider as drag
 	paddingLeft   int
 	paddingTop    int
@@ -76,7 +77,7 @@ type TextAreaSelection struct {
 }
 
 // func NewTextAreaSelection(textWrapper *textwrapper02.TextWrapper, x, y, w, h int, startTxt string) *TextAreaSelection {
-func NewTextAreaSelection(textWrapper *textwrapper.TextWrapper, x, y, w, h int, startTxt string) *TextAreaSelection {
+func NewTextAreaSelection(textWrapper *textwrapper.TextWrapper, x, y, w, h int, startTxt string) *TextArea {
 	err := clipboard.Init()
 	if err != nil {
 		fmt.Println("Clipboard initialization failed:", err)
@@ -99,8 +100,9 @@ func NewTextAreaSelection(textWrapper *textwrapper.TextWrapper, x, y, w, h int, 
 	padding := 10
 	maxLines := int((h - 2*padding) / int(lineHeight))
 
-	return &TextAreaSelection{
+	return &TextArea{
 		textWrapper:          textWrapper,
+		selection:            NewSelectionBounds(),
 		x:                    x,
 		y:                    y,
 		w:                    w,

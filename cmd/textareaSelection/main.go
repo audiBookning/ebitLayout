@@ -23,7 +23,7 @@ const (
 )
 
 type Game struct {
-	textarea *widgets.TextAreaSelection
+	textarea *widgets.TextArea
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {

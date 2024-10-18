@@ -4,25 +4,26 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func (t *TextAreaSelection) isCtrlPressed() bool {
+func (t *TextArea) isCtrlPressed() bool {
 	return ebiten.IsKeyPressed(ebiten.KeyControlLeft) || ebiten.IsKeyPressed(ebiten.KeyControlRight)
 }
 
-func (t *TextAreaSelection) isShiftPressed() bool {
+func (t *TextArea) isShiftPressed() bool {
 	return ebiten.IsKeyPressed(ebiten.KeyShiftLeft) || ebiten.IsKeyPressed(ebiten.KeyShiftRight)
 }
 
-func (t *TextAreaSelection) getCharPosFromLineAndCol(line, col int) int {
+func (t *TextArea) getCharPosFromLineAndColWithclamp(line, col int) int {
 	lines := t.cachedLines
 	charPos := 0
 	for i := 0; i < line; i++ {
 		charPos += len(lines[i]) + 1
 	}
 	charPos += col
+	charPos = clamp(charPos, 0, len(t.text))
 	return charPos
 }
 
-func (t *TextAreaSelection) getCursorLineAndColForPos(pos int) (int, int) {
+func (t *TextArea) getCursorLineAndColForPos(pos int) (int, int) {
 	lines := t.cachedLines
 	charCount := 0
 	for i, line := range lines {
@@ -34,14 +35,12 @@ func (t *TextAreaSelection) getCursorLineAndColForPos(pos int) (int, int) {
 	return len(lines) - 1, len(lines[len(lines)-1])
 }
 
-func (t *TextAreaSelection) textWidth(str string) float64 {
-	//width, _ := t.textWrapper.MeasureText(str)
+func (t *TextArea) textWidth(str string) float64 {
 	width, _ := t.textWrapper.MeasureString(str)
-	//width := t.textWrapper.MeasureTextWidth(str)
 	return width
 }
 
-func (t *TextAreaSelection) moveToWordStart(pos int) int {
+func (t *TextArea) moveToWordStart(pos int) int {
 	if pos == 0 {
 		return pos
 	}
@@ -64,7 +63,7 @@ func (t *TextAreaSelection) moveToWordStart(pos int) int {
 	return pos
 }
 
-func (t *TextAreaSelection) moveToWordEnd(pos int) int {
+func (t *TextArea) moveToWordEnd(pos int) int {
 	textLen := len(t.text)
 	if pos >= textLen {
 		return pos
@@ -90,7 +89,7 @@ func (t *TextAreaSelection) moveToWordEnd(pos int) int {
 
 // ---------------------
 
-func (t *TextAreaSelection) pushUndo() {
+func (t *TextArea) pushUndo() {
 	state := TextState{
 		Text:      t.text,
 		CursorPos: t.cursorPos,
