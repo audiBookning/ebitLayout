@@ -8,6 +8,7 @@ import (
 	"example.com/menu/cmd02/more06/responsive"
 	"example.com/menu/cmd02/more06/textwrapper"
 	"example.com/menu/cmd02/more06/types"
+	"example.com/menu/cmd02/more06/widgets"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
@@ -15,7 +16,7 @@ import (
 type SinglePageBase struct {
 	ID            string
 	Label         string
-	Ui            *responsive.UI
+	Ui            *widgets.UI
 	PrevWidth     int
 	PrevHeight    int
 	Navigator     *navigator.Navigator
@@ -29,19 +30,19 @@ func NewSinglePageBase(nv *navigator.Navigator, textWrapper *textwrapper.TextWra
 	}
 
 	fields := []types.Element{
-		responsive.NewButton("Button 01", func() {
+		widgets.NewButton("Button 01", func() {
 			log.Println("Button 01 clicked")
 		}, textWrapper),
-		responsive.NewButton("Button 02", func() {
+		widgets.NewButton("Button 02", func() {
 			log.Println("Button 02 clicked")
 		}, textWrapper),
-		responsive.NewButton("Back", func() {
+		widgets.NewButton("Back", func() {
 			log.Println("Back clicked")
 			nv.SwitchTo("settings")
 		}, textWrapper),
 	}
 
-	ui := responsive.NewUI(label, breakpoints, fields, textWrapper, responsive.AlignCenter)
+	ui := widgets.NewUI(label, breakpoints, fields, textWrapper, responsive.AlignCenter)
 	ui.LayoutUpdate(screenWidth, screenHeight)
 
 	return &SinglePageBase{

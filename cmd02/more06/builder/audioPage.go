@@ -9,6 +9,7 @@ import (
 	"example.com/menu/cmd02/more06/responsive"
 	"example.com/menu/cmd02/more06/textwrapper"
 	"example.com/menu/cmd02/more06/types"
+	"example.com/menu/cmd02/more06/widgets"
 )
 
 type AudioPage struct {
@@ -22,19 +23,19 @@ func NewAudioPage(nv *navigator.Navigator, textWrapper *textwrapper.TextWrapper,
 	}
 
 	fields := []types.Element{
-		responsive.NewButton("Volume Up", func() {
+		widgets.NewButton("Volume Up", func() {
 			log.Println("Volume Up clicked")
 		}, textWrapper),
-		responsive.NewButton("Volume Down", func() {
+		widgets.NewButton("Volume Down", func() {
 			log.Println("Volume Down clicked")
 		}, textWrapper),
-		responsive.NewButton("Back", func() {
+		widgets.NewButton("Back", func() {
 			log.Println("Back clicked")
 			nv.SwitchTo("settings")
 		}, textWrapper),
 	}
 
-	ui := responsive.NewUI("Audio Settings", breakpoints, fields, textWrapper, responsive.AlignCenter)
+	ui := widgets.NewUI("Audio Settings", breakpoints, fields, textWrapper, responsive.AlignCenter)
 
 	ui.LayoutUpdate(screenWidth, screenHeight)
 

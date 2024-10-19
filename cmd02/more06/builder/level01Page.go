@@ -9,6 +9,7 @@ import (
 	"example.com/menu/cmd02/more06/responsive"
 	"example.com/menu/cmd02/more06/textwrapper"
 	"example.com/menu/cmd02/more06/types"
+	"example.com/menu/cmd02/more06/widgets"
 )
 
 type Level01Page struct {
@@ -21,16 +22,16 @@ func NewLevel01Page(subNav *navigator.Navigator, textWrapper *textwrapper.TextWr
 		{Width: 0, LayoutMode: responsive.LayoutHorizontal},
 	}
 	fields := []types.Element{
-		responsive.NewButton("Play", func() {
+		widgets.NewButton("Play", func() {
 			log.Println("Play Level 01")
 
 		}, textWrapper),
-		responsive.NewButton("Back to Start", func() {
+		widgets.NewButton("Back to Start", func() {
 			log.Println("Back to Start")
 			subNav.SwitchTo("start")
 		}, textWrapper),
 	}
-	ui := responsive.NewUI(label, breakpoints, fields, textWrapper, responsive.AlignCenter)
+	ui := widgets.NewUI(label, breakpoints, fields, textWrapper, responsive.AlignCenter)
 	ui.LayoutUpdate(screenWidth, screenHeight)
 	page := &pagemodel.SinglePageBase{
 		ID:            id,

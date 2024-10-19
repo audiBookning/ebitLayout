@@ -9,6 +9,7 @@ import (
 	"example.com/menu/cmd02/more06/responsive"
 	"example.com/menu/cmd02/more06/textwrapper"
 	"example.com/menu/cmd02/more06/types"
+	"example.com/menu/cmd02/more06/widgets"
 )
 
 type SettingsPage struct {
@@ -22,21 +23,21 @@ func NewSettingsPage(nv *navigator.Navigator, textWrapper *textwrapper.TextWrapp
 	}
 
 	fields := []types.Element{
-		responsive.NewButton("Audio", func() {
+		widgets.NewButton("Audio", func() {
 			log.Println("Audio clicked")
 			nv.SwitchTo("audio")
 		}, textWrapper),
-		responsive.NewButton("Graphics", func() {
+		widgets.NewButton("Graphics", func() {
 			log.Println("Graphics clicked")
 			nv.SwitchTo("graphics")
 		}, textWrapper),
-		responsive.NewButton("Back", func() {
+		widgets.NewButton("Back", func() {
 			log.Println("Back clicked")
 			nv.SwitchTo("main")
 		}, textWrapper),
 	}
 
-	ui := responsive.NewUI("Settings", breakpoints, fields, textWrapper, responsive.AlignCenter)
+	ui := widgets.NewUI("Settings", breakpoints, fields, textWrapper, responsive.AlignCenter)
 
 	ui.LayoutUpdate(screenWidth, screenHeight)
 

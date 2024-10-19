@@ -1,9 +1,10 @@
-package responsive
+package widgets
 
 import (
 	"fmt"
 	"sync"
 
+	"example.com/menu/cmd02/more06/responsive"
 	"example.com/menu/cmd02/more06/textwrapper"
 	"example.com/menu/cmd02/more06/types"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -12,14 +13,20 @@ import (
 type UI struct {
 	Title       *Title
 	Fields      []types.Element
-	manager     *LayoutManager
+	manager     *responsive.LayoutManager
 	elementsIds []string
 	mutex       sync.RWMutex
 	TextWrapper *textwrapper.TextWrapper
-	Alignment   Alignment
+	Alignment   responsive.Alignment
 }
 
-func NewUI(titleText string, breakpoints []Breakpoint, fields []types.Element, tw *textwrapper.TextWrapper, alignment Alignment) *UI {
+func NewUI(
+	titleText string,
+	breakpoints []responsive.Breakpoint,
+	fields []types.Element,
+	tw *textwrapper.TextWrapper,
+	alignment responsive.Alignment,
+) *UI {
 	elements := make([]string, len(fields))
 	for i := range fields {
 		elements[i] = fmt.Sprintf("field%d", i+1)
@@ -28,7 +35,7 @@ func NewUI(titleText string, breakpoints []Breakpoint, fields []types.Element, t
 	return &UI{
 		Title:       NewTitle(titleText, tw),
 		Fields:      fields,
-		manager:     NewLayoutManager(breakpoints),
+		manager:     responsive.NewLayoutManager(breakpoints),
 		elementsIds: elements,
 		TextWrapper: tw,
 		Alignment:   alignment,

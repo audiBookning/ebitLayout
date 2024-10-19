@@ -9,6 +9,7 @@ import (
 	"example.com/menu/cmd02/more06/responsive"
 	"example.com/menu/cmd02/more06/textwrapper"
 	"example.com/menu/cmd02/more06/types"
+	"example.com/menu/cmd02/more06/widgets"
 )
 
 type MainMenuPage struct {
@@ -23,21 +24,21 @@ func NewMainMenuPage(nv *navigator.Navigator, textWrapper *textwrapper.TextWrapp
 	}
 
 	fields := []types.Element{
-		responsive.NewButton("Start Game", func() {
+		widgets.NewButton("Start Game", func() {
 			log.Println("Start Game clicked")
 			nv.SwitchTo("start")
 		}, textWrapper),
-		responsive.NewButton("Settings", func() {
+		widgets.NewButton("Settings", func() {
 			log.Println("Settings clicked")
 			nv.SwitchTo("settings")
 		}, textWrapper),
-		responsive.NewButton("Exit", func() {
+		widgets.NewButton("Exit", func() {
 			log.Println("Exit clicked")
 			nv.SwitchTo("exit")
 		}, textWrapper),
 	}
 
-	ui := responsive.NewUI("Main Menu", breakpoints, fields, textWrapper, responsive.AlignCenter)
+	ui := widgets.NewUI("Main Menu", breakpoints, fields, textWrapper, responsive.AlignCenter)
 
 	ui.LayoutUpdate(screenWidth, screenHeight)
 

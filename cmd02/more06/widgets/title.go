@@ -1,4 +1,4 @@
-package responsive
+package widgets
 
 import (
 	"example.com/menu/cmd02/more06/textwrapper"

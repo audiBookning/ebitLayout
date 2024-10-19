@@ -1,4 +1,4 @@
-package responsive
+package widgets
 
 import (
 	"image/color"

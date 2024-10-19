@@ -9,6 +9,7 @@ import (
 	"example.com/menu/cmd02/more06/responsive"
 	"example.com/menu/cmd02/more06/textwrapper"
 	"example.com/menu/cmd02/more06/types"
+	"example.com/menu/cmd02/more06/widgets"
 )
 
 type GraphicsPage struct {
@@ -22,21 +23,21 @@ func NewGraphicsPage(nv *navigator.Navigator, textWrapper *textwrapper.TextWrapp
 	}
 
 	fields := []types.Element{
-		responsive.NewButton("Resolution", func() {
+		widgets.NewButton("Resolution", func() {
 			log.Println("Resolution clicked")
 
 		}, textWrapper),
-		responsive.NewButton("Fullscreen", func() {
+		widgets.NewButton("Fullscreen", func() {
 			log.Println("Fullscreen clicked")
 
 		}, textWrapper),
-		responsive.NewButton("Back", func() {
+		widgets.NewButton("Back", func() {
 			log.Println("Back clicked")
 			nv.SwitchTo("settings")
 		}, textWrapper),
 	}
 
-	ui := responsive.NewUI("Graphics Settings", breakpoints, fields, textWrapper, responsive.AlignCenter)
+	ui := widgets.NewUI("Graphics Settings", breakpoints, fields, textWrapper, responsive.AlignCenter)
 
 	ui.LayoutUpdate(screenWidth, screenHeight)
 

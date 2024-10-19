@@ -8,6 +8,7 @@ import (
 	"example.com/menu/cmd02/more06/responsive"
 	"example.com/menu/cmd02/more06/textwrapper"
 	"example.com/menu/cmd02/more06/types"
+	"example.com/menu/cmd02/more06/widgets"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
@@ -15,8 +16,8 @@ import (
 type SidebarPageBase struct {
 	ID            string
 	Label         string
-	MainUI        *responsive.UI
-	SidebarUI     *responsive.UI
+	MainUI        *widgets.UI
+	SidebarUI     *widgets.UI
 	SubNavigator  *navigator.Navigator
 	PrevWidth     int
 	PrevHeight    int
@@ -43,18 +44,18 @@ func NewSidebarPageBase(mainNav *navigator.Navigator, textWrapper *textwrapper.T
 		{Width: 0, LayoutMode: responsive.LayoutHorizontal},
 	}
 	mainFields := []types.Element{}
-	mainUI := responsive.NewUI(label, mainBreakpoints, mainFields, textWrapper, responsive.AlignCenter)
+	mainUI := widgets.NewUI(label, mainBreakpoints, mainFields, textWrapper, responsive.AlignCenter)
 
 	sidebarBreakpoints := []responsive.Breakpoint{
 		{Width: 0, LayoutMode: responsive.LayoutVertical},
 	}
 	sidebarFields := []types.Element{
-		responsive.NewButton("Sub 1", func() { subNav.SwitchTo("sub01") }, textWrapper),
-		responsive.NewButton("Sub 2", func() { subNav.SwitchTo("sub02") }, textWrapper),
-		responsive.NewButton("Back", func() { mainNav.SwitchTo("main") }, textWrapper),
+		widgets.NewButton("Sub 1", func() { subNav.SwitchTo("sub01") }, textWrapper),
+		widgets.NewButton("Sub 2", func() { subNav.SwitchTo("sub02") }, textWrapper),
+		widgets.NewButton("Back", func() { mainNav.SwitchTo("main") }, textWrapper),
 	}
 
-	sidebarUI := responsive.NewUI("Sidebar Menu", sidebarBreakpoints, sidebarFields, textWrapper, responsive.AlignCenter)
+	sidebarUI := widgets.NewUI("Sidebar Menu", sidebarBreakpoints, sidebarFields, textWrapper, responsive.AlignCenter)
 
 	const sidebarFixedWidth = 200
 	mainUI.LayoutUpdate(screenWidth-sidebarFixedWidth, screenHeight)

@@ -8,13 +8,20 @@ import (
 	"example.com/menu/cmd02/more06/responsive"
 	"example.com/menu/cmd02/more06/textwrapper"
 	"example.com/menu/cmd02/more06/types"
+	"example.com/menu/cmd02/more06/widgets"
 )
 
 type PlayGamePage struct {
 	*pagemodel.SidebarPageBase
 }
 
-func NewLevelGamePage(mainNav *navigator.Navigator, textWrapper *textwrapper.TextWrapper, screenWidth, screenHeight int, id string, label string) *PlayGamePage {
+func NewLevelGamePage(
+	mainNav *navigator.Navigator,
+	textWrapper *textwrapper.TextWrapper,
+	screenWidth, screenHeight int,
+	id string,
+	label string,
+) *PlayGamePage {
 
 	subNav := navigator.NewNavigator(nil)
 
@@ -32,17 +39,17 @@ func NewLevelGamePage(mainNav *navigator.Navigator, textWrapper *textwrapper.Tex
 		{Width: 0, LayoutMode: responsive.LayoutHorizontal},
 	}
 	mainFields := []types.Element{}
-	mainUI := responsive.NewUI(label, mainBreakpoints, mainFields, textWrapper, responsive.AlignCenter)
+	mainUI := widgets.NewUI(label, mainBreakpoints, mainFields, textWrapper, responsive.AlignCenter)
 
 	sidebarBreakpoints := []responsive.Breakpoint{
 		{Width: 0, LayoutMode: responsive.LayoutVertical},
 	}
 	sidebarFields := []types.Element{
-		responsive.NewButton("Level 1", func() { subNav.SwitchTo("level01") }, textWrapper),
-		responsive.NewButton("Level 2", func() { subNav.SwitchTo("level02") }, textWrapper),
-		responsive.NewButton("Back", func() { mainNav.SwitchTo("main") }, textWrapper),
+		widgets.NewButton("Level 1", func() { subNav.SwitchTo("level01") }, textWrapper),
+		widgets.NewButton("Level 2", func() { subNav.SwitchTo("level02") }, textWrapper),
+		widgets.NewButton("Back", func() { mainNav.SwitchTo("main") }, textWrapper),
 	}
-	sidebarUI := responsive.NewUI("Menu", sidebarBreakpoints, sidebarFields, textWrapper, responsive.AlignCenter)
+	sidebarUI := widgets.NewUI("Menu", sidebarBreakpoints, sidebarFields, textWrapper, responsive.AlignCenter)
 
 	const sidebarFixedWidth = 200
 	mainUI.LayoutUpdate(screenWidth-sidebarFixedWidth, screenHeight)
