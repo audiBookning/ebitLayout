@@ -4,7 +4,7 @@ import (
 	"image/color"
 	"log"
 
-	"example.com/menu/cmd/responsive05/responsive"
+	"example.com/menu/cmd/responsive04/responsive"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 

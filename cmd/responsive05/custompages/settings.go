@@ -1,15 +1,16 @@
-package pages
+package custompages
 
 import (
 	"image/color"
 	"log"
 
 	"example.com/menu/cmd/responsive05/responsive"
+	"example.com/menu/cmd/responsive05/widgets"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type SettingsPage struct {
-	ui         *responsive.UI
+	ui         *widgets.UI
 	manager    *responsive.LayoutManager
 	prevWidth  int
 	prevHeight int
@@ -21,22 +22,22 @@ func NewSettingsPage(switchPage func(pageName string)) *SettingsPage {
 		{Width: 600, LayoutMode: responsive.LayoutHorizontal},
 	}
 
-	buttons := []*responsive.Button{
-		responsive.NewButton("Audio", func() {
+	buttons := []*widgets.Button{
+		widgets.NewButton("Audio", func() {
 			log.Println("Audio clicked")
 			switchPage("audio")
 		}),
-		responsive.NewButton("Graphics", func() {
+		widgets.NewButton("Graphics", func() {
 			log.Println("Graphics clicked")
 			switchPage("graphics")
 		}),
-		responsive.NewButton("Back", func() {
+		widgets.NewButton("Back", func() {
 			log.Println("Back clicked")
 			switchPage("main")
 		}),
 	}
 
-	ui := responsive.NewUI("Settings", breakpoints, buttons)
+	ui := widgets.NewUI("Settings", breakpoints, buttons)
 
 	screenWidth, screenHeight := 800, 600
 	ui.Update(screenWidth, screenHeight)

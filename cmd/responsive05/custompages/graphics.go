@@ -1,52 +1,53 @@
-package pages
+package custompages
 
 import (
 	"image/color"
 	"log"
 
 	"example.com/menu/cmd/responsive05/responsive"
+	"example.com/menu/cmd/responsive05/widgets"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type AudioPage struct {
-	ui         *responsive.UI
+type GraphicsPage struct {
+	ui         *widgets.UI
 	manager    *responsive.LayoutManager
 	prevWidth  int
 	prevHeight int
 }
 
-func NewAudioPage(switchPage func(pageName string)) *AudioPage {
+func NewGraphicsPage(switchPage func(pageName string)) *GraphicsPage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1000, LayoutMode: responsive.LayoutVertical},
 		{Width: 600, LayoutMode: responsive.LayoutHorizontal},
 	}
 
-	buttons := []*responsive.Button{
-		responsive.NewButton("Volume Up", func() { log.Println("Volume Up clicked") }),
-		responsive.NewButton("Volume Down", func() { log.Println("Volume Down clicked") }),
-		responsive.NewButton("Back", func() {
+	buttons := []*widgets.Button{
+		widgets.NewButton("Resolution", func() { log.Println("Resolution clicked") /* Add Resolution logic */ }),
+		widgets.NewButton("Fullscreen", func() { log.Println("Fullscreen clicked") /* Add Fullscreen logic */ }),
+		widgets.NewButton("Back", func() {
 			log.Println("Back clicked")
 			switchPage("settings")
 		}),
 	}
 
-	ui := responsive.NewUI("Audio Settings", breakpoints, buttons)
+	ui := widgets.NewUI("Graphics Settings", breakpoints, buttons)
 
 	screenWidth, screenHeight := 800, 600
 	ui.Update(screenWidth, screenHeight)
 
-	return &AudioPage{
+	return &GraphicsPage{
 		ui:         ui,
 		prevWidth:  screenWidth,
 		prevHeight: screenHeight,
 	}
 }
 
-func (p *AudioPage) Update() error {
+func (p *GraphicsPage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
 	if screenWidth != p.prevWidth || screenHeight != p.prevHeight {
-		log.Printf("AudioPage: Window resized to %dx%d\n", screenWidth, screenHeight)
+		log.Printf("GraphicsPage: Window resized to %dx%d\n", screenWidth, screenHeight)
 		p.prevWidth = screenWidth
 		p.prevHeight = screenHeight
 	}
@@ -61,11 +62,11 @@ func (p *AudioPage) Update() error {
 	return nil
 }
 
-func (p *AudioPage) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x4E, 0x4E, 0x4E, 0xFF})
+func (p *GraphicsPage) Draw(screen *ebiten.Image) {
+	screen.Fill(color.RGBA{0x5E, 0x5E, 0x5E, 0xFF})
 	p.ui.Draw(screen)
 }
 
-func (p *AudioPage) HandleInput(x, y int) {
+func (p *GraphicsPage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }

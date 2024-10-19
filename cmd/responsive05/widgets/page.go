@@ -1,4 +1,4 @@
-package pages
+package widgets
 
 import (
 	"image/color"
@@ -8,45 +8,43 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type StartGamePage struct {
-	ui         *responsive.UI
+type MainMenuPage struct {
+	ui         *UI
 	manager    *responsive.LayoutManager
 	prevWidth  int
 	prevHeight int
 }
 
-func NewStartGamePage(switchPage func(pageName string)) *StartGamePage {
+func NewMainMenuPage() *MainMenuPage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1200, LayoutMode: responsive.LayoutGrid},
 		{Width: 800, LayoutMode: responsive.LayoutVertical},
 		{Width: 0, LayoutMode: responsive.LayoutHorizontal},
 	}
 
-	buttons := []*responsive.Button{
-		responsive.NewButton("Play", func() { log.Println("Play clicked") /* Add Play logic here */ }),
-		responsive.NewButton("Back", func() {
-			log.Println("Back clicked")
-			switchPage("main")
-		}),
+	buttons := []*Button{
+		NewButton("Start Game", func() { log.Println("Start Game clicked") }),
+		NewButton("Settings", func() { log.Println("Settings clicked") }),
+		NewButton("Exit", func() { log.Println("Exit clicked") }),
 	}
 
-	ui := responsive.NewUI("Start Game", breakpoints, buttons)
+	ui := NewUI("Main Menu", breakpoints, buttons)
 
 	screenWidth, screenHeight := 800, 600
 	ui.Update(screenWidth, screenHeight)
 
-	return &StartGamePage{
+	return &MainMenuPage{
 		ui:         ui,
 		prevWidth:  screenWidth,
 		prevHeight: screenHeight,
 	}
 }
 
-func (p *StartGamePage) Update() error {
+func (p *MainMenuPage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
 	if screenWidth != p.prevWidth || screenHeight != p.prevHeight {
-		log.Printf("StartGamePage: Window resized to %dx%d\n", screenWidth, screenHeight)
+		log.Printf("MainMenuPage: Window resized to %dx%d\n", screenWidth, screenHeight)
 		p.prevWidth = screenWidth
 		p.prevHeight = screenHeight
 	}
@@ -61,11 +59,11 @@ func (p *StartGamePage) Update() error {
 	return nil
 }
 
-func (p *StartGamePage) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x3E, 0x3E, 0x3E, 0xFF})
+func (p *MainMenuPage) Draw(screen *ebiten.Image) {
+	screen.Fill(color.RGBA{0x2E, 0x2E, 0x2E, 0xFF})
 	p.ui.Draw(screen)
 }
 
-func (p *StartGamePage) HandleInput(x, y int) {
+func (p *MainMenuPage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }

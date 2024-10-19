@@ -1,33 +1,44 @@
-package responsive
+package custompages
 
 import (
 	"image/color"
 	"log"
 
+	"example.com/menu/cmd/responsive05/responsive"
+	"example.com/menu/cmd/responsive05/widgets"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type MainMenuPage struct {
-	ui         *UI
-	manager    *LayoutManager
+	ui         *widgets.UI
+	manager    *responsive.LayoutManager
 	prevWidth  int
 	prevHeight int
 }
 
-func NewMainMenuPage() *MainMenuPage {
-	breakpoints := []Breakpoint{
-		{Width: 1200, LayoutMode: LayoutGrid},
-		{Width: 800, LayoutMode: LayoutVertical},
-		{Width: 0, LayoutMode: LayoutHorizontal},
+func NewMainMenuPage(switchPage func(pageName string)) *MainMenuPage {
+	breakpoints := []responsive.Breakpoint{
+		{Width: 1200, LayoutMode: responsive.LayoutGrid},
+		{Width: 800, LayoutMode: responsive.LayoutVertical},
+		{Width: 0, LayoutMode: responsive.LayoutHorizontal},
 	}
 
-	buttons := []*Button{
-		NewButton("Start Game", func() { log.Println("Start Game clicked") }),
-		NewButton("Settings", func() { log.Println("Settings clicked") }),
-		NewButton("Exit", func() { log.Println("Exit clicked") }),
+	buttons := []*widgets.Button{
+		widgets.NewButton("Start Game", func() {
+			log.Println("Start Game clicked")
+			switchPage("start")
+		}),
+		widgets.NewButton("Settings", func() {
+			log.Println("Settings clicked")
+			switchPage("settings")
+		}),
+		widgets.NewButton("Exit", func() {
+			log.Println("Exit clicked")
+			switchPage("exit")
+		}),
 	}
 
-	ui := NewUI("Main Menu", breakpoints, buttons)
+	ui := widgets.NewUI("Main Menu", breakpoints, buttons)
 
 	screenWidth, screenHeight := 800, 600
 	ui.Update(screenWidth, screenHeight)

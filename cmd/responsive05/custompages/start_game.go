@@ -1,59 +1,53 @@
-package pages
+package custompages
 
 import (
 	"image/color"
 	"log"
 
 	"example.com/menu/cmd/responsive05/responsive"
+	"example.com/menu/cmd/responsive05/widgets"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type MainMenuPage struct {
-	ui         *responsive.UI
+type StartGamePage struct {
+	ui         *widgets.UI
 	manager    *responsive.LayoutManager
 	prevWidth  int
 	prevHeight int
 }
 
-func NewMainMenuPage(switchPage func(pageName string)) *MainMenuPage {
+func NewStartGamePage(switchPage func(pageName string)) *StartGamePage {
 	breakpoints := []responsive.Breakpoint{
 		{Width: 1200, LayoutMode: responsive.LayoutGrid},
 		{Width: 800, LayoutMode: responsive.LayoutVertical},
 		{Width: 0, LayoutMode: responsive.LayoutHorizontal},
 	}
 
-	buttons := []*responsive.Button{
-		responsive.NewButton("Start Game", func() {
-			log.Println("Start Game clicked")
-			switchPage("start")
-		}),
-		responsive.NewButton("Settings", func() {
-			log.Println("Settings clicked")
-			switchPage("settings")
-		}),
-		responsive.NewButton("Exit", func() {
-			log.Println("Exit clicked")
-			switchPage("exit")
+	buttons := []*widgets.Button{
+		widgets.NewButton("Play", func() { log.Println("Play clicked") /* Add Play logic here */ }),
+		widgets.NewButton("Back", func() {
+			log.Println("Back clicked")
+			switchPage("main")
 		}),
 	}
 
-	ui := responsive.NewUI("Main Menu", breakpoints, buttons)
+	ui := widgets.NewUI("Start Game", breakpoints, buttons)
 
 	screenWidth, screenHeight := 800, 600
 	ui.Update(screenWidth, screenHeight)
 
-	return &MainMenuPage{
+	return &StartGamePage{
 		ui:         ui,
 		prevWidth:  screenWidth,
 		prevHeight: screenHeight,
 	}
 }
 
-func (p *MainMenuPage) Update() error {
+func (p *StartGamePage) Update() error {
 	screenWidth, screenHeight := ebiten.WindowSize()
 
 	if screenWidth != p.prevWidth || screenHeight != p.prevHeight {
-		log.Printf("MainMenuPage: Window resized to %dx%d\n", screenWidth, screenHeight)
+		log.Printf("StartGamePage: Window resized to %dx%d\n", screenWidth, screenHeight)
 		p.prevWidth = screenWidth
 		p.prevHeight = screenHeight
 	}
@@ -68,11 +62,11 @@ func (p *MainMenuPage) Update() error {
 	return nil
 }
 
-func (p *MainMenuPage) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0x2E, 0x2E, 0x2E, 0xFF})
+func (p *StartGamePage) Draw(screen *ebiten.Image) {
+	screen.Fill(color.RGBA{0x3E, 0x3E, 0x3E, 0xFF})
 	p.ui.Draw(screen)
 }
 
-func (p *MainMenuPage) HandleInput(x, y int) {
+func (p *StartGamePage) HandleInput(x, y int) {
 	p.ui.HandleClick(x, y)
 }

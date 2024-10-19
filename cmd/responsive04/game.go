@@ -6,7 +6,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 
-	"example.com/menu/cmd/responsive05/pages"
+	"example.com/menu/cmd/responsive04/pages"
 )
 
 type Game struct {

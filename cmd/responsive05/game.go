@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"log"
 
-	"example.com/menu/cmd/responsive05/pages"
+	"example.com/menu/cmd/responsive05/custompages"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -34,11 +34,11 @@ func NewGame() *Game {
 		}
 	}
 
-	mainMenu := pages.NewMainMenuPage(switchPage)
-	settings := pages.NewSettingsPage(switchPage)
-	startGame := pages.NewStartGamePage(switchPage)
-	audio := pages.NewAudioPage(switchPage)
-	graphics := pages.NewGraphicsPage(switchPage)
+	mainMenu := custompages.NewMainMenuPage(switchPage)
+	settings := custompages.NewSettingsPage(switchPage)
+	startGame := custompages.NewStartGamePage(switchPage)
+	audio := custompages.NewAudioPage(switchPage)
+	graphics := custompages.NewGraphicsPage(switchPage)
 
 	g.pages["main"] = mainMenu
 	g.pages["settings"] = settings
