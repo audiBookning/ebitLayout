@@ -42,7 +42,7 @@ func NewSinglePageBase(nv *navigator.Navigator, textWrapper *textwrapper.TextWra
 	}
 
 	ui := responsive.NewUI(label, breakpoints, fields, textWrapper, responsive.AlignCenter)
-	ui.Update(screenWidth, screenHeight)
+	ui.LayoutUpdate(screenWidth, screenHeight)
 
 	return &SinglePageBase{
 		ID:            id,
@@ -60,7 +60,7 @@ func (p *SinglePageBase) Layout(outsideWidth, outsideHeight int) (int, int) {
 		log.Printf("SinglePageBase: Window resized to %dx%d\n", outsideWidth, outsideHeight)
 		p.PrevWidth = outsideWidth
 		p.PrevHeight = outsideHeight
-		p.Ui.Update(p.PrevWidth, p.PrevHeight)
+		p.Ui.LayoutUpdate(p.PrevWidth, p.PrevHeight)
 	}
 	return outsideWidth, outsideHeight
 }

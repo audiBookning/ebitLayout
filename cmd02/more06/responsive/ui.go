@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	"example.com/menu/cmd02/more05/textwrapper"
-	"example.com/menu/cmd02/more05/types"
+	"example.com/menu/cmd02/more06/textwrapper"
+	"example.com/menu/cmd02/more06/types"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 

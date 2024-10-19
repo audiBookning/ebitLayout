@@ -4,11 +4,11 @@ import (
 	"image/color"
 	"log"
 
-	"example.com/menu/cmd02/more05/navigator"
-	"example.com/menu/cmd02/more05/pagemodel"
-	"example.com/menu/cmd02/more05/responsive"
-	"example.com/menu/cmd02/more05/textwrapper"
-	"example.com/menu/cmd02/more05/types"
+	"example.com/menu/cmd02/more06/navigator"
+	"example.com/menu/cmd02/more06/pagemodel"
+	"example.com/menu/cmd02/more06/responsive"
+	"example.com/menu/cmd02/more06/textwrapper"
+	"example.com/menu/cmd02/more06/types"
 )
 
 type GraphicsPage struct {

@@ -29,7 +29,7 @@ func NewLevel02Page(subNav *navigator.Navigator, textWrapper *textwrapper.TextWr
 		}, textWrapper),
 	}
 	ui := responsive.NewUI(label, breakpoints, fields, textWrapper, responsive.AlignCenter)
-	ui.Update(screenWidth, screenHeight)
+	ui.LayoutUpdate(screenWidth, screenHeight)
 	page := &pagemodel.SinglePageBase{
 		ID:            id,
 		Label:         label,
